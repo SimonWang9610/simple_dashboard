@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/src/models/item_flex.dart';
 import 'package:simple_dashboard/src/utils/extensions.dart';
 
@@ -34,20 +35,43 @@ class ItemCoordinate extends Equatable {
     );
   }
 
+  bool isBefore(ItemCoordinate other, Axis axis) {
+    switch (axis) {
+      case Axis.horizontal:
+        if (y < other.y) {
+          return true;
+        } else if (y == other.y) {
+          return x < other.x;
+        } else {
+          return false;
+        }
+      case Axis.vertical:
+        if (x < other.x) {
+          return true;
+        } else if (x == other.x) {
+          return y < other.y;
+        } else {
+          return false;
+        }
+    }
+  }
+
   @override
   List<Object?> get props => [x, y];
 }
 
 class ItemRect extends Equatable {
-  final ItemCoordinate coordinate;
+  final ItemCoordinate origin;
   final ItemFlex flexes;
 
-  const ItemRect(this.coordinate, this.flexes);
+  const ItemRect(this.origin, this.flexes);
 
-  int get left => coordinate.x;
-  int get right => coordinate.x + flexes.horizontal;
-  int get top => coordinate.y;
-  int get bottom => coordinate.y + flexes.vertical;
+  int get left => origin.x;
+  int get right => origin.x + flexes.horizontal;
+  int get top => origin.y;
+  int get bottom => origin.y + flexes.vertical;
+
+  ItemCoordinate get bottomRight => ItemCoordinate(right, bottom);
 
   ItemRect move({
     int? x,
@@ -56,7 +80,7 @@ class ItemRect extends Equatable {
     int? maxY,
   }) {
     return ItemRect(
-      coordinate.move(
+      origin.move(
         x: x,
         y: y,
         maxX: maxX,
@@ -72,7 +96,7 @@ class ItemRect extends Equatable {
     int? vStep,
   }) {
     return ItemRect(
-      coordinate,
+      origin,
       range.resize(
         flexes,
         hStep: hStep,
@@ -96,5 +120,5 @@ class ItemRect extends Equatable {
   }
 
   @override
-  List<Object?> get props => [coordinate, flexes];
+  List<Object?> get props => [origin, flexes];
 }

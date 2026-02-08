@@ -28,4 +28,27 @@ class DashboardAssertion {
 
     return true;
   }
+
+  static bool assertRectsOrdered(List<ItemRect> rects, Axis axis) {
+    assert(() {
+      for (int i = 0; i < rects.length - 1; i++) {
+        final current = rects[i];
+        final next = rects[i + 1];
+
+        if (axis == Axis.horizontal) {
+          if (next.left > current.right) {
+            return false;
+          }
+        } else {
+          if (next.top > current.bottom) {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    }(), "All item rects must be ordered by their top and left coordinates.");
+
+    return true;
+  }
 }
