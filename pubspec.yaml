@@ -11,6 +11,9 @@ dependencies:
   flutter:
     sdk: flutter
 
+  equatable: ^2.0.8
+  collection: ^1.19.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
