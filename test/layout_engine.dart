@@ -177,6 +177,37 @@ void main() {
       expect(adopted, expectRect);
       expect(index, 4);
     });
+
+    test("[h] fill the wrapped hole", () {
+      final axis = Axis.horizontal;
+      final maxMainAxisFlex = 4;
+
+      // Existing layout: [ (0,0, 1x1), (2,0, 1x1), (4,0, 2x1) ]
+      final rects = [
+        ItemRect(const ItemCoordinate(0, 0), const ItemFlex(1, 1)),
+        ItemRect(const ItemCoordinate(1, 0), const ItemFlex(3, 1)),
+        ItemRect(const ItemCoordinate(0, 1), const ItemFlex(1, 2)),
+        ItemRect(const ItemCoordinate(2, 1), const ItemFlex(2, 1)),
+        ItemRect(const ItemCoordinate(1, 2), const ItemFlex(2, 1)),
+      ];
+
+      final flexToAdopt = const ItemFlex(1, 1);
+
+      final (index, adopted) = DashboardLayoutEngine.adoptRect(
+        rects,
+        flexToAdopt,
+        axis,
+        maxMainAxisFlex,
+      );
+
+      final expectRect = ItemRect(
+        const ItemCoordinate(1, 1),
+        const ItemFlex(1, 1),
+      );
+
+      expect(adopted, expectRect);
+      expect(index, 3);
+    });
   });
 
   group("adoptRect (vertical)", () {
@@ -350,6 +381,37 @@ void main() {
 
       expect(adopted, expectRect);
       expect(index, 4);
+    });
+
+    test("[v] fill the wrapped hole", () {
+      final axis = Axis.vertical;
+      final maxMainAxisFlex = 4;
+
+      // Existing layout: [ (0,0, 1x1), (0,1, 3x1), (0,2, 1x2), (2,1, 2x1), (1,2, 2x1) ]
+      final rects = [
+        ItemRect(const ItemCoordinate(0, 0), const ItemFlex(1, 1)),
+        ItemRect(const ItemCoordinate(0, 1), const ItemFlex(1, 3)),
+        ItemRect(const ItemCoordinate(1, 0), const ItemFlex(1, 2)),
+        ItemRect(const ItemCoordinate(1, 3), const ItemFlex(1, 1)),
+        ItemRect(const ItemCoordinate(2, 0), const ItemFlex(1, 3)),
+      ];
+
+      final flexToAdopt = const ItemFlex(1, 1);
+
+      final (index, adopted) = DashboardLayoutEngine.adoptRect(
+        rects,
+        flexToAdopt,
+        axis,
+        maxMainAxisFlex,
+      );
+
+      final expectRect = ItemRect(
+        const ItemCoordinate(1, 2),
+        const ItemFlex(1, 1),
+      );
+
+      expect(adopted, expectRect);
+      expect(index, 3);
     });
   });
 }

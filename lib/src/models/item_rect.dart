@@ -35,6 +35,13 @@ class ItemCoordinate extends Equatable {
     );
   }
 
+  /// [Axis.horizontal]:
+  ///   A B C
+  ///   D E F
+  /// [Axis.vertical]:
+  ///  A D
+  ///  B E
+  ///  C F
   bool isBefore(ItemCoordinate other, Axis axis) {
     switch (axis) {
       case Axis.horizontal:
