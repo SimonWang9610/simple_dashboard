@@ -65,11 +65,18 @@ class DashboardLayoutEngine {
           flex,
         );
 
+        /// we must check all rects in the layout to find any possible overlap with the candidate rect,
+        /// as some rect may have large flexes along the cross axis and thus overlap with the candidate rect
+        /// even if their origins are far apart on the main axis.
         final overlapped = rects.firstWhereOrNull(
           (rect) => rect.isOverlapped(candidate),
         );
 
         if (overlapped == null) {
+          /// there is no overlap with existing rects,
+          /// we can place the candidate rect at the current position.
+          /// so we just find the correct index to insert the candidate rect
+          /// while keeping the rects ordered by their top and left coordinates.
           final index = rects.indexWhere(
             (rect) => candidate.origin.isBefore(rect.origin, axis),
           );
@@ -121,50 +128,39 @@ class DashboardLayoutEngine {
       "All item rects must not be overlapped.",
     );
 
-    final beforeRects = [...rects.getRange(0, index)];
+    final results = [...rects.getRange(0, index)];
     final afterRects = [...rects.getRange(index, rects.length)];
 
-    ItemRect last = appendAtEnd(beforeRects, flex, axis, mainAxisMaxFlex);
+    ItemRect last = appendAtEnd(results, flex, axis, mainAxisMaxFlex);
 
-    while (afterRects.isNotEmpty) {
-      final overlappedIndex = firstOverlapped(afterRects, last);
+    /// track all shifted rects to check for overlaps
+    final shiftedRects = <ItemRect>[last];
 
-      /// no further processing is needed if no afterRects are affected by the insertion
-      if (overlappedIndex == -1) {
-        break;
-      }
+    for (int i = 0; i < afterRects.length; i++) {
+      final rect = afterRects[i];
 
-      beforeRects.addAll(afterRects.getRange(0, overlappedIndex));
-      afterRects.removeRange(0, overlappedIndex);
-
-      final appended = appendAtEnd(
-        beforeRects,
-        afterRects.removeAt(0).flexes,
-        axis,
-        mainAxisMaxFlex,
+      /// if any shifted rect overlaps with the current rect,
+      /// we need to shift the current rect as well to avoid overlap,
+      /// otherwise we can keep the current rect unchanged.
+      final isAffected = shiftedRects.any(
+        (shifted) => shifted.isOverlapped(rect),
       );
 
-      last = appended;
+      if (!isAffected) {
+        results.add(rect);
+        continue;
+      }
+
+      final appended = appendAtEnd(results, rect.flexes, axis, mainAxisMaxFlex);
+      shiftedRects.add(appended);
     }
 
-    final newRects = [...beforeRects, ...afterRects];
-
     assert(
-      DashboardAssertion.assertRectsOrdered(newRects, axis),
+      DashboardAssertion.assertRectsOrdered(results, axis),
       "All item rects must be ordered by their top and left coordinates.",
     );
 
-    return newRects;
-  }
-
-  static int firstOverlapped(List<ItemRect> rects, ItemRect rect) {
-    for (int i = 0; i < rects.length; i++) {
-      if (rects[i].isOverlapped(rect)) {
-        return i;
-      }
-    }
-
-    return -1;
+    return results;
   }
 
   static ItemRect appendAtEnd(
@@ -194,6 +190,16 @@ class DashboardLayoutEngine {
     );
 
     rects.add(adopted);
+
+    assert(
+      DashboardAssertion.assertRectsOrdered(rects, axis),
+      "All item rects must be ordered by their top and left coordinates.",
+    );
+
+    assert(
+      DashboardAssertion.assertRectsNotOverlapped(rects),
+      "All item rects must not be overlapped.",
+    );
 
     return adopted;
   }
