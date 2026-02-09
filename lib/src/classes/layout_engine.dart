@@ -1,8 +1,8 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/src/models/enums.dart';
 import 'package:simple_dashboard/src/models/item_flex.dart';
 import 'package:simple_dashboard/src/models/item_rect.dart';
+import 'package:simple_dashboard/src/utils/helper.dart';
 
 class DashboardLayoutEngine {
   /// Adopts a new rect for an item with the given flexes,
@@ -31,18 +31,10 @@ class DashboardLayoutEngine {
       'Flex exceeds max main axis bounds.',
     );
 
-    assert(() {
-      for (int i = 0; i < rects.length - 1; i++) {
-        final current = rects[i].origin;
-        final next = rects[i + 1].origin;
-
-        if (!current.isBefore(next, axis)) {
-          return false;
-        }
-      }
-
-      return true;
-    }(), "All item rects must be ordered by their top and left coordinates.");
+    assert(
+      DashboardAssertion.assertRectsOrdered(rects, axis),
+      "All item rects must be ordered by their top and left coordinates.",
+    );
 
     int maxX = 0;
     int maxY = 0;
@@ -98,7 +90,7 @@ class DashboardLayoutEngine {
     return (
       rects.length,
       ItemRect(
-        axis == Axis.horizontal
+        axis == DashboardAxis.horizontal
             ? ItemCoordinate(0, maxCrossSlot + 1)
             : ItemCoordinate(maxCrossSlot + 1, 0),
         flex,
@@ -106,73 +98,103 @@ class DashboardLayoutEngine {
     );
   }
 
-  static List<ItemRect> reflow(
-    List<ItemRect> rects,
-    ItemRect reference,
-    DashboardAxis axis,
-    int maxMainAxisFlex,
-  ) {
-    assert(() {
-      for (int i = 0; i < rects.length - 1; i++) {
-        final current = rects[i].origin;
-        final next = rects[i + 1].origin;
-
-        if (!current.isBefore(next, axis)) {
-          return false;
-        }
-      }
-
-      return true;
-    }(), "All item rects must be ordered by their top and left coordinates.");
-
-    final newRects = <ItemRect>[];
-
-    ItemRect? previous;
-
-    for (final rect in rects) {
-      if (rect.origin.isBefore(reference.origin, axis)) {
-        newRects.add(rect);
-      } else {
-        final (index, adopted) = adoptRect(
-          newRects,
-          rect.flexes,
-          axis,
-          maxMainAxisFlex,
-
-          /// avoid the adopted rect being placed before the reference rect,
-          /// which can cause unnecessary movement of the reference rect and other rects after it.
-          crossStart: axis == DashboardAxis.horizontal
-              ? previous?.top ?? 0
-              : previous?.left ?? 0,
-          mainStart: axis == DashboardAxis.horizontal
-              ? previous?.right ?? 0
-              : previous?.bottom ?? 0,
-        );
-
-        newRects.insert(index, adopted);
-        previous = adopted;
-      }
-    }
-
-    assert(() {
-      for (int i = 0; i < newRects.length - 1; i++) {
-        final current = newRects[i].origin;
-        final next = newRects[i + 1].origin;
-
-        if (!current.isBefore(next, axis)) {
-          return false;
-        }
-      }
-
-      return true;
-    }(), "newRects must be ordered by their top and left coordinates.");
-
-    return newRects;
-  }
-
   static void sort(List<ItemRect> rects, DashboardAxis axis) {
     rects.sort((a, b) {
       return a.origin.isBefore(b.origin, axis) ? -1 : 1;
     });
+  }
+
+  static List<ItemRect> insertAt(
+    List<ItemRect> rects,
+    int index,
+    ItemFlex flex,
+    DashboardAxis axis,
+    int mainAxisMaxFlex,
+  ) {
+    assert(
+      DashboardAssertion.assertRectsOrdered(rects, axis),
+      "All item rects must be ordered by their top and left coordinates.",
+    );
+
+    assert(
+      DashboardAssertion.assertRectsNotOverlapped(rects),
+      "All item rects must not be overlapped.",
+    );
+
+    final beforeRects = [...rects.getRange(0, index)];
+    final afterRects = [...rects.getRange(index, rects.length)];
+
+    ItemRect last = appendAtEnd(beforeRects, flex, axis, mainAxisMaxFlex);
+
+    while (afterRects.isNotEmpty) {
+      final overlappedIndex = firstOverlapped(afterRects, last);
+
+      /// no further processing is needed if no afterRects are affected by the insertion
+      if (overlappedIndex == -1) {
+        break;
+      }
+
+      beforeRects.addAll(afterRects.getRange(0, overlappedIndex));
+      afterRects.removeRange(0, overlappedIndex);
+
+      final appended = appendAtEnd(
+        beforeRects,
+        afterRects.removeAt(0).flexes,
+        axis,
+        mainAxisMaxFlex,
+      );
+
+      last = appended;
+    }
+
+    final newRects = [...beforeRects, ...afterRects];
+
+    assert(
+      DashboardAssertion.assertRectsOrdered(newRects, axis),
+      "All item rects must be ordered by their top and left coordinates.",
+    );
+
+    return newRects;
+  }
+
+  static int firstOverlapped(List<ItemRect> rects, ItemRect rect) {
+    for (int i = 0; i < rects.length; i++) {
+      if (rects[i].isOverlapped(rect)) {
+        return i;
+      }
+    }
+
+    return -1;
+  }
+
+  static ItemRect appendAtEnd(
+    List<ItemRect> rects,
+    ItemFlex flex,
+    DashboardAxis axis,
+    int mainAxisMaxFlex,
+  ) {
+    final last = rects.lastOrNull;
+
+    final (target, adopted) = adoptRect(
+      rects,
+      flex,
+      axis,
+      mainAxisMaxFlex,
+      crossStart: axis == DashboardAxis.horizontal
+          ? last?.top ?? 0
+          : last?.left ?? 0,
+      mainStart: axis == DashboardAxis.horizontal
+          ? last?.right ?? 0
+          : last?.bottom ?? 0,
+    );
+
+    assert(
+      target == rects.length,
+      "The adopted rect should be placed at the end of the layout.",
+    );
+
+    rects.add(adopted);
+
+    return adopted;
   }
 }

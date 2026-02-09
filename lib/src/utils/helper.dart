@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:simple_dashboard/src/models/enums.dart';
 import 'package:simple_dashboard/src/models/item.dart';
 import 'package:simple_dashboard/src/models/item_flex.dart';
 import 'package:simple_dashboard/src/models/item_rect.dart';
@@ -29,20 +29,14 @@ class DashboardAssertion {
     return true;
   }
 
-  static bool assertRectsOrdered(List<ItemRect> rects, Axis axis) {
+  static bool assertRectsOrdered(List<ItemRect> rects, DashboardAxis axis) {
     assert(() {
       for (int i = 0; i < rects.length - 1; i++) {
-        final current = rects[i];
-        final next = rects[i + 1];
+        final current = rects[i].origin;
+        final next = rects[i + 1].origin;
 
-        if (axis == Axis.horizontal) {
-          if (next.left > current.right) {
-            return false;
-          }
-        } else {
-          if (next.top > current.bottom) {
-            return false;
-          }
+        if (!current.isBefore(next, axis)) {
+          return false;
         }
       }
 
@@ -50,5 +44,54 @@ class DashboardAssertion {
     }(), "All item rects must be ordered by their top and left coordinates.");
 
     return true;
+  }
+
+  static bool assertRectsNotOverlapped(List<ItemRect> rects) {
+    assert(() {
+      for (int i = 0; i < rects.length; i++) {
+        for (int j = i + 1; j < rects.length; j++) {
+          if (rects[i].isOverlapped(rects[j])) {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    }(), "All item rects must not be overlapped.");
+
+    return true;
+  }
+
+  static String visualize(List<ItemRect> rects) {
+    int maxX = 0;
+    int maxY = 0;
+
+    for (final rect in rects) {
+      if (rect.right > maxX) {
+        maxX = rect.right;
+      }
+
+      if (rect.bottom > maxY) {
+        maxY = rect.bottom;
+      }
+    }
+
+    final grid = List.generate(maxY, (_) => List.filled(maxX, '.'));
+
+    for (var i = 0; i < rects.length; i++) {
+      final rect = rects[i];
+      final char = String.fromCharCode(65 + (i % 26)); // A, B, C...
+      for (int y = rect.top; y < rect.bottom; y++) {
+        for (int x = rect.left; x < rect.right; x++) {
+          if (grid[y][x] != '.') {
+            grid[y][x] = '*'; // Mark overlaps with '*'
+          } else {
+            grid[y][x] = char;
+          }
+        }
+      }
+    }
+
+    return grid.map((row) => row.join(' ')).join('\n');
   }
 }

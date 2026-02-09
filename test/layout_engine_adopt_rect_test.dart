@@ -208,6 +208,68 @@ void main() {
       expect(adopted, expectRect);
       expect(index, 3);
     });
+
+    test("[h] jump the long rect (1)", () {
+      final axis = DashboardAxis.horizontal;
+      final maxMainAxisFlex = 3;
+
+      // Existing layout: [ (0,0, 3x1) ]
+      final rects = [
+        ItemRect(const ItemCoordinate(0, 0), const ItemFlex(1, 1)),
+        ItemRect(const ItemCoordinate(1, 0), const ItemFlex(1, 3)),
+        ItemRect(const ItemCoordinate(2, 0), const ItemFlex(1, 1)),
+      ];
+
+      final flexToAdopt = const ItemFlex(1, 1);
+
+      final (index, adopted) = DashboardLayoutEngine.adoptRect(
+        rects,
+        flexToAdopt,
+        axis,
+        maxMainAxisFlex,
+      );
+
+      final expectRect = ItemRect(
+        const ItemCoordinate(0, 1),
+        const ItemFlex(1, 1),
+      );
+
+      expect(adopted, expectRect);
+      expect(index, 3);
+    });
+
+    test("[h] jump the long rect (2): restrict search area", () {
+      final axis = DashboardAxis.horizontal;
+      final maxMainAxisFlex = 3;
+
+      // Existing layout: [ (0,0, 3x1) ]
+      final rects = [
+        ItemRect(const ItemCoordinate(0, 0), const ItemFlex(1, 1)),
+        ItemRect(const ItemCoordinate(1, 0), const ItemFlex(1, 3)),
+        ItemRect(const ItemCoordinate(2, 0), const ItemFlex(1, 1)),
+      ];
+
+      final last = rects.last;
+
+      final flexToAdopt = const ItemFlex(1, 1);
+
+      final (index, adopted) = DashboardLayoutEngine.adoptRect(
+        rects,
+        flexToAdopt,
+        axis,
+        maxMainAxisFlex,
+        crossStart: last.top,
+        mainStart: last.right,
+      );
+
+      final expectRect = ItemRect(
+        const ItemCoordinate(0, 1),
+        const ItemFlex(1, 1),
+      );
+
+      expect(adopted, expectRect);
+      expect(index, 3);
+    });
   });
 
   group("adoptRect (vertical)", () {

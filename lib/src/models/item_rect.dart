@@ -1,39 +1,19 @@
 import 'package:equatable/equatable.dart';
 import 'package:simple_dashboard/src/models/enums.dart';
 import 'package:simple_dashboard/src/models/item_flex.dart';
-import 'package:simple_dashboard/src/utils/extensions.dart';
 
 class ItemCoordinate extends Equatable {
   /// The x coordinate of the item.
   /// This determines the horizontal position of the item in the dashboard.
   ///
   /// Unit same as [DashboardItem] flexes.
-  final int x;
+  final int h;
 
   /// The y coordinate of the item.
   /// This determines the vertical position of the item in the dashboard.
-  final int y;
+  final int v;
 
-  const ItemCoordinate(this.x, this.y);
-
-  ItemCoordinate move({
-    int? x,
-    int? y,
-    int? maxX,
-    int? maxY,
-  }) {
-    if (x == null && y == null) {
-      return this;
-    }
-
-    final newX = this.x + (x ?? 0);
-    final newY = this.y + (y ?? 0);
-
-    return ItemCoordinate(
-      newX.clampInt(0, maxX ?? newX),
-      newY.clampInt(0, maxY ?? newY),
-    );
-  }
+  const ItemCoordinate(this.h, this.v);
 
   /// [Axis.horizontal]:
   ///   A B C
@@ -45,18 +25,18 @@ class ItemCoordinate extends Equatable {
   bool isBefore(ItemCoordinate other, DashboardAxis axis) {
     switch (axis) {
       case DashboardAxis.horizontal:
-        if (y < other.y) {
+        if (v < other.v) {
           return true;
-        } else if (y == other.y) {
-          return x < other.x;
+        } else if (v == other.v) {
+          return h < other.h;
         } else {
           return false;
         }
       case DashboardAxis.vertical:
-        if (x < other.x) {
+        if (h < other.h) {
           return true;
-        } else if (x == other.x) {
-          return y < other.y;
+        } else if (h == other.h) {
+          return v < other.v;
         } else {
           return false;
         }
@@ -64,7 +44,7 @@ class ItemCoordinate extends Equatable {
   }
 
   @override
-  List<Object?> get props => [x, y];
+  List<Object?> get props => [h, v];
 }
 
 class ItemRect extends Equatable {
@@ -73,57 +53,18 @@ class ItemRect extends Equatable {
 
   const ItemRect(this.origin, this.flexes);
 
-  int get left => origin.x;
-  int get right => origin.x + flexes.horizontal;
-  int get top => origin.y;
-  int get bottom => origin.y + flexes.vertical;
+  int get left => origin.h;
+  int get right => origin.h + flexes.horizontal;
+  int get top => origin.v;
+  int get bottom => origin.v + flexes.vertical;
 
   ItemCoordinate get bottomRight => ItemCoordinate(right, bottom);
-
-  ItemRect move({
-    int? x,
-    int? y,
-    int? maxX,
-    int? maxY,
-  }) {
-    return ItemRect(
-      origin.move(
-        x: x,
-        y: y,
-        maxX: maxX,
-        maxY: maxY,
-      ),
-      flexes,
-    );
-  }
-
-  ItemRect resize({
-    required ItemFlexRange range,
-    int? hStep,
-    int? vStep,
-  }) {
-    return ItemRect(
-      origin,
-      range.resize(
-        flexes,
-        hStep: hStep,
-        vStep: vStep,
-      ),
-    );
-  }
 
   bool isOverlapped(ItemRect other) {
     return !(right <= other.left ||
         left >= other.right ||
         bottom <= other.top ||
         top >= other.bottom);
-  }
-
-  bool contains(ItemCoordinate coordinate) {
-    return coordinate.x > left &&
-        coordinate.x < right &&
-        coordinate.y > top &&
-        coordinate.y < bottom;
   }
 
   @override

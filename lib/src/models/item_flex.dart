@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
-import 'package:simple_dashboard/src/utils/extensions.dart';
 
 class ItemFlex extends Equatable {
   /// The horizontal flex of the item.
@@ -41,22 +40,4 @@ class ItemFlexRange extends Equatable {
 
   @override
   List<Object?> get props => [min, max];
-
-  ItemFlex resize(
-    ItemFlex flex, {
-    int? hStep,
-    int? vStep,
-  }) {
-    if (hStep == null && vStep == null) {
-      return flex;
-    }
-
-    final h = flex.horizontal + (hStep ?? 0);
-    final v = flex.vertical + (vStep ?? 0);
-
-    return ItemFlex(
-      h.clampInt(min.horizontal, max.horizontal),
-      v.clampInt(min.vertical, max.vertical),
-    );
-  }
 }
