@@ -1,10 +1,9 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
+import 'package:simple_dashboard/src/models/enums.dart';
 import 'package:simple_dashboard/src/models/item_flex.dart';
 import 'package:simple_dashboard/src/models/item_rect.dart';
 
-/// [Axis] is NOT the scrollable direction but the main axis of the layout,
-/// which determines how the items are arranged and how the gaps are filled when adopting new rects.
 class DashboardLayoutEngine {
   /// Adopts a new rect for an item with the given flexes,
   /// try to fill the gap between existing rects first, otherwise place it at the end of the layout.
@@ -20,14 +19,15 @@ class DashboardLayoutEngine {
   static (int, ItemRect) adoptRect(
     List<ItemRect> rects,
     ItemFlex flex,
-    Axis axis,
+    DashboardAxis axis,
     int maxMainAxisFlex, {
     int crossStart = 0,
     int mainStart = 0,
   }) {
     assert(
-      (axis == Axis.horizontal && flex.horizontal <= maxMainAxisFlex) ||
-          (axis == Axis.vertical && flex.vertical <= maxMainAxisFlex),
+      (axis == DashboardAxis.horizontal &&
+              flex.horizontal <= maxMainAxisFlex) ||
+          (axis == DashboardAxis.vertical && flex.vertical <= maxMainAxisFlex),
       'Flex exceeds max main axis bounds.',
     );
 
@@ -57,8 +57,8 @@ class DashboardLayoutEngine {
       }
     }
 
-    final maxCrossSlot = axis == Axis.horizontal ? maxY : maxX;
-    final availableMainSlot = axis == Axis.horizontal
+    final maxCrossSlot = axis == DashboardAxis.horizontal ? maxY : maxX;
+    final availableMainSlot = axis == DashboardAxis.horizontal
         ? maxMainAxisFlex - flex.horizontal
         : maxMainAxisFlex - flex.vertical;
 
@@ -67,7 +67,7 @@ class DashboardLayoutEngine {
     for (int cross = crossStart; cross <= maxCrossSlot; cross++) {
       while (main <= availableMainSlot) {
         final candidate = ItemRect(
-          axis == Axis.horizontal
+          axis == DashboardAxis.horizontal
               ? ItemCoordinate(main, cross)
               : ItemCoordinate(cross, main),
           flex,
@@ -84,7 +84,9 @@ class DashboardLayoutEngine {
           return (index == -1 ? rects.length : index, candidate);
         }
 
-        main = axis == Axis.horizontal ? overlapped.right : overlapped.bottom;
+        main = axis == DashboardAxis.horizontal
+            ? overlapped.right
+            : overlapped.bottom;
       }
 
       /// purposely set to zero,
@@ -107,7 +109,7 @@ class DashboardLayoutEngine {
   static List<ItemRect> reflow(
     List<ItemRect> rects,
     ItemRect reference,
-    Axis axis,
+    DashboardAxis axis,
     int maxMainAxisFlex,
   ) {
     assert(() {
@@ -139,10 +141,10 @@ class DashboardLayoutEngine {
 
           /// avoid the adopted rect being placed before the reference rect,
           /// which can cause unnecessary movement of the reference rect and other rects after it.
-          crossStart: axis == Axis.horizontal
+          crossStart: axis == DashboardAxis.horizontal
               ? previous?.top ?? 0
               : previous?.left ?? 0,
-          mainStart: axis == Axis.horizontal
+          mainStart: axis == DashboardAxis.horizontal
               ? previous?.right ?? 0
               : previous?.bottom ?? 0,
         );
@@ -168,7 +170,7 @@ class DashboardLayoutEngine {
     return newRects;
   }
 
-  static void sort(List<ItemRect> rects, Axis axis) {
+  static void sort(List<ItemRect> rects, DashboardAxis axis) {
     rects.sort((a, b) {
       return a.origin.isBefore(b.origin, axis) ? -1 : 1;
     });

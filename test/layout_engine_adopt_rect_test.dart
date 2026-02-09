@@ -1,13 +1,13 @@
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:simple_dashboard/src/classes/layout_engine.dart';
+import 'package:simple_dashboard/src/models/enums.dart';
 import 'package:simple_dashboard/src/models/item_flex.dart';
 import 'package:simple_dashboard/src/models/item_rect.dart';
 
 void main() {
   group("test adoptRect (horizontal)", () {
     test('[h] adoptRect fills a gap ', () {
-      final axis = Axis.horizontal;
+      final axis = DashboardAxis.horizontal;
       final maxMainAxisFlex = 4; // 4 columns wide
 
       // Existing layout: [ (0,0, 1x1), EMPTY, (2,0, 2x1) ]
@@ -34,7 +34,7 @@ void main() {
     });
 
     test('[h] adoptRect jumps past a long obstacle (main axis)', () {
-      final axis = Axis.horizontal;
+      final axis = DashboardAxis.horizontal;
       final maxMainAxisFlex = 4;
 
       // Obstacle: (0,0) with size 3x1.
@@ -62,7 +62,7 @@ void main() {
     });
 
     test('[h] adoptRect jumps past a long obstacle (cross axis)', () {
-      final axis = Axis.horizontal;
+      final axis = DashboardAxis.horizontal;
       final maxMainAxisFlex = 4;
 
       // Obstacle: (0,0) with size 1x3.
@@ -90,7 +90,7 @@ void main() {
     });
 
     test("[h] adoptRect fill the middle gap in a horizontal layout", () {
-      final axis = Axis.horizontal;
+      final axis = DashboardAxis.horizontal;
       final maxMainAxisFlex = 6;
 
       // Existing layout: [ (0,0, 1x1), (2,0, 1x1), (4,0, 2x1) ]
@@ -119,7 +119,7 @@ void main() {
     });
 
     test("[h] adoptRect fille the middle gap in the center area (1)", () {
-      final axis = Axis.horizontal;
+      final axis = DashboardAxis.horizontal;
       final maxMainAxisFlex = 6;
 
       // Existing layout: [ (0,0, 1x1), (2,0, 1x1), (4,0, 2x1) ]
@@ -149,7 +149,7 @@ void main() {
     });
 
     test("[h] adoptRect fille the middle gap in the center area (2)", () {
-      final axis = Axis.horizontal;
+      final axis = DashboardAxis.horizontal;
       final maxMainAxisFlex = 6;
 
       // Existing layout: [ (0,0, 1x1), (2,0, 1x1), (4,0, 2x1) ]
@@ -179,7 +179,7 @@ void main() {
     });
 
     test("[h] fill the wrapped hole", () {
-      final axis = Axis.horizontal;
+      final axis = DashboardAxis.horizontal;
       final maxMainAxisFlex = 4;
 
       // Existing layout: [ (0,0, 1x1), (2,0, 1x1), (4,0, 2x1) ]
@@ -212,7 +212,7 @@ void main() {
 
   group("adoptRect (vertical)", () {
     test('[v] adoptRect fills a gap in a vertical layout', () {
-      final axis = Axis.vertical;
+      final axis = DashboardAxis.vertical;
       final maxMainAxisFlex = 4; // 4 rows tall
 
       // Existing layout: [ (0,0, 1x1), EMPTY, (0,2, 1x2) ]
@@ -239,7 +239,7 @@ void main() {
     });
 
     test('[v] adoptRect jumps past a long obstacle (main axis)', () {
-      final axis = Axis.vertical;
+      final axis = DashboardAxis.vertical;
       final maxMainAxisFlex = 4;
 
       // Obstacle: (0,0) with size 1x3.
@@ -267,7 +267,7 @@ void main() {
     });
 
     test('[v] adoptRect jumps past a long obstacle (cross axis)', () {
-      final axis = Axis.vertical;
+      final axis = DashboardAxis.vertical;
       final maxMainAxisFlex = 4;
 
       // Obstacle: (0,0) with size 3x1.
@@ -295,7 +295,7 @@ void main() {
     });
 
     test("[v] adoptRect fill the middle gap in a vertical layout", () {
-      final axis = Axis.vertical;
+      final axis = DashboardAxis.vertical;
       final maxMainAxisFlex = 6;
 
       // Existing layout: [ (0,0, 1x1), (0,2, 1x1), (0,4, 1x2) ]
@@ -324,7 +324,7 @@ void main() {
     });
 
     test("[v] adoptRect fille the middle gap in the center area (1)", () {
-      final axis = Axis.vertical;
+      final axis = DashboardAxis.vertical;
       final maxMainAxisFlex = 6;
 
       // Existing layout: [ (0,0, 1x1), (0,2, 1x1), (0,4, 1x2) ]
@@ -354,7 +354,7 @@ void main() {
     });
 
     test("[v] adoptRect fille the middle gap in the center area (2)", () {
-      final axis = Axis.vertical;
+      final axis = DashboardAxis.vertical;
       final maxMainAxisFlex = 6;
 
       // Existing layout: [ (0,0, 1x1), (0,2, 1x1), (0,4, 1x2) ]
@@ -384,7 +384,7 @@ void main() {
     });
 
     test("[v] fill the wrapped hole", () {
-      final axis = Axis.vertical;
+      final axis = DashboardAxis.vertical;
       final maxMainAxisFlex = 4;
 
       // Existing layout: [ (0,0, 1x1), (0,1, 3x1), (0,2, 1x2), (2,1, 2x1), (1,2, 2x1) ]

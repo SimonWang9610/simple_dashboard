@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/widgets.dart';
+import 'package:simple_dashboard/src/models/enums.dart';
 import 'package:simple_dashboard/src/models/item_flex.dart';
 import 'package:simple_dashboard/src/utils/extensions.dart';
 
@@ -42,9 +42,9 @@ class ItemCoordinate extends Equatable {
   ///  A D
   ///  B E
   ///  C F
-  bool isBefore(ItemCoordinate other, Axis axis) {
+  bool isBefore(ItemCoordinate other, DashboardAxis axis) {
     switch (axis) {
-      case Axis.horizontal:
+      case DashboardAxis.horizontal:
         if (y < other.y) {
           return true;
         } else if (y == other.y) {
@@ -52,7 +52,7 @@ class ItemCoordinate extends Equatable {
         } else {
           return false;
         }
-      case Axis.vertical:
+      case DashboardAxis.vertical:
         if (x < other.x) {
           return true;
         } else if (x == other.x) {
