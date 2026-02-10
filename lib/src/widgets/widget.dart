@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:simple_dashboard/src/models/enums.dart';
 import 'package:simple_dashboard/src/models/item_rect.dart';
 import 'package:simple_dashboard/src/widgets/controller.dart';
 import 'package:simple_dashboard/src/widgets/render.dart';
@@ -23,8 +22,6 @@ class DashboardItemDataWidget
 
       renderObject.parent?.markNeedsLayout();
     }
-
-    Positioned(child: child);
   }
 
   @override

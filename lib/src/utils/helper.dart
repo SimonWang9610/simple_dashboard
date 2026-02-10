@@ -62,6 +62,24 @@ class DashboardAssertion {
     return true;
   }
 
+  static void ensureMainAxisFlexNotExceedMax(
+    List<DashboardItem> items,
+    int mainAxisMaxFlex,
+    DashboardAxis axis,
+  ) {
+    for (final item in items) {
+      final mainAxisFlex = axis == DashboardAxis.horizontal
+          ? item.rect.flexes.horizontal
+          : item.rect.flexes.vertical;
+
+      if (mainAxisFlex > mainAxisMaxFlex) {
+        throw StateError(
+          "An item's main axis flex ($mainAxisFlex) exceeds the dashboard's main axis max flex ($mainAxisMaxFlex).",
+        );
+      }
+    }
+  }
+
   static String visualize(List<ItemRect> rects) {
     int maxX = 0;
     int maxY = 0;

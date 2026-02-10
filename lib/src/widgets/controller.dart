@@ -150,6 +150,10 @@ class DashboardController extends DashboardLayoutNotifier {
   set mainAxisFlexCount(int value) {
     if (_mainAxisFlexCount == value) return;
 
+    if (value < _mainAxisFlexCount) {
+      DashboardAssertion.ensureMainAxisFlexNotExceedMax(items, value, axis);
+    }
+
     _adoptItems(axis, value);
     _mainAxisFlexCount = value;
     notifyListeners();

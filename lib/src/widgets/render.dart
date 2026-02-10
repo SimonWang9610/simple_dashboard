@@ -66,8 +66,11 @@ class RenderDashboard extends RenderBox
 
     RenderBox? child = firstChild;
 
+    final mainAxisExtent = _layoutNotifier.axis == DashboardAxis.horizontal
+        ? constraints.maxWidth
+        : constraints.maxHeight;
+
     double crossAxisExtent = 0;
-    double mainAxisExtent = 0;
 
     while (child != null) {
       final childParentData = child.parentData as DashboardItemParentData;
@@ -97,13 +100,6 @@ class RenderDashboard extends RenderBox
         _layoutNotifier.axis == DashboardAxis.horizontal
             ? uiRect.bottom
             : uiRect.right,
-      );
-
-      mainAxisExtent = math.max(
-        mainAxisExtent,
-        _layoutNotifier.axis == DashboardAxis.horizontal
-            ? uiRect.right
-            : uiRect.bottom,
       );
 
       child = childParentData.nextSibling;
