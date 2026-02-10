@@ -94,14 +94,14 @@ class DashboardAssertion {
       }
     }
 
-    final grid = List.generate(maxY, (_) => List.filled(maxX, '.'));
+    final grid = List.generate(maxY, (_) => List.filled(maxX, '-'));
 
     for (var i = 0; i < rects.length; i++) {
       final rect = rects[i];
       final char = String.fromCharCode(65 + (i % 26)); // A, B, C...
       for (int y = rect.top; y < rect.bottom; y++) {
         for (int x = rect.left; x < rect.right; x++) {
-          if (grid[y][x] != '.') {
+          if (grid[y][x] != '-') {
             grid[y][x] = '*'; // Mark overlaps with '*'
           } else {
             grid[y][x] = char;
@@ -110,6 +110,8 @@ class DashboardAssertion {
       }
     }
 
-    return grid.map((row) => row.join(' ')).join('\n');
+    final visualization = grid.map((row) => row.join(' ')).join('\n');
+
+    return visualization;
   }
 }

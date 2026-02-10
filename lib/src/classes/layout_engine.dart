@@ -169,6 +169,11 @@ class DashboardLayoutEngine {
     DashboardAxis axis,
     int mainAxisMaxFlex,
   ) {
+    assert(
+      DashboardAssertion.assertRectsOrdered(rects, axis),
+      "All item rects must be ordered by their top and left coordinates.",
+    );
+
     final last = rects.lastOrNull;
 
     final (target, adopted) = adoptRect(

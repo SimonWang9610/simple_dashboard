@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:simple_dashboard/src/models/enums.dart';
-import 'package:simple_dashboard/src/widgets/controller.dart';
-import 'package:simple_dashboard/src/widgets/widget.dart';
+import 'package:simple_dashboard/simple_dashboard.dart';
 
-typedef DashboardItemBuilder = Widget Function(BuildContext context, int index);
+typedef DashboardItemBuilder =
+    Widget Function(BuildContext context, DashboardItem);
 
 class Dashboard extends StatefulWidget {
   final DashboardController controller;
@@ -44,7 +43,7 @@ class _DashboardState extends State<Dashboard> {
                 DashboardItemDataWidget(
                   key: ValueKey(items[i].id),
                   rect: items[i].rect,
-                  child: widget.itemBuilder(context, i),
+                  child: widget.itemBuilder(context, items[i]),
                 ),
             ],
           ),

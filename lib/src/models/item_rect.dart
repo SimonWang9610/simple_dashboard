@@ -96,4 +96,9 @@ class ItemRect extends Equatable {
 
   @override
   List<Object?> get props => [origin, flexes];
+
+  @override
+  String toString() {
+    return 'ItemRect(left: $left, top: $top, right: $right, bottom: $bottom)';
+  }
 }

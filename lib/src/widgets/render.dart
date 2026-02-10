@@ -115,6 +115,11 @@ class RenderDashboard extends RenderBox
     );
   }
 
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    defaultPaint(context, offset);
+  }
+
   double get pixelsPerFlex {
     assert(
       () {

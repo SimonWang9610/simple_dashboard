@@ -103,6 +103,9 @@ class DashboardController extends DashboardLayoutNotifier {
     );
 
     _items.insert(index, item);
+
+    DashboardAssertion.assertRectsOrdered(rects, axis);
+    DashboardAssertion.assertRectsNotOverlapped(rects);
     notifyListeners();
   }
 
@@ -125,6 +128,8 @@ class DashboardController extends DashboardLayoutNotifier {
       "The new index must be within the bounds of the item list.",
     );
 
+    DashboardAssertion.assertRectsOrdered(rects, axis);
+
     final shiftedIndex = from < to ? to - 1 : to;
 
     final item = _items.removeAt(from);
@@ -137,13 +142,38 @@ class DashboardController extends DashboardLayoutNotifier {
       mainAxisFlexCount,
     );
 
-    final newItem = DashboardItem(
-      id: item.id,
-      rect: newRects[shiftedIndex],
-      range: item.range,
+    final newItems = [
+      ..._items.sublist(0, shiftedIndex),
+      DashboardItem(
+        id: item.id,
+        range: item.range,
+        rect: newRects[shiftedIndex],
+      ),
+    ];
+
+    assert(
+      newRects.length == _items.length + 1,
+      "The new rect list must have one more rect than the old item list.",
     );
 
-    _items.insert(shiftedIndex, newItem);
+    for (int i = shiftedIndex; i < _items.length; i++) {
+      final oldItem = _items[i];
+      final newItem = DashboardItem(
+        id: oldItem.id,
+        range: oldItem.range,
+        rect: newRects[i + 1],
+      );
+
+      newItems.add(newItem);
+    }
+
+    _items
+      ..clear()
+      ..addAll(newItems);
+
+    DashboardAssertion.assertRectsOrdered(rects, axis);
+    DashboardAssertion.assertRectsNotOverlapped(rects);
+
     notifyListeners();
   }
 

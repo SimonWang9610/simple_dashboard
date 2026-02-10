@@ -11,7 +11,7 @@ class ItemFlex extends Equatable {
   final int vertical;
 
   const ItemFlex(this.horizontal, this.vertical)
-    : assert(horizontal >= 0 && vertical >= 0);
+    : assert(horizontal > 0 && vertical > 0);
 
   Size operator &(double pixelsPerFlex) {
     return Size(horizontal * pixelsPerFlex, vertical * pixelsPerFlex);
@@ -35,6 +35,8 @@ class ItemFlexRange extends Equatable {
              min.horizontal >= 0 &&
              min.vertical >= 0,
        );
+
+  ItemFlexRange.fixed(ItemFlex flex) : this(min: flex, max: flex);
 
   @override
   List<Object?> get props => [min, max];
