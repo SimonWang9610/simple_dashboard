@@ -13,10 +13,12 @@ class ItemFlex extends Equatable {
   const ItemFlex(this.horizontal, this.vertical)
     : assert(horizontal >= 0 && vertical >= 0);
 
-  BoxConstraints toConstraints(double horizontalUnit, double verticalUnit) {
-    return BoxConstraints.tight(
-      Size(horizontal * horizontalUnit, vertical * verticalUnit),
-    );
+  BoxConstraints toConstraints(double pixelsPerFlex) {
+    return BoxConstraints.tight(this & pixelsPerFlex);
+  }
+
+  Size operator &(double pixelsPerFlex) {
+    return Size(horizontal * pixelsPerFlex, vertical * pixelsPerFlex);
   }
 
   @override
@@ -40,4 +42,19 @@ class ItemFlexRange extends Equatable {
 
   @override
   List<Object?> get props => [min, max];
+
+  ItemFlex constrain(ItemFlex flex) {
+    final constrainedHorizontal = flex.horizontal.clamp(
+      min.horizontal,
+      max.horizontal,
+    );
+    final constrainedVertical = flex.vertical.clamp(
+      min.vertical,
+      max.vertical,
+    );
+
+    return ItemFlex(constrainedHorizontal, constrainedVertical);
+  }
+
+  bool get isFixed => min == max;
 }

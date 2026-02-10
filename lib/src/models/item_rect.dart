@@ -1,16 +1,15 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/src/models/enums.dart';
 import 'package:simple_dashboard/src/models/item_flex.dart';
 
 class ItemCoordinate extends Equatable {
-  /// The x coordinate of the item.
   /// This determines the horizontal position of the item in the dashboard.
-  ///
-  /// Unit same as [DashboardItem] flexes.
+  /// typically, it should be X-axis
   final int h;
 
-  /// The y coordinate of the item.
   /// This determines the vertical position of the item in the dashboard.
+  /// typically, it should be Y-axis
   final int v;
 
   const ItemCoordinate(this.h, this.v);
@@ -43,12 +42,19 @@ class ItemCoordinate extends Equatable {
     }
   }
 
+  Offset operator *(double pixelsPerFlex) {
+    return Offset(h * pixelsPerFlex, v * pixelsPerFlex);
+  }
+
   @override
   List<Object?> get props => [h, v];
 }
 
 class ItemRect extends Equatable {
+  /// The top-left coordinate of the item in the dashboard.
   final ItemCoordinate origin;
+
+  /// The horizontal and vertical flexes of the item, which determine how much space the item will take up in the dashboard.
   final ItemFlex flexes;
 
   const ItemRect(this.origin, this.flexes);
@@ -65,6 +71,27 @@ class ItemRect extends Equatable {
         left >= other.right ||
         bottom <= other.top ||
         top >= other.bottom);
+  }
+
+  /// Converts the coordinate to an [Offset] in pixels, given the number of pixels per flex,
+  /// [hSpacing] is the total accumulated horizontal spacing before this coordinate,
+  /// [vSpacing] is the total accumulated vertical spacing before this coordinate.
+  Offset toOffset(
+    double pixelsPerFlex, {
+    double hSpacing = 0,
+    double vSpacing = 0,
+  }) {
+    return origin * pixelsPerFlex + Offset(hSpacing, vSpacing);
+  }
+
+  Rect toRect(
+    double pixelsPerFlex, {
+    double hSpacing = 0,
+    double vSpacing = 0,
+  }) {
+    final offset = origin * pixelsPerFlex + Offset(hSpacing, vSpacing);
+    final size = flexes & pixelsPerFlex;
+    return offset & size;
   }
 
   @override
