@@ -13,10 +13,6 @@ class ItemFlex extends Equatable {
   const ItemFlex(this.horizontal, this.vertical)
     : assert(horizontal >= 0 && vertical >= 0);
 
-  BoxConstraints toConstraints(double pixelsPerFlex) {
-    return BoxConstraints.tight(this & pixelsPerFlex);
-  }
-
   Size operator &(double pixelsPerFlex) {
     return Size(horizontal * pixelsPerFlex, vertical * pixelsPerFlex);
   }
