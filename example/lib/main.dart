@@ -31,8 +31,8 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   DashboardController controller = DashboardController(
     mainAxisFlexCount: 9,
-    // mainAxisSpacing: 6,
-    // crossAxisSpacing: 6,
+    mainAxisSpacing: 6,
+    crossAxisSpacing: 6,
   );
 
   @override

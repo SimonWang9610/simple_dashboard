@@ -89,9 +89,14 @@ class ItemRect extends Equatable {
     double hSpacing = 0,
     double vSpacing = 0,
   }) {
-    final offset = origin * pixelsPerFlex + Offset(hSpacing, vSpacing);
-    final size = flexes & pixelsPerFlex;
-    return offset & size;
+    final dx = left * (pixelsPerFlex + hSpacing);
+    final dy = top * (pixelsPerFlex + vSpacing);
+    final width =
+        flexes.horizontal * pixelsPerFlex + (flexes.horizontal - 1) * hSpacing;
+    final height =
+        flexes.vertical * pixelsPerFlex + (flexes.vertical - 1) * vSpacing;
+
+    return Rect.fromLTWH(dx, dy, width, height);
   }
 
   @override

@@ -80,26 +80,24 @@ class RenderDashboard extends RenderBox
         "Each child of Dashboard must have a non-null rect in its parent data, use DashboardItemDataWidget to set the rect for each child.",
       );
 
-      final rect = childParentData.rect!;
-
-      child.layout(
-        BoxConstraints.tight(rect.flexes & pixelsPerFlex),
-        parentUsesSize: true,
-      );
-
-      childParentData.offset = rect.toOffset(
+      final rect = childParentData.rect!.toRect(
         pixelsPerFlex,
         hSpacing: _layoutNotifier.horizontalSpacing,
         vSpacing: _layoutNotifier.verticalSpacing,
       );
 
-      final uiRect = childParentData.offset & child.size;
+      child.layout(
+        BoxConstraints.tight(rect.size),
+        parentUsesSize: true,
+      );
+
+      childParentData.offset = rect.topLeft;
 
       crossAxisExtent = math.max(
         crossAxisExtent,
         _layoutNotifier.axis == DashboardAxis.horizontal
-            ? uiRect.bottom
-            : uiRect.right,
+            ? rect.bottom
+            : rect.right,
       );
 
       child = childParentData.nextSibling;
