@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
+import 'package:simple_dashboard/src/classes/shifted_area.dart';
 
 enum PositionStrategy {
   /// fit the dashboard gap as much as possible
@@ -180,6 +181,14 @@ final class DashboardAfterPositioner extends DashboardPositioner {
   final Object? afterId;
   final bool append;
 
+  /// When `true`, the shifted area for checking conflicts
+  /// will be expanded to a single bounding box that covers all shifted items,
+  /// which can reduce the number of conflict checks but may cause more items to be shifted.
+  ///
+  /// When `false`, the shifted area will be the exact shapes of the shifted items,
+  /// which can minimize unnecessary shifts but may require more conflict checks.
+  final bool expandShiftCheckArea;
+
   const DashboardAfterPositioner({
     required super.items,
     required super.axis,
@@ -187,6 +196,7 @@ final class DashboardAfterPositioner extends DashboardPositioner {
     required this.maxCrossSlots,
     this.afterId,
     this.append = true,
+    this.expandShiftCheckArea = false,
   });
 
   @override
@@ -224,10 +234,14 @@ final class DashboardAfterPositioner extends DashboardPositioner {
       maxCrossSlots: maxCrossSlots,
     ).position(id, size);
 
-    final shifted = <LayoutItem>{kept.last};
+    final shifted = expandShiftCheckArea
+        ? LayoutShiftedArea.expanded(axis)
+        : LayoutShiftedArea.sequential(axis);
+
+    shifted.addShiftedRect(kept.last.rect);
 
     for (final item in pending) {
-      if (checkIfAffected(shifted, item.rect)) {
+      if (shifted.conflictWith(item.rect)) {
         kept = DashboardAppendPositioner(
           items: kept,
           axis: axis,
@@ -235,7 +249,7 @@ final class DashboardAfterPositioner extends DashboardPositioner {
           maxCrossSlots: maxCrossSlots,
         ).position(item.id, item.rect.size);
 
-        shifted.add(kept.last);
+        shifted.addShiftedRect(kept.last.rect);
       } else {
         kept.add(item);
       }
@@ -255,49 +269,15 @@ final class DashboardAfterPositioner extends DashboardPositioner {
     return kept;
   }
 
-  /// if any shifted rect overlaps with the rect or comes before the rect in the layout order,
-  /// it means the rect is affected by the shift and thus should also be shifted to the end of the layout.
-  bool checkIfAffected(Iterable<LayoutItem> shiftedRects, LayoutRect rect) {
-    for (final shifted in shiftedRects) {
-      /// even this after rect is not overlapped with the shifted rect,
-      /// it may still be affected if it is originally before the shifted rect on the layout,
-      ///
-      /// it means that the rect is not overlapped but it should come after the shifted rect in the layout order,
-      /// as its ordering in the result list is affected by the shifted rect.
-      ///
-      /// for example, mainAxisFlex: 4
-      /// [aaaa]
-      /// [bb][cc]
-      ///
-      /// insert [dddd] at index 2,
-      ///
-      /// the rect origin ordering will be:
-      /// [aaaa]
-      /// [bb]
-      /// [dddd]
-      /// [cc]
-      ///
-      /// the list ordering will be [aaaa], [bb], [dddd], [cc],
-      /// they are matched, as we promise the incoming rect to be placed at the given index
-      ///
-      /// if we DO NOT check the rect origin ordering and only check for overlaps, we will get the wrong result:
-      ///
-      /// rect origin ordering:
-      /// [aaaa]
-      /// [bb][cc]
-      /// [dddd]
-      ///
-      /// but the list index ordering is [aaaa], [bb], [dddd], [cc]
-      /// consequently the rect origin ordering is broken
-      if (rect.compare(shifted.rect, axis) < 0) {
-        return true;
-      }
+  bool conflictWith(List<LayoutItem> shifted, LayoutRect rect) {
+    final area = expandShiftCheckArea
+        ? LayoutShiftedArea.expanded(axis)
+        : LayoutShiftedArea.sequential(axis);
 
-      if (shifted.rect.hasConflicts(rect)) {
-        return true;
-      }
+    for (final item in shifted) {
+      area.addShiftedRect(item.rect);
     }
 
-    return false;
+    return area.conflictWith(rect);
   }
 }

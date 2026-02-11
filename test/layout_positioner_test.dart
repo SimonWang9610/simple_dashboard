@@ -498,7 +498,7 @@ void main() {
         size: LayoutSize(width: 2, height: 1),
       );
 
-      expect(positioner.checkIfAffected(shiftedItems, testRect), isTrue);
+      expect(positioner.conflictWith(shiftedItems, testRect), isTrue);
     });
 
     test(
@@ -524,7 +524,7 @@ void main() {
           size: LayoutSize(width: 2, height: 1),
         );
 
-        expect(positioner.checkIfAffected(shiftedItems, testRect), isTrue);
+        expect(positioner.conflictWith(shiftedItems, testRect), isTrue);
       },
     );
 
