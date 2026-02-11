@@ -1,7 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
-import 'package:simple_dashboard/src/classes/layout_positioner.dart';
-import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
 
 class DashboardController extends ChangeNotifier {
   final Map<Object, LayoutItem> _items;

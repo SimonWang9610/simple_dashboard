@@ -1,11 +1,20 @@
 import 'package:collection/collection.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
-import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
 
 enum PositionStrategy {
+  /// fit the dashboard gap as much as possible
   aggressive,
+
+  /// always place the item at the end of the layout
   append,
+
+  /// place the item after the specified item.
+  /// if no item is specified or the item is not found in the existing items,
+  /// it will fallback as [append] or [head]
+  /// according to the [DashboardAfterPositioner.append] flag.
   after,
+
+  /// place the item at the start of the layout
   head,
 }
 
