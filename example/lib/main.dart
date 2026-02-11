@@ -105,13 +105,6 @@ class _MyHomePageState extends State<MyHomePage> {
   void _reorderItem() {
     if (controller.items.length < 2) return;
 
-    final from = faker.randomGenerator.integer(controller.items.length - 1);
-    int to = faker.randomGenerator.integer(controller.items.length - 1);
-
-    if (to == from) {
-      to = (to + 1) % controller.items.length;
-    }
-
-    controller.reorderItem(from, to);
+    controller.reorderItem(0, 1);
   }
 }

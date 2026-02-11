@@ -130,41 +130,35 @@ class DashboardController extends DashboardLayoutNotifier {
 
     DashboardAssertion.assertRectsOrdered(rects, axis);
 
-    final shiftedIndex = from < to ? to - 1 : to;
+    final fromItem = _items[from];
 
-    final item = _items.removeAt(from);
+    final targetRects = List<ItemRect>.from(rects)..removeAt(from);
 
     final newRects = DashboardLayoutEngine.insertAt(
-      rects,
-      shiftedIndex,
-      item.rect.flexes,
+      targetRects,
+      to,
+      fromItem.rect.flexes,
       axis,
       mainAxisFlexCount,
     );
 
-    final newItems = [
-      ..._items.sublist(0, shiftedIndex),
-      DashboardItem(
-        id: item.id,
-        range: item.range,
-        rect: newRects[shiftedIndex],
-      ),
-    ];
+    assert(newRects.length == _items.length);
 
-    assert(
-      newRects.length == _items.length + 1,
-      "The new rect list must have one more rect than the old item list.",
-    );
+    DashboardAssertion.assertRectsOrdered(newRects, axis);
 
-    for (int i = shiftedIndex; i < _items.length; i++) {
+    final newItems = <DashboardItem>[];
+
+    for (int i = 0; i < _items.length; i++) {
       final oldItem = _items[i];
-      final newItem = DashboardItem(
-        id: oldItem.id,
-        range: oldItem.range,
-        rect: newRects[i + 1],
-      );
+      final newRect = newRects[i];
 
-      newItems.add(newItem);
+      newItems.add(
+        DashboardItem(
+          id: oldItem.id,
+          rect: newRect,
+          range: oldItem.range,
+        ),
+      );
     }
 
     _items

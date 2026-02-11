@@ -118,15 +118,8 @@ class DashboardLayoutEngine {
     DashboardAxis axis,
     int mainAxisMaxFlex,
   ) {
-    assert(
-      DashboardAssertion.assertRectsOrdered(rects, axis),
-      "All item rects must be ordered by their top and left coordinates.",
-    );
-
-    assert(
-      DashboardAssertion.assertRectsNotOverlapped(rects),
-      "All item rects must not be overlapped.",
-    );
+    DashboardAssertion.assertRectsOrdered(rects, axis);
+    DashboardAssertion.assertRectsNotOverlapped(rects);
 
     final results = [...rects.getRange(0, index)];
     final afterRects = [...rects.getRange(index, rects.length)];
@@ -136,17 +129,71 @@ class DashboardLayoutEngine {
     /// track all shifted rects to check for overlaps
     final shiftedRects = <ItemRect>[last];
 
+    /// if any shifted rect overlaps with the rect or comes before the rect in the layout order,
+    /// it means the rect is affected by the shift and thus should also be shifted to the end of the layout.
+    bool checkIfAffected(ItemRect rect) {
+      for (final shifted in shiftedRects) {
+        /// even this after rect is not overlapped with the shifted rect,
+        /// it may still be affected if it is originally before the shifted rect on the layout,
+        ///
+        /// it means that the rect is not overlapped but it should come after the shifted rect in the layout order,
+        /// as its ordering in the result list is affected by the shifted rect.
+        ///
+        /// for example, mainAxisFlex: 4
+        /// [aaaa]
+        /// [bb][cc]
+        ///
+        /// insert [dddd] at index 2,
+        ///
+        /// the rect origin ordering will be:
+        /// [aaaa]
+        /// [bb]
+        /// [dddd]
+        /// [cc]
+        ///
+        /// the list ordering will be [aaaa], [bb], [dddd], [cc],
+        /// they are matched, as we promise the incoming rect to be placed at the given index
+        ///
+        /// if we DO NOT check the rect origin ordering and only check for overlaps, we will get the wrong result:
+        ///
+        /// rect origin ordering:
+        /// [aaaa]
+        /// [bb][cc]
+        /// [dddd]
+        ///
+        /// but the list index ordering is [aaaa], [bb], [dddd], [cc]
+        /// consequently the rect origin ordering is broken
+        if (rect.origin.isBefore(shifted.origin, axis)) {
+          return true;
+        }
+
+        if (shifted.isOverlapped(rect)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
     for (int i = 0; i < afterRects.length; i++) {
       final rect = afterRects[i];
 
-      /// if any shifted rect overlaps with the current rect,
-      /// we need to shift the current rect as well to avoid overlap,
-      /// otherwise we can keep the current rect unchanged.
-      final isAffected = shiftedRects.any(
-        (shifted) => shifted.isOverlapped(rect),
-      );
+      // final isAffected = shiftedRects.any(
+      //   (shifted) => shifted.isOverlapped(rect),
+      // );
+
+      final isAffected = checkIfAffected(rect);
 
       if (!isAffected) {
+        // final index = results.indexWhere(
+        //   (r) => rect.origin.isBefore(r.origin, axis),
+        // );
+
+        // if (index == -1) {
+        //   results.add(rect);
+        // } else {
+        //   results.insert(index, rect);
+        // }
         results.add(rect);
         continue;
       }
@@ -155,10 +202,7 @@ class DashboardLayoutEngine {
       shiftedRects.add(appended);
     }
 
-    assert(
-      DashboardAssertion.assertRectsOrdered(results, axis),
-      "All item rects must be ordered by their top and left coordinates.",
-    );
+    DashboardAssertion.assertRectsOrdered(results, axis);
 
     return results;
   }
@@ -169,10 +213,7 @@ class DashboardLayoutEngine {
     DashboardAxis axis,
     int mainAxisMaxFlex,
   ) {
-    assert(
-      DashboardAssertion.assertRectsOrdered(rects, axis),
-      "All item rects must be ordered by their top and left coordinates.",
-    );
+    DashboardAssertion.assertRectsOrdered(rects, axis);
 
     final last = rects.lastOrNull;
 

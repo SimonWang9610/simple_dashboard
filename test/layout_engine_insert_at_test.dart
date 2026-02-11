@@ -164,6 +164,34 @@ void main() {
         ItemRect(ItemCoordinate(0, 2), ItemFlex(1, 2)),
       ]);
     });
+
+    test("insert special case", () {
+      final maxMainAxisFlex = 4;
+
+      final rects = [
+        ItemRect(ItemCoordinate(0, 0), ItemFlex(4, 1)),
+        ItemRect(ItemCoordinate(0, 1), ItemFlex(2, 1)),
+        ItemRect(ItemCoordinate(2, 1), ItemFlex(2, 1)),
+      ];
+
+      final flex = ItemFlex(4, 1);
+
+      final result = DashboardLayoutEngine.insertAt(
+        rects,
+        2,
+        flex,
+        axis,
+        maxMainAxisFlex,
+      );
+
+      expect(result.length, 4);
+      expect(result, [
+        ItemRect(ItemCoordinate(0, 0), ItemFlex(4, 1)),
+        ItemRect(ItemCoordinate(0, 1), ItemFlex(2, 1)),
+        ItemRect(ItemCoordinate(0, 2), ItemFlex(4, 1)),
+        ItemRect(ItemCoordinate(0, 3), ItemFlex(2, 1)),
+      ]);
+    });
   });
 
   group("[v] insertAt", () {
