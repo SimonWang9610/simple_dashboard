@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
+import 'package:simple_dashboard/src/models/dashboard_layout_delegate.dart';
+import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
 
 typedef DashboardItemBuilder =
-    Widget Function(BuildContext context, DashboardItem);
+    Widget Function(BuildContext context, LayoutItem);
 
 class Dashboard extends StatefulWidget {
   final DashboardController controller;
   final DashboardItemBuilder itemBuilder;
   final WidgetBuilder? emptyBuilder;
+  final double aspectRatio;
+  final double mainAxisSpacing;
+  final double crossAxisSpacing;
 
   const Dashboard({
     super.key,
     required this.controller,
     required this.itemBuilder,
+    this.aspectRatio = 1.0,
+    this.mainAxisSpacing = 4,
+    this.crossAxisSpacing = 4,
     this.emptyBuilder,
   });
 
@@ -37,12 +45,18 @@ class _DashboardState extends State<Dashboard> {
               ? Axis.vertical
               : Axis.horizontal,
           child: RawDashboard(
-            layoutNotifier: widget.controller,
+            axis: widget.controller.axis,
+            mainAxisSlots: widget.controller.mainAxisSlots,
+            layoutDelegate: DashboardAspectRatioDelegate(
+              aspectRatio: widget.aspectRatio,
+              mainAxisSpacing: widget.mainAxisSpacing,
+              crossAxisSpacing: widget.crossAxisSpacing,
+            ),
             children: [
               for (int i = 0; i < items.length; i++)
                 DashboardItemDataWidget(
                   key: ValueKey(items[i].id),
-                  rect: items[i].rect,
+                  item: items[i],
                   child: widget.itemBuilder(context, items[i]),
                 ),
             ],

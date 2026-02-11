@@ -1,219 +1,156 @@
-import 'package:flutter/widgets.dart';
-import 'package:simple_dashboard/src/classes/layout_engine.dart';
-import 'package:simple_dashboard/src/models/enums.dart';
-import 'package:simple_dashboard/src/models/item.dart';
-import 'package:simple_dashboard/src/models/item_flex.dart';
-import 'package:simple_dashboard/src/models/item_rect.dart';
-import 'package:simple_dashboard/src/utils/helper.dart';
+import 'package:flutter/foundation.dart';
+import 'package:simple_dashboard/simple_dashboard.dart';
+import 'package:simple_dashboard/src/classes/layout_positioner.dart';
+import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
 
-abstract class DashboardLayoutNotifier extends ChangeNotifier {
-  DashboardLayoutNotifier({
+class DashboardController extends ChangeNotifier {
+  final Map<Object, LayoutItem> _items;
+
+  late int _maxX = 0;
+  late int _maxY = 0;
+
+  int get _maxCrossSlots => axis == DashboardAxis.horizontal ? _maxY : _maxX;
+
+  DashboardController({
     DashboardAxis axis = DashboardAxis.horizontal,
-    double mainAxisSpacing = 0,
-    double crossAxisSpacing = 0,
-    required int mainAxisFlexCount,
+    required int mainAxisSlots,
+    Iterable<LayoutItem> items = const [],
   }) : _axis = axis,
-       _mainAxisSpacing = mainAxisSpacing,
-       _crossAxisSpacing = crossAxisSpacing,
-       _mainAxisFlexCount = mainAxisFlexCount;
-
-  int _mainAxisFlexCount = 0;
-  int get mainAxisFlexCount => _mainAxisFlexCount;
+       _mainAxisSlots = mainAxisSlots,
+       _items = {} {
+    _refillItems(items);
+  }
 
   DashboardAxis _axis;
   DashboardAxis get axis => _axis;
-
-  double _mainAxisSpacing;
-  double get mainAxisSpacing => _mainAxisSpacing;
-  set mainAxisSpacing(double value) {
-    if (_mainAxisSpacing != value) {
-      _mainAxisSpacing = value;
-      notifyListeners();
-    }
-  }
-
-  double _crossAxisSpacing;
-  double get crossAxisSpacing => _crossAxisSpacing;
-  set crossAxisSpacing(double value) {
-    if (_crossAxisSpacing != value) {
-      _crossAxisSpacing = value;
-      notifyListeners();
-    }
-  }
-
-  double get horizontalSpacing =>
-      _axis == DashboardAxis.horizontal ? _mainAxisSpacing : _crossAxisSpacing;
-  double get verticalSpacing =>
-      _axis == DashboardAxis.horizontal ? _crossAxisSpacing : _mainAxisSpacing;
-}
-
-class DashboardController extends DashboardLayoutNotifier {
-  final List<DashboardItem> _items;
-
-  DashboardController({
-    List<DashboardItem>? items,
-    required super.mainAxisFlexCount,
-    super.axis,
-    super.mainAxisSpacing,
-    super.crossAxisSpacing,
-  }) : _items = items ?? <DashboardItem>[] {
-    DashboardAssertion.assertIdNotDuplicate(_items);
-    DashboardAssertion.assertRectsOrdered(rects, axis);
-    DashboardAssertion.assertRectsNotOverlapped(rects);
-
-    assert(
-      () {
-        for (final item in _items) {
-          if (!DashboardAssertion.assertValidFlex(
-            item.range,
-            item.rect.flexes,
-          )) {
-            return false;
-          }
-        }
-
-        return true;
-      }(),
-      "The initial flexes of all items must be within their specified ranges.",
-    );
-  }
-
-  List<ItemRect> get rects => _items.map((item) => item.rect).toList();
-  List<DashboardItem> get items => List.unmodifiable(_items);
-
-  void addItem(Object id, ItemFlex flex, ItemFlexRange range) {
-    assert(
-      _items.every((item) => item.id != id),
-      "The id of the new item must be unique.",
-    );
-
-    DashboardAssertion.assertValidFlex(range, flex);
-
-    final (index, rect) = DashboardLayoutEngine.adoptRect(
-      rects,
-      flex,
-      axis,
-      mainAxisFlexCount,
-    );
-
-    final item = DashboardItem(
-      id: id,
-      rect: rect,
-      range: range,
-    );
-
-    _items.insert(index, item);
-
-    DashboardAssertion.assertRectsOrdered(rects, axis);
-    DashboardAssertion.assertRectsNotOverlapped(rects);
-    notifyListeners();
-  }
-
-  void removeItem(Object id) {
-    final index = _items.indexWhere((item) => item.id == id);
-    if (index != -1) {
-      _items.removeAt(index);
-      notifyListeners();
-    }
-  }
-
-  void reorderItem(int from, int to) {
-    assert(
-      from >= 0 && from < _items.length,
-      "The old index must be within the bounds of the item list.",
-    );
-
-    assert(
-      to >= 0 && to < _items.length,
-      "The new index must be within the bounds of the item list.",
-    );
-
-    DashboardAssertion.assertRectsOrdered(rects, axis);
-
-    final fromItem = _items[from];
-
-    final targetRects = List<ItemRect>.from(rects)..removeAt(from);
-
-    final newRects = DashboardLayoutEngine.insertAt(
-      targetRects,
-      to,
-      fromItem.rect.flexes,
-      axis,
-      mainAxisFlexCount,
-    );
-
-    assert(newRects.length == _items.length);
-
-    DashboardAssertion.assertRectsOrdered(newRects, axis);
-
-    final newItems = <DashboardItem>[];
-
-    for (int i = 0; i < _items.length; i++) {
-      final oldItem = _items[i];
-      final newRect = newRects[i];
-
-      newItems.add(
-        DashboardItem(
-          id: oldItem.id,
-          rect: newRect,
-          range: oldItem.range,
-        ),
-      );
-    }
-
-    _items
-      ..clear()
-      ..addAll(newItems);
-
-    DashboardAssertion.assertRectsOrdered(rects, axis);
-    DashboardAssertion.assertRectsNotOverlapped(rects);
-
-    notifyListeners();
-  }
-
-  set mainAxisFlexCount(int value) {
-    if (_mainAxisFlexCount == value) return;
-
-    if (value < _mainAxisFlexCount) {
-      DashboardAssertion.ensureMainAxisFlexNotExceedMax(items, value, axis);
-    }
-
-    _adoptItems(axis, value);
-    _mainAxisFlexCount = value;
-    notifyListeners();
-  }
-
   set axis(DashboardAxis value) {
-    if (_axis == value) return;
+    if (_axis != value) {
+      _axis = value;
+      notifyListeners();
+    }
+  }
 
-    _adoptItems(value, mainAxisFlexCount);
-    _axis = value;
+  int _mainAxisSlots;
+  int get mainAxisSlots => _mainAxisSlots;
+  set mainAxisSlots(int value) {
+    if (_mainAxisSlots != value) {
+      final oldSlots = _mainAxisSlots;
+      _mainAxisSlots = value;
+
+      if (_mainAxisSlots < oldSlots) {
+        _reAdoptMainAxisSlots();
+      }
+
+      notifyListeners();
+    }
+  }
+
+  List<LayoutItem> get items => _items.values.toList();
+
+  void addItem(
+    Object id,
+    LayoutSize size, {
+    required PositionStrategy strategy,
+    Object? afterId,
+  }) {
+    assert(
+      !_items.containsKey(id),
+      "Each item in the dashboard must have a unique id. An item with id [$id] already exists.",
+    );
+    assert(
+      strategy != PositionStrategy.after || afterId != null,
+      "afterId must be provided when using PositionStrategy.after",
+    );
+
+    final validSize = size.constrain(axis, mainAxisSlots);
+
+    final DashboardPositioner positioner = switch (strategy) {
+      PositionStrategy.aggressive => DashboardAggressivePositioner(
+        items: _items.values,
+        axis: axis,
+        mainAxisSlots: mainAxisSlots,
+        maxCrossSlots: _maxCrossSlots,
+      ),
+      PositionStrategy.append => DashboardAppendPositioner(
+        items: _items.values,
+        axis: axis,
+        mainAxisSlots: mainAxisSlots,
+        maxCrossSlots: _maxCrossSlots,
+      ),
+      PositionStrategy.after => DashboardAfterPositioner(
+        items: _items.values,
+        axis: axis,
+        mainAxisSlots: mainAxisSlots,
+        afterId: afterId,
+        maxCrossSlots: _maxCrossSlots,
+      ),
+      PositionStrategy.head => DashboardHeadPositioner(
+        items: _items.values,
+        axis: axis,
+        mainAxisSlots: mainAxisSlots,
+        maxCrossSlots: _maxCrossSlots,
+      ),
+    };
+
+    final newItems = positioner.position(id, validSize);
+
+    _refillItems(newItems);
+
     notifyListeners();
   }
 
-  void _adoptItems(DashboardAxis axis, int mainAxisFlexCount) {
-    final newRects = <ItemRect>[];
-    final newItems = <DashboardItem>[];
+  Map<CollisionDirection, List<LayoutItem>> checkCollisions(LayoutRect rect) {
+    final conflicts = _items.values.where(
+      (item) => item.rect.hasConflicts(rect) && item.rect != rect,
+    );
 
-    for (final old in _items) {
-      final rect = DashboardLayoutEngine.appendAtEnd(
-        newRects,
-        old.rect.flexes,
-        axis,
-        mainAxisFlexCount,
-      );
+    final Map<CollisionDirection, List<LayoutItem>> result = {};
 
-      newItems.add(
-        DashboardItem(
-          id: old.id,
-          rect: rect,
-          range: old.range,
-        ),
-      );
+    for (final item in conflicts) {
+      final itemRect = item.rect;
+
+      final isTop = rect.top < itemRect.top;
+      final isLeft = rect.left < itemRect.left;
+
+      final direction = switch (isTop) {
+        true => switch (isLeft) {
+          true => CollisionDirection.topLeft,
+          false => CollisionDirection.topRight,
+        },
+        false => switch (isLeft) {
+          true => CollisionDirection.bottomLeft,
+          false => CollisionDirection.bottomRight,
+        },
+      };
+
+      result.putIfAbsent(direction, () => []).add(item);
     }
 
-    _items
-      ..clear()
-      ..addAll(newItems);
+    return result;
+  }
+
+  // TODO: re-adopt all items to the new main axis slots
+  void _reAdoptMainAxisSlots() {}
+
+  void _refillItems(Iterable<LayoutItem> items) {
+    DashboardAssertion.checkNoOverflow(items, axis, mainAxisSlots);
+    DashboardAssertion.checkNoConflict(items);
+
+    _items.clear();
+
+    _maxX = 0;
+    _maxY = 0;
+
+    for (final item in items) {
+      _items[item.id] = item;
+
+      if (item.rect.right > _maxX) {
+        _maxX = item.rect.right;
+      }
+
+      if (item.rect.bottom > _maxY) {
+        _maxY = item.rect.bottom;
+      }
+    }
   }
 }

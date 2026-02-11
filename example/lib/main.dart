@@ -29,11 +29,13 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  DashboardController controller = DashboardController(
-    mainAxisFlexCount: 9,
-    mainAxisSpacing: 6,
-    crossAxisSpacing: 6,
-  );
+  final controller = DashboardController(mainAxisSlots: 6);
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,23 +90,22 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _addItem() {
-    final mainAxisFlex = controller.mainAxisFlexCount;
+    final slots = controller.mainAxisSlots;
 
-    final mainFlex = faker.randomGenerator.integer(mainAxisFlex ~/ 2, min: 1);
-    final crossFlex = faker.randomGenerator.integer(mainAxisFlex ~/ 2, min: 1);
+    final id = "Item:${controller.items.length + 1}";
 
-    final itemFlex = ItemFlex(mainFlex, crossFlex);
+    final size = LayoutSize(
+      width: faker.randomGenerator.integer(slots ~/ 2, min: 1),
+      height: faker.randomGenerator.integer(slots ~/ 2, min: 1),
+    );
 
     controller.addItem(
-      DateTime.now().toString(),
-      itemFlex,
-      ItemFlexRange.fixed(itemFlex),
+      id,
+      size,
+      strategy: PositionStrategy.after,
+      afterId: controller.items.firstOrNull?.id,
     );
   }
 
-  void _reorderItem() {
-    if (controller.items.length < 2) return;
-
-    controller.reorderItem(0, 1);
-  }
+  void _reorderItem() {}
 }

@@ -16,3 +16,10 @@ enum DashboardAxis {
     };
   }
 }
+
+enum CollisionDirection {
+  topLeft,
+  topRight,
+  bottomLeft,
+  bottomRight,
+}
