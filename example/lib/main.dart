@@ -78,16 +78,47 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Text('No items'),
                 ),
                 itemBuilder: (context, item) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.black),
-                      color: Colors
-                          .primaries[item.id.hashCode % Colors.primaries.length]
-                          .withOpacity(0.5),
-                    ),
-                    child: Center(
-                      child: Text('[${item.id}]'),
+                  return InkWell(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('Item ${item.id}'),
+                          content: Text(
+                            'Position: (${item.rect.x}, ${item.rect.y})\nSize: ${item.rect.size.width} x ${item.rect.size.height}',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                WidgetsBinding.instance.addPostFrameCallback((
+                                  _,
+                                ) {
+                                  controller.removeItem(item.id);
+                                });
+                              },
+                              child: const Text('Remove'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text('Close'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.black),
+                        color: Colors
+                            .primaries[item.id.hashCode %
+                                Colors.primaries.length]
+                            .withOpacity(0.5),
+                      ),
+                      child: Center(
+                        child: Text('[${item.id}]'),
+                      ),
                     ),
                   );
                 },
@@ -99,10 +130,16 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  int _count = 0;
+
   void _addItem() {
+    if (controller.items.length > _count) {
+      _count = controller.items.length;
+    }
+
     final slots = controller.mainAxisSlots;
 
-    final id = "Item:${controller.items.length + 1}";
+    final id = "Item${++_count}";
 
     final size = LayoutSize(
       width: faker.randomGenerator.integer(slots ~/ 2, min: 1),

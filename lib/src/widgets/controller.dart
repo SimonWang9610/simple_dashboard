@@ -81,6 +81,30 @@ class DashboardController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void removeItem(Object id) {
+    final removed = _items.remove(id);
+
+    if (removed == null) return;
+
+    /// update maxX and maxY after removal
+    if (removed.rect.right == _maxX || removed.rect.bottom == _maxY) {
+      _maxX = 0;
+      _maxY = 0;
+
+      for (final item in _items.values) {
+        if (item.rect.right > _maxX) {
+          _maxX = item.rect.right;
+        }
+
+        if (item.rect.bottom > _maxY) {
+          _maxY = item.rect.bottom;
+        }
+      }
+    }
+
+    notifyListeners();
+  }
+
   Map<CollisionDirection, List<LayoutItem>> checkCollisions(LayoutRect rect) {
     final conflicts = _items.values.where(
       (item) => item.rect.hasConflicts(rect) && item.rect != rect,

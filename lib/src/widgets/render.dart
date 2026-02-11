@@ -198,6 +198,11 @@ class RenderDashboard extends RenderBox
       return true;
     }());
   }
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    return defaultHitTestChildren(result, position: position);
+  }
 }
 
 class _Overflow {
