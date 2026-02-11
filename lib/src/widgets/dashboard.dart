@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
-import 'package:simple_dashboard/src/models/dashboard_layout_delegate.dart';
-import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
+import 'package:simple_dashboard/src/widgets/animated_dashboard_layout.dart';
 
 typedef DashboardItemBuilder =
     Widget Function(BuildContext context, LayoutItem);
@@ -54,9 +53,10 @@ class _DashboardState extends State<Dashboard> {
             ),
             children: [
               for (int i = 0; i < items.length; i++)
-                DashboardItemDataWidget(
-                  key: ValueKey(items[i].id),
-                  item: items[i],
+                AnimatedDashboardLayout(
+                  rect: items[i].rect,
+                  curve: Curves.easeInOut,
+                  duration: const Duration(milliseconds: 160),
                   child: widget.itemBuilder(context, items[i]),
                 ),
             ],

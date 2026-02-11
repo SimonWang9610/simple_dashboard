@@ -5,21 +5,20 @@ import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
 import 'package:simple_dashboard/src/models/enums.dart';
 import 'package:simple_dashboard/src/widgets/render.dart';
 
-class DashboardItemDataWidget
-    extends ParentDataWidget<DashboardItemParentData> {
-  final LayoutItem item;
+class DashboardLayout extends ParentDataWidget<DashboardItemParentData> {
+  final LayoutRect rect;
 
-  const DashboardItemDataWidget({
+  const DashboardLayout({
     super.key,
-    required this.item,
+    required this.rect,
     required super.child,
   });
 
   @override
   void applyParentData(RenderObject renderObject) {
     final parentData = renderObject.parentData as DashboardItemParentData;
-    if (parentData.layout != item) {
-      parentData.layout = item;
+    if (parentData.layout != rect) {
+      parentData.layout = rect;
       renderObject.parent?.markNeedsLayout();
     }
   }
@@ -30,7 +29,7 @@ class DashboardItemDataWidget
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<LayoutItem>('item', item));
+    properties.add(DiagnosticsProperty<LayoutRect>('rect', rect));
   }
 }
 

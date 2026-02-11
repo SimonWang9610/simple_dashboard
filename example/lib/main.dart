@@ -82,6 +82,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: Colors.black),
+                      color: Colors
+                          .primaries[item.id.hashCode % Colors.primaries.length]
+                          .withOpacity(0.5),
                     ),
                     child: Center(
                       child: Text('[${item.id}]'),
@@ -109,7 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
     controller.addItem(
       id,
       size,
-      strategy: PositionStrategy.aggressive,
+      strategy: PositionStrategy.head,
       afterId: controller.items.firstOrNull?.id,
     );
   }

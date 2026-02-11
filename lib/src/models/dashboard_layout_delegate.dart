@@ -76,7 +76,9 @@ final class DashboardAspectRatioDelegate extends DashboardLayoutDelegate {
         ? constraints.maxWidth
         : constraints.maxHeight;
 
-    final mainAxisSlotExtent = mainAxisExtent / mainAxisSlots;
+    final mainAxisSlotExtent =
+        (mainAxisExtent - (mainAxisSlots - 1) * mainAxisSpacing) /
+        mainAxisSlots;
 
     final (h, v, hSpacing, vSpacing) = switch (axis) {
       DashboardAxis.horizontal => (
