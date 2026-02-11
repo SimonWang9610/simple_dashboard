@@ -1,4 +1,5 @@
 import 'package:simple_dashboard/src/models/enums.dart';
+import 'package:equatable/equatable.dart';
 
 class LayoutRect {
   final int x;
@@ -45,7 +46,7 @@ class LayoutRect {
   }
 }
 
-class LayoutSize {
+class LayoutSize extends Equatable {
   final int width;
   final int height;
 
@@ -68,6 +69,9 @@ class LayoutSize {
         );
     }
   }
+
+  @override
+  List<Object?> get props => [width, height];
 }
 
 class LayoutItem {

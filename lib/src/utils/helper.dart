@@ -1,8 +1,9 @@
 import 'package:collection/collection.dart';
+import 'package:simple_dashboard/simple_dashboard.dart';
 import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
 import 'package:simple_dashboard/src/models/enums.dart';
 
-class DashboardAssertion {
+class DashboardHelper {
   static String visualize(List<LayoutRect> rects) {
     int maxX = 0;
     int maxY = 0;
@@ -95,5 +96,54 @@ class DashboardAssertion {
     return items.sorted(
       (a, b) => a.rect.compare(b.rect, axis),
     );
+  }
+
+  /// Adopts the given layout items to fit within the specified axis and main axis slot constraints.
+  ///
+  /// If an item's size exceeds the main axis slot count, it will be constrained via [LayoutSize.constrain]
+  /// and then repositioned using [DashboardAppendPositioner]
+  ///
+  /// Items that already fit within the constraints will be kept as is.
+  ///
+  /// The result may break the original [LayoutRect] of the items,
+  /// but will ensure that all items fit within the dashboard's layout rules.
+  ///
+  /// Typically, it happens when the dashboard's axis or main axis slot count is changed.
+  ///
+  /// If [DashboardAxis] changes, some items may not fit the new main axis slot count and need to be repositioned.
+  ///
+  /// If [mainAxisSlots] decreases, some items may also need to be repositioned to fit the new slot count;
+  /// However, if [mainAxisSlots] increases, all items will still fit without repositioning.
+  static List<LayoutItem> adoptMetrics(
+    Iterable<LayoutItem> items,
+    DashboardAxis axis,
+    int mainAxisSlots,
+  ) {
+    List<LayoutItem> adoptedItems = [];
+
+    int maxCrossSlots = 0;
+
+    for (final item in items) {
+      final constrainedSize = item.rect.size.constrain(axis, mainAxisSlots);
+
+      if (constrainedSize == item.rect.size) {
+        adoptedItems.add(item);
+      } else {
+        adoptedItems = DashboardAppendPositioner(
+          items: adoptedItems,
+          axis: axis,
+          mainAxisSlots: mainAxisSlots,
+          maxCrossSlots: maxCrossSlots,
+        ).position(item.id, constrainedSize);
+      }
+
+      final crossSlots = axis == DashboardAxis.horizontal
+          ? adoptedItems.last.rect.bottom
+          : adoptedItems.last.rect.right;
+
+      maxCrossSlots = crossSlots > maxCrossSlots ? crossSlots : maxCrossSlots;
+    }
+
+    return adoptedItems;
   }
 }

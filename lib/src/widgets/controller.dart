@@ -22,25 +22,13 @@ class DashboardController extends ChangeNotifier {
   DashboardAxis _axis;
   DashboardAxis get axis => _axis;
   set axis(DashboardAxis value) {
-    if (_axis != value) {
-      _axis = value;
-      notifyListeners();
-    }
+    _updateMetrics(value, null);
   }
 
   int _mainAxisSlots;
   int get mainAxisSlots => _mainAxisSlots;
   set mainAxisSlots(int value) {
-    if (_mainAxisSlots != value) {
-      final oldSlots = _mainAxisSlots;
-      _mainAxisSlots = value;
-
-      if (_mainAxisSlots < oldSlots) {
-        _reAdoptMainAxisSlots();
-      }
-
-      notifyListeners();
-    }
+    _updateMetrics(null, value);
   }
 
   List<LayoutItem> get items => _items.values.toList();
@@ -54,10 +42,6 @@ class DashboardController extends ChangeNotifier {
     assert(
       !_items.containsKey(id),
       "Each item in the dashboard must have a unique id. An item with id [$id] already exists.",
-    );
-    assert(
-      strategy != PositionStrategy.after || afterId != null,
-      "afterId must be provided when using PositionStrategy.after",
     );
 
     final validSize = size.constrain(axis, mainAxisSlots);
@@ -127,12 +111,38 @@ class DashboardController extends ChangeNotifier {
     return result;
   }
 
-  // TODO: re-adopt all items to the new main axis slots
-  void _reAdoptMainAxisSlots() {}
+  void _updateMetrics(DashboardAxis? newAxis, int? newMainAxisSlots) {
+    if (newAxis == null && newMainAxisSlots == null) {
+      return;
+    }
 
+    bool shouldReAdopt = false;
+
+    if (newAxis != null && newAxis != axis) {
+      _axis = newAxis;
+      shouldReAdopt = true;
+    }
+
+    if (newMainAxisSlots != null && newMainAxisSlots != mainAxisSlots) {
+      _mainAxisSlots = newMainAxisSlots;
+      shouldReAdopt = true;
+    }
+
+    if (shouldReAdopt) {
+      final adoptedItems = DashboardHelper.adoptMetrics(
+        _items.values,
+        axis,
+        mainAxisSlots,
+      );
+      _refillItems(adoptedItems);
+      notifyListeners();
+    }
+  }
+
+  /// Checks that the given items do not have any conflicts with each other.
   void _refillItems(Iterable<LayoutItem> items) {
-    DashboardAssertion.checkNoOverflow(items, axis, mainAxisSlots);
-    DashboardAssertion.checkNoConflict(items);
+    DashboardHelper.checkNoOverflow(items, axis, mainAxisSlots);
+    DashboardHelper.checkNoConflict(items);
 
     _items.clear();
 

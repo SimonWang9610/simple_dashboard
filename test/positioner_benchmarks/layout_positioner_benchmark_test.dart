@@ -32,7 +32,7 @@ void main() async {
       expect(duration, lessThan(5000)); // Should complete in < 5 seconds
 
       expect(
-        () => DashboardAssertion.checkNoOverflow(
+        () => DashboardHelper.checkNoOverflow(
           items,
           DashboardAxis.horizontal,
           12,
@@ -41,7 +41,7 @@ void main() async {
       );
 
       expect(
-        () => DashboardAssertion.checkNoConflict(items),
+        () => DashboardHelper.checkNoConflict(items),
         returnsNormally,
       );
     });
@@ -68,7 +68,7 @@ void main() async {
       expect(duration, lessThan(5000));
 
       expect(
-        () => DashboardAssertion.checkNoOverflow(
+        () => DashboardHelper.checkNoOverflow(
           items,
           DashboardAxis.horizontal,
           12,
@@ -77,7 +77,7 @@ void main() async {
       );
 
       expect(
-        () => DashboardAssertion.checkNoConflict(items),
+        () => DashboardHelper.checkNoConflict(items),
         returnsNormally,
       );
     });
@@ -119,7 +119,7 @@ void main() async {
       expect(duration, lessThan(10000)); // More complex, allow 10 seconds
 
       expect(
-        () => DashboardAssertion.checkNoOverflow(
+        () => DashboardHelper.checkNoOverflow(
           items,
           DashboardAxis.horizontal,
           12,
@@ -128,7 +128,7 @@ void main() async {
       );
 
       expect(
-        () => DashboardAssertion.checkNoConflict(items),
+        () => DashboardHelper.checkNoConflict(items),
         returnsNormally,
       );
     });
@@ -165,7 +165,7 @@ void main() async {
       expect(duration, lessThan(15000)); // Allow 15 seconds for 100 items
 
       expect(
-        () => DashboardAssertion.checkNoOverflow(
+        () => DashboardHelper.checkNoOverflow(
           items,
           DashboardAxis.horizontal,
           20,
@@ -174,7 +174,7 @@ void main() async {
       );
 
       expect(
-        () => DashboardAssertion.checkNoConflict(items),
+        () => DashboardHelper.checkNoConflict(items),
         returnsNormally,
       );
     });
@@ -243,7 +243,7 @@ void main() async {
       expect(duration, lessThan(12000));
 
       expect(
-        () => DashboardAssertion.checkNoOverflow(
+        () => DashboardHelper.checkNoOverflow(
           items,
           DashboardAxis.horizontal,
           12,
@@ -252,7 +252,7 @@ void main() async {
       );
 
       expect(
-        () => DashboardAssertion.checkNoConflict(items),
+        () => DashboardHelper.checkNoConflict(items),
         returnsNormally,
       );
     });
@@ -301,7 +301,7 @@ void main() async {
       ); // More complex, but should still be reasonable
 
       expect(
-        () => DashboardAssertion.checkNoOverflow(
+        () => DashboardHelper.checkNoOverflow(
           items,
           DashboardAxis.horizontal,
           10,
@@ -310,7 +310,7 @@ void main() async {
       );
 
       expect(
-        () => DashboardAssertion.checkNoConflict(items),
+        () => DashboardHelper.checkNoConflict(items),
         returnsNormally,
       );
     });
@@ -343,7 +343,7 @@ void main() async {
       expect(duration, lessThan(5000));
 
       expect(
-        () => DashboardAssertion.checkNoOverflow(
+        () => DashboardHelper.checkNoOverflow(
           items,
           DashboardAxis.horizontal,
           12,
@@ -352,7 +352,7 @@ void main() async {
       );
 
       expect(
-        () => DashboardAssertion.checkNoConflict(items),
+        () => DashboardHelper.checkNoConflict(items),
         returnsNormally,
       );
     });
@@ -384,7 +384,7 @@ void main() async {
       expect(ids.length, 200); // All unique IDs
 
       expect(
-        () => DashboardAssertion.checkNoOverflow(
+        () => DashboardHelper.checkNoOverflow(
           items,
           DashboardAxis.horizontal,
           20,
@@ -393,7 +393,7 @@ void main() async {
       );
 
       expect(
-        () => DashboardAssertion.checkNoConflict(items),
+        () => DashboardHelper.checkNoConflict(items),
         returnsNormally,
       );
     });
@@ -423,7 +423,7 @@ void main() async {
       expect(items.length, 50);
 
       expect(
-        () => DashboardAssertion.checkNoOverflow(
+        () => DashboardHelper.checkNoOverflow(
           items,
           DashboardAxis.horizontal,
           12,
@@ -432,7 +432,7 @@ void main() async {
       );
 
       expect(
-        () => DashboardAssertion.checkNoConflict(items),
+        () => DashboardHelper.checkNoConflict(items),
         returnsNormally,
       );
     });
@@ -457,7 +457,7 @@ void main() async {
       expect(stopwatch.elapsedMilliseconds, lessThan(3000));
 
       expect(
-        () => DashboardAssertion.checkNoOverflow(
+        () => DashboardHelper.checkNoOverflow(
           items,
           DashboardAxis.horizontal,
           50,
@@ -466,7 +466,7 @@ void main() async {
       );
 
       expect(
-        () => DashboardAssertion.checkNoConflict(items),
+        () => DashboardHelper.checkNoConflict(items),
         returnsNormally,
       );
     });
@@ -493,7 +493,7 @@ void main() async {
       expect(stopwatch.elapsedMilliseconds, lessThan(3000));
 
       expect(
-        () => DashboardAssertion.checkNoOverflow(
+        () => DashboardHelper.checkNoOverflow(
           items,
           DashboardAxis.horizontal,
           10,
@@ -502,7 +502,7 @@ void main() async {
       );
 
       expect(
-        () => DashboardAssertion.checkNoConflict(items),
+        () => DashboardHelper.checkNoConflict(items),
         returnsNormally,
       );
     });

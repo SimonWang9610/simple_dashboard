@@ -33,6 +33,9 @@ sealed class DashboardPositioner {
 
 final class DashboardAggressivePositioner extends DashboardPositioner {
   final int mainAxisSlots;
+
+  /// The maximum number of slots used in the cross axis.
+  /// This is used to optimize the search space when placing items.
   final int maxCrossSlots;
   final int crossSlotStart;
   final int mainSlotStart;
@@ -216,7 +219,7 @@ final class DashboardAfterPositioner extends DashboardPositioner {
       return appendPositioner.position(id, size);
     }
 
-    final sorted = DashboardAssertion.sort(items, axis);
+    final sorted = DashboardHelper.sort(items, axis);
     final afterIndex = after == null ? -1 : sorted.indexOf(after);
 
     List<LayoutItem> kept = <LayoutItem>[

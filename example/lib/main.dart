@@ -54,8 +54,15 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               TextButton(onPressed: _addItem, child: const Text('Add Item')),
               TextButton(
-                onPressed: _reorderItem,
-                child: const Text('Reorder Item'),
+                onPressed: () {
+                  setState(() {
+                    controller.axis =
+                        controller.axis == DashboardAxis.horizontal
+                        ? DashboardAxis.vertical
+                        : DashboardAxis.horizontal;
+                  });
+                },
+                child: const Text('reverse axis'),
               ),
             ],
           ),
@@ -102,10 +109,8 @@ class _MyHomePageState extends State<MyHomePage> {
     controller.addItem(
       id,
       size,
-      strategy: PositionStrategy.after,
+      strategy: PositionStrategy.aggressive,
       afterId: controller.items.firstOrNull?.id,
     );
   }
-
-  void _reorderItem() {}
 }
