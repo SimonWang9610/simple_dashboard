@@ -57,6 +57,21 @@ abstract class LayoutChecker {
     );
   }
 
+  static bool assertNoDuplicatedIds(
+    Iterable<LayoutItem> items,
+  ) {
+    bool hasDuplicates = false;
+
+    assert(() {
+      final ids = items.map((item) => item.id).toSet();
+
+      hasDuplicates = ids.length != items.length;
+      return true;
+    }());
+
+    return !hasDuplicates;
+  }
+
   static void assertNoOverflow(
     Iterable<LayoutItem> items,
     DashboardAxis axis,

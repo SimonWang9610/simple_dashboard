@@ -91,7 +91,7 @@ class LayoutSize extends Equatable {
   List<Object?> get props => [width, height];
 }
 
-class LayoutItem {
+class LayoutItem extends Equatable {
   final Object id;
   final LayoutRect rect;
   final LayoutSize? minSize;
@@ -133,6 +133,9 @@ class LayoutItem {
       rect: rect,
     );
   }
+
+  @override
+  List<Object?> get props => [id, rect, minSize, maxSize];
 }
 
 final class LayoutPlaceholder extends LayoutItem {

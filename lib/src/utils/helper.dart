@@ -97,6 +97,11 @@ class DashboardHelper {
     int mainAxisSlots, {
     int? oldMainAxisSlots,
   }) {
+    assert(
+      LayoutChecker.assertNoDuplicatedIds(items),
+      "Duplicate item IDs found. Each item must have a unique ID.",
+    );
+
     final guarded = _guard(items, axis, mainAxisSlots);
 
     if (guarded != null) {
@@ -108,15 +113,31 @@ class DashboardHelper {
 
     int maxCrossSlots = 0;
 
+    final usedRects = <LayoutRect>{};
+
     List<LayoutItem> guardedItems = [];
 
     for (final item in sortedItems) {
       final hasOverflow = item.rect.isOverflow(axis, mainAxisSlots);
 
-      final hasCollision = LayoutChecker.checkCollisions(
-        guardedItems,
-        item.rect,
-      ).hasCollision;
+      /// If the item does not have overflow and does not have collision with the already guarded items.
+      ///
+      /// However, two different items may have the same layout rect,
+      /// which is not a collision (as their rects are exactly the same)
+      /// but will cause them to be conflicts in terms of LayoutItem.
+      ///
+      /// Think about:
+      /// LayoutItem(id: 'A', rect: LayoutRect(x: 0, y: 0, width: 2, height: 2))
+      /// LayoutItem(id: 'B', rect: LayoutRect(x: 0, y: 0, width: 2, height: 2))
+      ///
+      /// They do not collide with each other as their rects are exactly the same,
+      /// but they are in conflict in terms of LayoutItem as they have different ids.
+      final hasCollision =
+          usedRects.contains(item.rect) ||
+          LayoutChecker.checkCollisions(
+            guardedItems,
+            item.rect,
+          ).hasCollision;
 
       if (!hasOverflow && !hasCollision) {
         guardedItems.add(item);
@@ -133,9 +154,15 @@ class DashboardHelper {
             );
       }
 
+      final newItem = guardedItems.last;
+
+      assert(item.id == newItem.id, "The last should be the newly added item.");
+
+      usedRects.add(newItem.rect);
+
       final crossSlots = axis == DashboardAxis.horizontal
-          ? guardedItems.last.rect.bottom
-          : guardedItems.last.rect.right;
+          ? newItem.rect.bottom
+          : newItem.rect.right;
 
       maxCrossSlots = crossSlots > maxCrossSlots ? crossSlots : maxCrossSlots;
     }
