@@ -52,22 +52,7 @@ class LayoutRectTween extends Tween<LayoutRect> {
     return LayoutRect(
       x: position.$1,
       y: position.$2,
-      size: _lerpSize(t),
-    );
-  }
-
-  LayoutSize _lerpSize(double t) {
-    if (t == 1.0) {
-      return end!.size;
-    } else if (t == 0.0) {
-      return begin!.size;
-    }
-
-    return LayoutSize(
-      width: (begin!.size.width + (end!.size.width - begin!.size.width) * t)
-          .round(),
-      height: (begin!.size.height + (end!.size.height - begin!.size.height) * t)
-          .round(),
+      size: end!.size,
     );
   }
 

@@ -140,6 +140,10 @@ class DashboardHelper {
       maxCrossSlots = crossSlots > maxCrossSlots ? crossSlots : maxCrossSlots;
     }
 
+    if (_guard(guardedItems, axis, mainAxisSlots) == null) {
+      throw Exception("Failed to adopt layout items to fit the dashboard.");
+    }
+
     return guardedItems;
   }
 

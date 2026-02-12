@@ -54,7 +54,7 @@ class DashboardController extends ChangeNotifier {
 
     final validSize = size.constrain(axis, mainAxisSlots);
 
-    final DashboardPositioner positioner = switch (strategy) {
+    final positioner = switch (strategy) {
       PositionStrategy.aggressive => DashboardAggressivePositioner(
         items: _items.values,
         axis: axis,
