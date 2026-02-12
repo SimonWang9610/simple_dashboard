@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
+import 'package:simple_dashboard/src/utils/checker.dart';
 
 class DashboardController extends ChangeNotifier {
   final Map<Object, LayoutItem> _items;
@@ -17,7 +18,7 @@ class DashboardController extends ChangeNotifier {
        _mainAxisSlots = mainAxisSlots,
        _items = {} {
     /// ensure the initial items are valid and properly adopted
-    final adopted = DashboardHelper.guardMetrics(
+    final adopted = DashboardHelper.adoptMetrics(
       items,
       axis,
       mainAxisSlots,
@@ -112,36 +113,6 @@ class DashboardController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Map<CollisionDirection, List<LayoutItem>> checkCollisions(LayoutRect rect) {
-    final conflicts = _items.values.where(
-      (item) => item.rect.hasConflicts(rect) && item.rect != rect,
-    );
-
-    final Map<CollisionDirection, List<LayoutItem>> result = {};
-
-    for (final item in conflicts) {
-      final itemRect = item.rect;
-
-      final isTop = rect.top < itemRect.top;
-      final isLeft = rect.left < itemRect.left;
-
-      final direction = switch (isTop) {
-        true => switch (isLeft) {
-          true => CollisionDirection.topLeft,
-          false => CollisionDirection.topRight,
-        },
-        false => switch (isLeft) {
-          true => CollisionDirection.bottomLeft,
-          false => CollisionDirection.bottomRight,
-        },
-      };
-
-      result.putIfAbsent(direction, () => []).add(item);
-    }
-
-    return result;
-  }
-
   void _updateMetrics(DashboardAxis? newAxis, int? newMainAxisSlots) {
     if (newAxis == null && newMainAxisSlots == null) {
       return;
@@ -176,8 +147,8 @@ class DashboardController extends ChangeNotifier {
 
   /// Checks that the given items do not have any conflicts with each other.
   void _refillItems(Iterable<LayoutItem> items) {
-    DashboardHelper.checkNoOverflow(items, axis, mainAxisSlots);
-    DashboardHelper.checkNoConflict(items);
+    LayoutChecker.assertNoOverflow(items, axis, mainAxisSlots);
+    LayoutChecker.assertNoConflicts(items);
 
     _items.clear();
 

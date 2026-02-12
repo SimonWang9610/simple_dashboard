@@ -1,7 +1,7 @@
 import 'package:simple_dashboard/src/models/enums.dart';
 import 'package:equatable/equatable.dart';
 
-class LayoutRect {
+class LayoutRect extends Equatable {
   final int x;
   final int y;
   final LayoutSize size;
@@ -43,6 +43,23 @@ class LayoutRect {
         left >= other.right ||
         bottom <= other.top ||
         top >= other.bottom);
+  }
+
+  bool isOverflow(DashboardAxis axis, int mainAxisSlots) {
+    switch (axis) {
+      case DashboardAxis.horizontal:
+        return right > mainAxisSlots;
+      case DashboardAxis.vertical:
+        return bottom > mainAxisSlots;
+    }
+  }
+
+  @override
+  List<Object?> get props => [x, y, size];
+
+  @override
+  String toString() {
+    return "LayoutRect(x: $x, y: $y, width: ${size.width}, height: ${size.height})";
   }
 }
 

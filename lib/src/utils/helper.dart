@@ -1,5 +1,7 @@
 import 'package:collection/collection.dart';
+import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
+import 'package:simple_dashboard/src/utils/checker.dart';
 
 class DashboardHelper {
   static String visualize(List<LayoutRect> rects) {
@@ -37,59 +39,6 @@ class DashboardHelper {
     return visualization;
   }
 
-  static void checkNoOverflow(
-    Iterable<LayoutItem> items,
-    DashboardAxis axis,
-    int mainAxisSlots,
-  ) {
-    for (final item in items) {
-      final hasOverflow = switch (axis) {
-        DashboardAxis.horizontal => item.rect.size.width > mainAxisSlots,
-        DashboardAxis.vertical => item.rect.size.height > mainAxisSlots,
-      };
-
-      if (hasOverflow) {
-        throw ArgumentError(
-          "Layout contains an item that exceeds the maximum slot count of the main axis: ${item.id}",
-        );
-      }
-    }
-  }
-
-  static void checkNoConflict(Iterable<LayoutItem> items) {
-    final sorted = items.toList()
-      ..sort((a, b) => a.rect.left.compareTo(b.rect.left));
-
-    final int n = sorted.length;
-
-    for (int i = 0; i < n; i++) {
-      final item = sorted[i];
-      final rect = item.rect;
-
-      // Inner loop only checks items that could potentially overlap on the X-axis
-      for (int j = i + 1; j < n; j++) {
-        final other = sorted[j];
-        final otherRect = other.rect;
-
-        // PRUNING STEP:
-        // Since the list is sorted by 'left', if 'other.left' is already
-        // beyond 'item.right', no subsequent items in the list can
-        // possibly collide with 'item'. We can safely break the inner loop.
-        if (otherRect.left >= rect.right) {
-          break;
-        }
-
-        // If we are here, they overlap partially on the X-axis.
-        // Now we check if they also overlap on the Y-axis.
-        if (rect.hasConflicts(otherRect)) {
-          throw ArgumentError(
-            "Layout contains conflicting items: ${item.id} and ${other.id}",
-          );
-        }
-      }
-    }
-  }
-
   static List<LayoutItem> sort(Iterable<LayoutItem> items, DashboardAxis axis) {
     return items.sorted(
       (a, b) => a.rect.compare(b.rect, axis),
@@ -120,12 +69,10 @@ class DashboardHelper {
 
   /// Adopts the given layout items to fit within the specified axis and main axis slot constraints.
   ///
-  /// If an item's size exceeds the main axis slot count, it will be constrained via [LayoutSize.constrain]
+  /// If [LayoutRect.isOverflow] is true, it will be constrained via [LayoutSize.constrain]
   /// and then repositioned using [DashboardAppendPositioner]
   ///
-  /// Items that already fit within the constraints will be kept as is.
-  ///
-  /// The result may break the original [LayoutRect] of the items,
+  /// The result may BREAK the original [LayoutRect] of the items,
   /// but will ensure that all items fit within the dashboard's layout rules.
   ///
   /// Typically, it happens when the dashboard's axis or main axis slot count is changed.
@@ -150,60 +97,10 @@ class DashboardHelper {
     int mainAxisSlots, {
     int? oldMainAxisSlots,
   }) {
-    List<LayoutItem> adoptedItems = [];
+    final guarded = _guard(items, axis, mainAxisSlots);
 
-    int maxCrossSlots = 0;
-
-    final mainAxisSlotsCollapsed =
-        oldMainAxisSlots != null && oldMainAxisSlots > mainAxisSlots;
-
-    for (final item in items) {
-      final constrainedSize = item.rect.size.constrain(axis, mainAxisSlots);
-
-      /// If the item already fits within the main axis slots
-      /// and we are not collapsing the main axis slots, we can keep it as is.
-      if (constrainedSize == item.rect.size && !mainAxisSlotsCollapsed) {
-        adoptedItems.add(item);
-      } else {
-        adoptedItems = DashboardAppendPositioner(
-          items: adoptedItems,
-          axis: axis,
-          mainAxisSlots: mainAxisSlots,
-          maxCrossSlots: maxCrossSlots,
-        ).position(item.id, constrainedSize);
-      }
-
-      final crossSlots = axis == DashboardAxis.horizontal
-          ? adoptedItems.last.rect.bottom
-          : adoptedItems.last.rect.right;
-
-      maxCrossSlots = crossSlots > maxCrossSlots ? crossSlots : maxCrossSlots;
-    }
-
-    return adoptedItems;
-  }
-
-  /// Similar to [adoptMetrics],
-  /// but also ensures that the final layout is free of any overflow or conflicts.
-  ///
-  /// Typically it is used to guard against invalid layout states for initial items.
-  static List<LayoutItem> guardMetrics(
-    Iterable<LayoutItem> items,
-    DashboardAxis axis,
-    int mainAxisSlots,
-  ) {
-    bool shouldReposition = false;
-
-    try {
-      checkNoOverflow(items, axis, mainAxisSlots);
-      checkNoConflict(items);
-      shouldReposition = false;
-    } catch (e) {
-      shouldReposition = true;
-    }
-
-    if (!shouldReposition) {
-      return items.toList();
+    if (guarded != null) {
+      return guarded;
     }
 
     /// respect to the original position ordering of the items
@@ -214,14 +111,27 @@ class DashboardHelper {
     List<LayoutItem> guardedItems = [];
 
     for (final item in sortedItems) {
-      final constrainedSize = item.rect.size.constrain(axis, mainAxisSlots);
+      final hasOverflow = item.rect.isOverflow(axis, mainAxisSlots);
 
-      guardedItems = DashboardAppendPositioner(
-        items: guardedItems,
-        axis: axis,
-        mainAxisSlots: mainAxisSlots,
-        maxCrossSlots: maxCrossSlots,
-      ).position(item.id, constrainedSize);
+      final hasCollision = LayoutChecker.checkCollisions(
+        guardedItems,
+        item.rect,
+      ).hasCollision;
+
+      if (!hasOverflow && !hasCollision) {
+        guardedItems.add(item);
+      } else {
+        guardedItems =
+            DashboardAppendPositioner(
+              items: guardedItems,
+              axis: axis,
+              mainAxisSlots: mainAxisSlots,
+              maxCrossSlots: maxCrossSlots,
+            ).position(
+              item.id,
+              item.rect.size.constrain(axis, mainAxisSlots),
+            );
+      }
 
       final crossSlots = axis == DashboardAxis.horizontal
           ? guardedItems.last.rect.bottom
@@ -231,5 +141,42 @@ class DashboardHelper {
     }
 
     return guardedItems;
+  }
+
+  static List<LayoutItem>? _guard(
+    Iterable<LayoutItem> items,
+    DashboardAxis axis,
+    int mainAxisSlots,
+  ) {
+    final overflowed = LayoutChecker.findOverflowItems(
+      items,
+      axis,
+      mainAxisSlots,
+    );
+
+    final conflicts = LayoutChecker.findFirstConflictItems(items);
+
+    assert(() {
+      for (final item in overflowed) {
+        debugPrint(
+          "[${item.id}] overflowed: mainSlots: ${axis == DashboardAxis.horizontal ? item.rect.right : item.rect.bottom}, mainAxisSlots=$mainAxisSlots",
+        );
+      }
+
+      if (conflicts != null) {
+        final (item1, item2) = conflicts;
+        debugPrint(
+          "[${item1.id}] and [${item2.id}] are in conflict: rect1=${item1.rect}, rect2=${item2.rect}",
+        );
+      }
+
+      return true;
+    }());
+
+    if (overflowed.isEmpty && conflicts == null) {
+      return items.toList();
+    }
+
+    return null;
   }
 }
