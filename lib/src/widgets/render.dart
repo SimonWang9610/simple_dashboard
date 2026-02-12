@@ -12,15 +12,22 @@ class RenderDashboard extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, DashboardItemParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, DashboardItemParentData>,
-        DebugOverflowIndicatorMixin {
+        DebugOverflowIndicatorMixin,
+        _DashboardPlaceholderMixin {
   RenderDashboard({
     List<RenderBox>? children,
     required DashboardLayoutDelegate layoutDelegate,
     required DashboardAxis axis,
     required int mainAxisSlots,
+    required ImageConfiguration imageConfiguration,
+    LayoutPlaceholder? placeholder,
+    BoxDecoration? placeholderDecoration,
   }) : _delegate = layoutDelegate,
        _axis = axis,
        _mainAxisSlots = mainAxisSlots {
+    _placeholder = placeholder;
+    _placeholderDecoration = placeholderDecoration;
+    _imageConfiguration = imageConfiguration;
     addAll(children);
   }
 
@@ -131,6 +138,13 @@ class RenderDashboard extends RenderBox
       },
     );
 
+    if (_placeholder != null) {
+      _placeholderRect = _delegate.computeItemRect(
+        _placeholder!.rect,
+        extents,
+      );
+    }
+
     size = Size(
       _axis == DashboardAxis.horizontal ? mainAxisExtent : crossAxisExtent,
       _axis == DashboardAxis.horizontal ? crossAxisExtent : mainAxisExtent,
@@ -139,6 +153,8 @@ class RenderDashboard extends RenderBox
 
   @override
   void paint(PaintingContext context, Offset offset) {
+    paintPlaceholder(context, offset);
+
     defaultPaint(context, offset);
 
     if (_overflow == null || !_overflow!.hasOverflow) {
@@ -220,4 +236,55 @@ class _Overflow {
       mainAxisOverflow != null && mainAxisOverflow! >= 1;
   bool get hasCrossAxisOverflow =>
       crossAxisOverflow != null && crossAxisOverflow! >= 1;
+}
+
+mixin _DashboardPlaceholderMixin on RenderBox {
+  LayoutPlaceholder? _placeholder;
+
+  set placeholder(LayoutPlaceholder? value) {
+    if (_placeholder != value) {
+      _placeholder = value;
+      markNeedsLayout();
+    }
+  }
+
+  BoxDecoration? _placeholderDecoration;
+  set placeholderDecoration(BoxDecoration? value) {
+    if (_placeholderDecoration != value) {
+      _placeholderDecoration = value;
+      markNeedsPaint();
+    }
+  }
+
+  ImageConfiguration get mageConfiguration => _imageConfiguration;
+  late ImageConfiguration _imageConfiguration;
+  set imageConfiguration(ImageConfiguration value) {
+    if (value == _imageConfiguration) {
+      return;
+    }
+    _imageConfiguration = value;
+    markNeedsPaint();
+  }
+
+  Rect? _placeholderRect;
+
+  void paintPlaceholder(PaintingContext context, Offset offset) {
+    if (_placeholder == null ||
+        _placeholderDecoration == null ||
+        _placeholderRect == null) {
+      return;
+    }
+
+    final boxPainter = _placeholderDecoration!.createBoxPainter(markNeedsPaint);
+
+    boxPainter.paint(
+      context.canvas,
+      offset + _placeholderRect!.topLeft,
+      _imageConfiguration.copyWith(size: _placeholderRect!.size),
+    );
+
+    if (_placeholderDecoration?.isComplex ?? false) {
+      context.setIsComplexHint();
+    }
+  }
 }

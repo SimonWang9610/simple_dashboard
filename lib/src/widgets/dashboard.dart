@@ -12,6 +12,8 @@ class Dashboard extends StatefulWidget {
   final double aspectRatio;
   final double mainAxisSpacing;
   final double crossAxisSpacing;
+  final LayoutPlaceholder? placeholder;
+  final BoxDecoration? placeholderDecoration;
 
   const Dashboard({
     super.key,
@@ -21,6 +23,8 @@ class Dashboard extends StatefulWidget {
     this.mainAxisSpacing = 4,
     this.crossAxisSpacing = 4,
     this.emptyBuilder,
+    this.placeholder,
+    this.placeholderDecoration,
   });
 
   @override
@@ -28,6 +32,8 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+  LayoutExtentUnit? _extents;
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
@@ -46,10 +52,15 @@ class _DashboardState extends State<Dashboard> {
           child: RawDashboard(
             axis: widget.controller.axis,
             mainAxisSlots: widget.controller.mainAxisSlots,
+            placeholder: widget.placeholder,
+            placeholderDecoration: widget.placeholderDecoration,
             layoutDelegate: DashboardAspectRatioDelegate(
               aspectRatio: widget.aspectRatio,
               mainAxisSpacing: widget.mainAxisSpacing,
               crossAxisSpacing: widget.crossAxisSpacing,
+              onLayoutUnitComputed: (value) {
+                _extents = value;
+              },
             ),
             children: [
               for (int i = 0; i < items.length; i++)

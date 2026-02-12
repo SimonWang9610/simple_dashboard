@@ -142,5 +142,16 @@ final class LayoutPlaceholder extends LayoutItem {
   LayoutPlaceholder._({
     required Object itemId,
     required super.rect,
-  }) : super(id: "$itemId-placeholder");
+  }) : super(id: "$itemId#placeholder");
+
+  LayoutItem get item {
+    final itemId = RegExp(
+      r"^(.*)#placeholder$",
+    ).firstMatch(id.toString())?.group(1);
+
+    return LayoutItem(
+      id: itemId!,
+      rect: rect,
+    );
+  }
 }

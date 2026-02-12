@@ -23,7 +23,10 @@ class LayoutExtentUnit {
 }
 
 abstract class DashboardLayoutDelegate {
-  const DashboardLayoutDelegate();
+  final ValueChanged<LayoutExtentUnit>? onLayoutUnitComputed;
+  const DashboardLayoutDelegate({
+    this.onLayoutUnitComputed,
+  });
 
   LayoutExtentUnit computeLayoutExtentUnit(
     BoxConstraints constraints,
@@ -56,6 +59,7 @@ final class DashboardAspectRatioDelegate extends DashboardLayoutDelegate {
     this.aspectRatio = 1.0,
     this.mainAxisSpacing = 0,
     this.crossAxisSpacing = 0,
+    super.onLayoutUnitComputed,
   }) : assert(aspectRatio > 0),
        assert(mainAxisSpacing >= 0),
        assert(crossAxisSpacing >= 0);
@@ -100,12 +104,16 @@ final class DashboardAspectRatioDelegate extends DashboardLayoutDelegate {
       ),
     };
 
-    return LayoutExtentUnit(
+    final extents = LayoutExtentUnit(
       horizontal: h,
       vertical: v,
       horizontalSpacing: hSpacing,
       verticalSpacing: vSpacing,
     );
+
+    onLayoutUnitComputed?.call(extents);
+
+    return extents;
   }
 
   @override

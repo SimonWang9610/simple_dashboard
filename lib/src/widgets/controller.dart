@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
+import 'package:simple_dashboard/src/models/layout_collision.dart';
 import 'package:simple_dashboard/src/utils/checker.dart';
 
 class DashboardController extends ChangeNotifier {
@@ -111,6 +112,48 @@ class DashboardController extends ChangeNotifier {
     }
 
     notifyListeners();
+  }
+
+  void place(LayoutItem item) {
+    assert(
+      !_items.containsKey(item.id),
+      "Each item in the dashboard must have a unique id. An item with id [${item.id}] already exists.",
+    );
+
+    final hasOverflow = LayoutChecker.findOverflowItems(
+      [item],
+      axis,
+      mainAxisSlots,
+    ).isNotEmpty;
+
+    final hasCollision = LayoutChecker.checkCollisions(
+      _items.values,
+      item.rect,
+    ).hasCollision;
+
+    if (!hasOverflow && !hasCollision) {
+      _items[item.id] = item;
+
+      final crossSlots = axis == DashboardAxis.horizontal
+          ? item.rect.bottom
+          : item.rect.right;
+
+      if (crossSlots > _maxCrossSlots) {
+        if (axis == DashboardAxis.horizontal) {
+          _maxY = item.rect.bottom;
+        } else {
+          _maxX = item.rect.right;
+        }
+      }
+
+      notifyListeners();
+    }
+  }
+
+  LayoutCollisionResult checkCollision(LayoutRect rect) {
+    final result = LayoutChecker.checkCollisions(_items.values, rect);
+
+    return result;
   }
 
   void _updateMetrics(DashboardAxis? newAxis, int? newMainAxisSlots) {

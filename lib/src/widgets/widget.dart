@@ -37,12 +37,16 @@ class RawDashboard extends MultiChildRenderObjectWidget {
   final DashboardLayoutDelegate layoutDelegate;
   final int mainAxisSlots;
   final DashboardAxis axis;
+  final LayoutPlaceholder? placeholder;
+  final BoxDecoration? placeholderDecoration;
 
   const RawDashboard({
     super.key,
     required this.layoutDelegate,
     required this.mainAxisSlots,
     required this.axis,
+    this.placeholder,
+    this.placeholderDecoration,
     super.children,
   });
 
@@ -52,6 +56,9 @@ class RawDashboard extends MultiChildRenderObjectWidget {
       layoutDelegate: layoutDelegate,
       axis: axis,
       mainAxisSlots: mainAxisSlots,
+      imageConfiguration: createLocalImageConfiguration(context),
+      placeholder: placeholder,
+      placeholderDecoration: placeholderDecoration,
     );
   }
 
@@ -60,6 +67,9 @@ class RawDashboard extends MultiChildRenderObjectWidget {
     renderObject
       ..axis = axis
       ..mainAxisSlots = mainAxisSlots
-      ..layoutDelegate = layoutDelegate;
+      ..layoutDelegate = layoutDelegate
+      ..imageConfiguration = createLocalImageConfiguration(context)
+      ..placeholder = placeholder
+      ..placeholderDecoration = placeholderDecoration;
   }
 }

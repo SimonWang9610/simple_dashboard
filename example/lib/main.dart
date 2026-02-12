@@ -44,6 +44,8 @@ class _MyHomePageState extends State<MyHomePage> {
     ],
   );
 
+  final placeholder = ValueNotifier<LayoutPlaceholder?>(null);
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -62,6 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void dispose() {
+    placeholder.dispose();
     controller.dispose();
     super.dispose();
   }
@@ -93,6 +96,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 child: const Text('reverse axis'),
               ),
+              TextButton(
+                onPressed: _togglePlaceholder,
+                child: const Text('Toggle Placeholder'),
+              ),
             ],
           ),
           Expanded(
@@ -101,54 +108,25 @@ class _MyHomePageState extends State<MyHomePage> {
                 color: Colors.grey[300],
                 border: Border.all(color: Colors.red),
               ),
-              child: Dashboard(
-                controller: controller,
-                emptyBuilder: (context) => const Center(
-                  child: Text('No items'),
-                ),
-                itemBuilder: (context, item) {
-                  return InkWell(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: Text('Item ${item.id}'),
-                          content: Text(
-                            'Position: (${item.rect.x}, ${item.rect.y})\nSize: ${item.rect.size.width} x ${item.rect.size.height}',
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                                WidgetsBinding.instance.addPostFrameCallback((
-                                  _,
-                                ) {
-                                  controller.removeItem(item.id);
-                                });
-                              },
-                              child: const Text('Remove'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: const Text('Close'),
-                            ),
-                          ],
-                        ),
+              child: ValueListenableBuilder(
+                valueListenable: placeholder,
+                builder: (context, value, child) {
+                  return Dashboard(
+                    controller: controller,
+                    placeholder: value,
+                    placeholderDecoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    emptyBuilder: (context) => const Center(
+                      child: Text('No items'),
+                    ),
+                    itemBuilder: (context, item) {
+                      return _ItemWidget(
+                        item: item,
+                        onRemove: () => controller.removeItem(item.id),
                       );
                     },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.black),
-                        color: Colors
-                            .primaries[item.id.hashCode %
-                                Colors.primaries.length]
-                            .withOpacity(0.5),
-                      ),
-                      child: Center(
-                        child: Text('[${item.id}]'),
-                      ),
-                    ),
                   );
                 },
               ),
@@ -180,6 +158,72 @@ class _MyHomePageState extends State<MyHomePage> {
       size,
       strategy: PositionStrategy.head,
       afterId: controller.items.firstOrNull?.id,
+    );
+  }
+
+  void _togglePlaceholder() {
+    if (placeholder.value == null) {
+      final length = controller.items.length;
+      final item = controller.items[length ~/ 2];
+
+      controller.removeItem(item.id);
+      placeholder.value = item.placeholder;
+    } else {
+      controller.place(placeholder.value!.item);
+      placeholder.value = null;
+    }
+  }
+}
+
+class _ItemWidget extends StatelessWidget {
+  final LayoutItem item;
+  final VoidCallback? onRemove;
+  final VoidCallback? onDoubleTap;
+  const _ItemWidget({
+    required this.item,
+    this.onRemove,
+    this.onDoubleTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Item ${item.id}'),
+            content: Text(
+              'Position: (${item.rect.x}, ${item.rect.y})\nSize: ${item.rect.size.width} x ${item.rect.size.height}',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  onRemove?.call();
+                },
+                child: const Text('Remove'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        );
+      },
+      onDoubleTap: onDoubleTap,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.black),
+          color: Colors.primaries[item.id.hashCode % Colors.primaries.length]
+              .withOpacity(0.5),
+        ),
+        child: Center(
+          child: Text('[${item.id}]'),
+        ),
+      ),
     );
   }
 }
