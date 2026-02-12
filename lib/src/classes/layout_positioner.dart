@@ -219,15 +219,16 @@ final class DashboardAfterPositioner extends DashboardPositioner {
       return appendPositioner.position(id, size);
     }
 
-    final sorted = DashboardHelper.sort(items, axis);
-    final afterIndex = after == null ? -1 : sorted.indexOf(after);
+    final sortedItems = DashboardHelper.sort(items, axis);
+
+    final afterIndex = after == null ? -1 : sortedItems.indexOf(after);
 
     List<LayoutItem> kept = <LayoutItem>[
-      ...sorted.take(afterIndex + 1),
+      ...sortedItems.take(afterIndex + 1),
     ];
 
     final pending = <LayoutItem>[
-      ...sorted.skip(afterIndex + 1),
+      ...sortedItems.skip(afterIndex + 1),
     ];
 
     kept = DashboardAppendPositioner(

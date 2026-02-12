@@ -16,7 +16,14 @@ class DashboardController extends ChangeNotifier {
   }) : _axis = axis,
        _mainAxisSlots = mainAxisSlots,
        _items = {} {
-    _refillItems(items);
+    /// ensure the initial items are valid and properly adopted
+    final adopted = DashboardHelper.guardMetrics(
+      items,
+      axis,
+      mainAxisSlots,
+    );
+
+    _refillItems(adopted);
   }
 
   DashboardAxis _axis;
@@ -147,7 +154,10 @@ class DashboardController extends ChangeNotifier {
       shouldReAdopt = true;
     }
 
+    int? oldMainAxisSlots;
+
     if (newMainAxisSlots != null && newMainAxisSlots != mainAxisSlots) {
+      oldMainAxisSlots = _mainAxisSlots;
       _mainAxisSlots = newMainAxisSlots;
       shouldReAdopt = true;
     }
@@ -157,6 +167,7 @@ class DashboardController extends ChangeNotifier {
         _items.values,
         axis,
         mainAxisSlots,
+        oldMainAxisSlots: oldMainAxisSlots,
       );
       _refillItems(adoptedItems);
       notifyListeners();

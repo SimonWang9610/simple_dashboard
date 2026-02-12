@@ -23,6 +23,12 @@ class _AnimatedDashboardLayoutState
   LayoutRectTween? _rectTween;
 
   @override
+  void initState() {
+    super.initState();
+    print('initState: ${widget.rect}');
+  }
+
+  @override
   void forEachTween(TweenVisitor<dynamic> visitor) {
     _rectTween =
         visitor(

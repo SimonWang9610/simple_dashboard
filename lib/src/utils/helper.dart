@@ -1,7 +1,5 @@
 import 'package:collection/collection.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
-import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
-import 'package:simple_dashboard/src/models/enums.dart';
 
 class DashboardHelper {
   static String visualize(List<LayoutRect> rects) {
@@ -98,6 +96,28 @@ class DashboardHelper {
     );
   }
 
+  static bool assertSorted(
+    Iterable<LayoutItem> items,
+    DashboardAxis axis,
+  ) {
+    LayoutRect? previousRect;
+
+    for (final item in items) {
+      final rect = item.rect;
+
+      if (previousRect != null) {
+        final comparison = previousRect.compare(rect, axis);
+        if (comparison > 0) {
+          return false;
+        }
+      }
+
+      previousRect = rect;
+    }
+
+    return true;
+  }
+
   /// Adopts the given layout items to fit within the specified axis and main axis slot constraints.
   ///
   /// If an item's size exceeds the main axis slot count, it will be constrained via [LayoutSize.constrain]
@@ -114,19 +134,35 @@ class DashboardHelper {
   ///
   /// If [mainAxisSlots] decreases, some items may also need to be repositioned to fit the new slot count;
   /// However, if [mainAxisSlots] increases, all items will still fit without repositioning.
+  ///
+  /// [oldMainAxisSlots] is used to determine whether the main axis slots have been reduced,
+  /// which may cause more items to require repositioning.
+  ///
+  /// When the main axis slots are reduced, the main extent of each flex will increase,
+  /// which may cause some items are overflowed along the main axis and thus require repositioning.
+  ///
+  /// When the main axis slots are increased, the main extent of each flex will decrease,
+  /// so we can safely assume that no items will be overflowed along the main axis,
+  /// and thus no items will require repositioning.
   static List<LayoutItem> adoptMetrics(
     Iterable<LayoutItem> items,
     DashboardAxis axis,
-    int mainAxisSlots,
-  ) {
+    int mainAxisSlots, {
+    int? oldMainAxisSlots,
+  }) {
     List<LayoutItem> adoptedItems = [];
 
     int maxCrossSlots = 0;
 
+    final mainAxisSlotsCollapsed =
+        oldMainAxisSlots != null && oldMainAxisSlots > mainAxisSlots;
+
     for (final item in items) {
       final constrainedSize = item.rect.size.constrain(axis, mainAxisSlots);
 
-      if (constrainedSize == item.rect.size) {
+      /// If the item already fits within the main axis slots
+      /// and we are not collapsing the main axis slots, we can keep it as is.
+      if (constrainedSize == item.rect.size && !mainAxisSlotsCollapsed) {
         adoptedItems.add(item);
       } else {
         adoptedItems = DashboardAppendPositioner(
@@ -145,5 +181,55 @@ class DashboardHelper {
     }
 
     return adoptedItems;
+  }
+
+  /// Similar to [adoptMetrics],
+  /// but also ensures that the final layout is free of any overflow or conflicts.
+  ///
+  /// Typically it is used to guard against invalid layout states for initial items.
+  static List<LayoutItem> guardMetrics(
+    Iterable<LayoutItem> items,
+    DashboardAxis axis,
+    int mainAxisSlots,
+  ) {
+    bool shouldReposition = false;
+
+    try {
+      checkNoOverflow(items, axis, mainAxisSlots);
+      checkNoConflict(items);
+      shouldReposition = false;
+    } catch (e) {
+      shouldReposition = true;
+    }
+
+    if (!shouldReposition) {
+      return items.toList();
+    }
+
+    /// respect to the original position ordering of the items
+    final sortedItems = DashboardHelper.sort(items, axis);
+
+    int maxCrossSlots = 0;
+
+    List<LayoutItem> guardedItems = [];
+
+    for (final item in sortedItems) {
+      final constrainedSize = item.rect.size.constrain(axis, mainAxisSlots);
+
+      guardedItems = DashboardAppendPositioner(
+        items: guardedItems,
+        axis: axis,
+        mainAxisSlots: mainAxisSlots,
+        maxCrossSlots: maxCrossSlots,
+      ).position(item.id, constrainedSize);
+
+      final crossSlots = axis == DashboardAxis.horizontal
+          ? guardedItems.last.rect.bottom
+          : guardedItems.last.rect.right;
+
+      maxCrossSlots = crossSlots > maxCrossSlots ? crossSlots : maxCrossSlots;
+    }
+
+    return guardedItems;
   }
 }

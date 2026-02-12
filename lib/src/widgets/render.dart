@@ -150,7 +150,7 @@ class RenderDashboard extends RenderBox
     );
 
     assert(() {
-      if (_overflow?.mainAxisOverflow != null) {
+      if (_overflow?.hasMainAxisOverflow ?? false) {
         final rect = switch (_axis) {
           DashboardAxis.horizontal => Rect.fromLTWH(
             0,
@@ -173,7 +173,7 @@ class RenderDashboard extends RenderBox
         );
       }
 
-      if (_overflow?.crossAxisOverflow != null) {
+      if (_overflow?.hasCrossAxisOverflow ?? false) {
         final rect = switch (_axis) {
           DashboardAxis.horizontal => Rect.fromLTWH(
             0,
@@ -214,5 +214,10 @@ class _Overflow {
     this.crossAxisOverflow,
   });
 
-  bool get hasOverflow => mainAxisOverflow != null || crossAxisOverflow != null;
+  bool get hasOverflow => hasMainAxisOverflow || hasCrossAxisOverflow;
+
+  bool get hasMainAxisOverflow =>
+      mainAxisOverflow != null && mainAxisOverflow! >= 1;
+  bool get hasCrossAxisOverflow =>
+      crossAxisOverflow != null && crossAxisOverflow! >= 1;
 }

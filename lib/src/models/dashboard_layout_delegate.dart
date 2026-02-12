@@ -15,6 +15,11 @@ class LayoutExtentUnit {
     this.horizontalSpacing = 0,
     this.verticalSpacing = 0,
   });
+
+  @override
+  String toString() {
+    return 'LayoutExtentUnit(horizontal: $horizontal, vertical: $vertical, horizontalSpacing: $horizontalSpacing, verticalSpacing: $verticalSpacing)';
+  }
 }
 
 abstract class DashboardLayoutDelegate {

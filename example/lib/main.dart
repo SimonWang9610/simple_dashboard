@@ -29,7 +29,36 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final controller = DashboardController(mainAxisSlots: 6);
+  final controller = DashboardController(
+    mainAxisSlots: 4,
+    items: [
+      LayoutItem(
+        id: "initial-0",
+        rect: LayoutRect(x: 0, y: 0, size: LayoutSize(width: 5, height: 2)),
+      ),
+
+      LayoutItem(
+        id: "initial-1",
+        rect: LayoutRect(x: 5, y: 0, size: LayoutSize(width: 3, height: 1)),
+      ),
+    ],
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final screenSize = MediaQuery.sizeOf(context);
+
+    final newMainAxSlots = switch (screenSize.width) {
+      <= 400 => 4,
+      <= 600 => 5,
+      <= 800 => 6,
+      _ => 9,
+    };
+
+    controller.mainAxisSlots = newMainAxSlots;
+  }
 
   @override
   void dispose() {

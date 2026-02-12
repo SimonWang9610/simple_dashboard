@@ -56,7 +56,7 @@ class _DashboardState extends State<Dashboard> {
                 AnimatedDashboardLayout(
                   key: ValueKey(items[i].id),
                   rect: items[i].rect,
-                  curve: Curves.easeInOut,
+                  curve: Curves.linear,
                   duration: const Duration(milliseconds: 160),
                   child: widget.itemBuilder(context, items[i]),
                 ),
