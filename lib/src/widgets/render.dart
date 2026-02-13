@@ -256,7 +256,7 @@ mixin _DashboardPlaceholderMixin on RenderBox {
     }
   }
 
-  ImageConfiguration get mageConfiguration => _imageConfiguration;
+  ImageConfiguration get imageConfiguration => _imageConfiguration;
   late ImageConfiguration _imageConfiguration;
   set imageConfiguration(ImageConfiguration value) {
     if (value == _imageConfiguration) {
