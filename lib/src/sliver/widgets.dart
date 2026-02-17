@@ -1,7 +1,5 @@
 import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
-import 'package:simple_dashboard/src/sliver/delegates.dart';
-import 'package:simple_dashboard/src/sliver/render.dart';
 
 class SliverDashboard extends SliverMultiBoxAdaptorWidget {
   final SliverDashboardDelegate layoutDelegate;
@@ -64,6 +62,13 @@ class DashboardView extends BoxScrollView {
     super.physics,
     super.shrinkWrap,
     super.padding,
+    super.cacheExtent,
+    super.semanticChildCount,
+    super.dragStartBehavior,
+    super.keyboardDismissBehavior,
+    super.restorationId,
+    super.clipBehavior,
+    super.hitTestBehavior,
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
     this.addSemanticIndexes = true,
@@ -81,6 +86,13 @@ class DashboardView extends BoxScrollView {
     super.physics,
     super.shrinkWrap,
     super.padding,
+    super.cacheExtent,
+    super.semanticChildCount,
+    super.dragStartBehavior,
+    super.keyboardDismissBehavior,
+    super.restorationId,
+    super.clipBehavior,
+    super.hitTestBehavior,
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
     this.addSemanticIndexes = true,

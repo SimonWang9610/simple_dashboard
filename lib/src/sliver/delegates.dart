@@ -20,7 +20,11 @@ abstract class SliverDashboardDelegate {
 
   SliverDashboardLayout getLayout(SliverConstraints constraints);
 
-  bool shouldRelayout(covariant SliverDashboardDelegate oldDelegate);
+  bool shouldRelayout(covariant SliverDashboardDelegate oldDelegate) {
+    return oldDelegate.axis != axis ||
+        oldDelegate.mainAxisSlots != mainAxisSlots ||
+        oldDelegate.items != items;
+  }
 }
 
 final class SliverDashboardDelegateWithFixedSlotCount
@@ -91,8 +95,6 @@ final class SliverDashboardDelegateWithFixedSlotCount
     return aspectRatio != oldDelegate.aspectRatio ||
         mainAxisSpacing != oldDelegate.mainAxisSpacing ||
         crossAxisSpacing != oldDelegate.crossAxisSpacing ||
-        mainAxisSlots != oldDelegate.mainAxisSlots ||
-        items != oldDelegate.items ||
-        axis != oldDelegate.axis;
+        super.shouldRelayout(oldDelegate);
   }
 }

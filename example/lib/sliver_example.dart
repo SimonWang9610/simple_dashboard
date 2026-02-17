@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
 
@@ -16,12 +18,17 @@ class _DashboardViewExampleState extends State<DashboardViewExample> {
     ),
 
     LayoutItem(
-      id: "initial-2",
-      rect: LayoutRect(x: 0, y: 3, size: LayoutSize(width: 3, height: 3)),
+      id: "initial-1",
+      rect: LayoutRect(x: 5, y: 0, size: LayoutSize(width: 1, height: 4)),
     ),
     LayoutItem(
-      id: "initial-1",
-      rect: LayoutRect(x: 5, y: 0, size: LayoutSize(width: 1, height: 3)),
+      id: "initial-2",
+      rect: LayoutRect(x: 0, y: 4, size: LayoutSize(width: 3, height: 3)),
+    ),
+
+    LayoutItem(
+      id: "initial-3",
+      rect: LayoutRect(x: 3, y: 4, size: LayoutSize(width: 2, height: 5)),
     ),
   ];
 
@@ -41,7 +48,12 @@ class _DashboardViewExampleState extends State<DashboardViewExample> {
                 child: DashboardView.count(
                   axis: DashboardAxis.horizontal,
                   mainAxisSlots: 6,
+                  // items: DashboardHelper.sort(
+                  //   initialItems,
+                  //   DashboardAxis.horizontal,
+                  // ),
                   items: initialItems,
+                  addAutomaticKeepAlives: true,
                   itemBuilder: (context, item) {
                     return _ItemWidget(
                       item: item,
@@ -57,7 +69,7 @@ class _DashboardViewExampleState extends State<DashboardViewExample> {
   }
 }
 
-class _ItemWidget extends StatelessWidget {
+class _ItemWidget extends StatefulWidget {
   final LayoutItem item;
   final VoidCallback? onRemove;
   final VoidCallback? onDoubleTap;
@@ -68,21 +80,65 @@ class _ItemWidget extends StatelessWidget {
   });
 
   @override
+  State<_ItemWidget> createState() => _ItemWidgetState();
+}
+
+class _ItemWidgetState extends State<_ItemWidget>
+    with AutomaticKeepAliveClientMixin {
+  int count = 0;
+
+  late final Timer timer;
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    print('Creating item ${widget.item.id}');
+
+    timer = Timer.periodic(
+      const Duration(seconds: 1),
+      (timer) {
+        setState(() {
+          count++;
+        });
+      },
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _ItemWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.item.id != widget.item.id) {
+      count = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    print('Disposing item ${widget.item.id}');
+    timer.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return InkWell(
       onTap: () {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text('Item ${item.id}'),
+            title: Text('Item ${widget.item.id}'),
             content: Text(
-              'Position: (${item.rect.x}, ${item.rect.y})\nSize: ${item.rect.size.width} x ${item.rect.size.height}',
+              'Position: (${widget.item.rect.x}, ${widget.item.rect.y})\nSize: ${widget.item.rect.size.width} x ${widget.item.rect.size.height}',
             ),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  onRemove?.call();
+                  widget.onRemove?.call();
                 },
                 child: const Text('Remove'),
               ),
@@ -94,16 +150,17 @@ class _ItemWidget extends StatelessWidget {
           ),
         );
       },
-      onDoubleTap: onDoubleTap,
+      onDoubleTap: widget.onDoubleTap,
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: Colors.black),
-          color: Colors.primaries[item.id.hashCode % Colors.primaries.length]
+          color: Colors
+              .primaries[widget.item.id.hashCode % Colors.primaries.length]
               .withOpacity(0.5),
         ),
         child: Center(
-          child: Text('[${item.id}]'),
+          child: Text('[${widget.item.id}]: $count'),
         ),
       ),
     );

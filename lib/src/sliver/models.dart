@@ -22,34 +22,44 @@ class SliverDashboardLayout {
     this.crossDashboardAxisSpacing = 0,
   });
 
+  /// The distance from the leading edge of one slot to
+  ///  the leading edge of the next slot in the main axis.
   double get mainDashboardAxisStride =>
       mainDashboardAxisSlotExtent + mainDashboardAxisSpacing;
 
+  /// The distance from the leading edge of one slot to
+  ///  the leading edge of the next slot in the cross axis.
   double get crossDashboardAxisStride =>
       crossDashboardAxisSlotExtent + crossDashboardAxisSpacing;
 
+  /// Returns the index of the first item that should be visible at the given scroll offset.
   int getMinChildIndexForScrollOffset(double scrollOffset) {
     if (crossDashboardAxisStride <= 0) return 0;
 
     final minCrossAxisSlots =
         ((scrollOffset + crossDashboardAxisSpacing) / crossDashboardAxisStride)
-            .floor();
+            .ceil();
 
-    for (int i = 0; i < items.length; i++) {
-      final item = items[i];
+    int index = 0;
 
-      final itemCrossAxisStart = dashboardAxis == DashboardAxis.horizontal
-          ? item.rect.top
-          : item.rect.left;
+    while (index < items.length) {
+      final item = items[index];
 
-      if (itemCrossAxisStart >= minCrossAxisSlots) {
-        return i;
+      final itemCrossAxisEnd = dashboardAxis == DashboardAxis.horizontal
+          ? item.rect.bottom
+          : item.rect.right;
+
+      if (itemCrossAxisEnd >= minCrossAxisSlots) {
+        return index;
       }
+
+      index++;
     }
 
-    return items.length - 1;
+    return index;
   }
 
+  /// Returns the index of the last item that should be visible at the given scroll offset.
   int? getMaxChildIndexForScrollOffset(double scrollOffset) {
     if (crossDashboardAxisStride <= 0) return 0;
 
@@ -57,19 +67,23 @@ class SliverDashboardLayout {
         ((scrollOffset - crossDashboardAxisSpacing) / crossDashboardAxisStride)
             .ceil();
 
-    for (int i = items.length - 1; i >= 0; i--) {
-      final item = items[i];
+    int index = items.length - 1;
+
+    while (index >= 0) {
+      final item = items[index];
 
       final itemCrossAxisEnd = dashboardAxis == DashboardAxis.horizontal
-          ? item.rect.bottom
-          : item.rect.right;
+          ? item.rect.top
+          : item.rect.left;
 
       if (itemCrossAxisEnd <= maxCrossAxisSlots) {
-        return i;
+        return index;
       }
+
+      index--;
     }
 
-    return items.length - 1;
+    return index;
   }
 
   double computeMaxScrollOffset() {
