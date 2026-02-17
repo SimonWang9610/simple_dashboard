@@ -17,6 +17,15 @@ enum DashboardAxis {
   }
 }
 
+extension DashboardAxisExtension on Axis {
+  DashboardAxis get dashboard {
+    return switch (this) {
+      Axis.horizontal => DashboardAxis.vertical,
+      Axis.vertical => DashboardAxis.horizontal,
+    };
+  }
+}
+
 enum CollisionDirection {
   topLeft,
   topRight,

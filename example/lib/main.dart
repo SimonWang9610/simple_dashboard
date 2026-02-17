@@ -1,3 +1,4 @@
+import 'package:example/sliver_example.dart';
 import 'package:faker/faker.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
@@ -14,7 +15,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.deepPurple)),
-      home: const MyHomePage(title: 'Simple Dashboard Demo'),
+      // home: const MyHomePage(title: 'Simple Dashboard Demo'),
+      home: const DashboardViewExample(),
     );
   }
 }

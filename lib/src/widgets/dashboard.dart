@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
 import 'package:simple_dashboard/src/widgets/animated_dashboard_layout.dart';
 
-typedef DashboardItemBuilder =
-    Widget Function(BuildContext context, LayoutItem);
-
 class Dashboard extends StatefulWidget {
   final DashboardController controller;
   final DashboardItemBuilder itemBuilder;

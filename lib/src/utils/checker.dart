@@ -83,6 +83,26 @@ abstract class LayoutChecker {
     );
   }
 
+  static bool assertValidLayout(
+    Iterable<LayoutItem> items,
+    DashboardAxis axis,
+    int mainAxisSlots,
+  ) {
+    bool hasOverflow = false;
+    bool hasConflicts = false;
+    bool hasDuplicatedIds = false;
+
+    assert(() {
+      hasOverflow = findOverflowItems(items, axis, mainAxisSlots).isNotEmpty;
+      hasConflicts = findFirstConflictItems(items) != null;
+      hasDuplicatedIds = !assertNoDuplicatedIds(items);
+
+      return true;
+    }());
+
+    return !(hasOverflow || hasConflicts || hasDuplicatedIds);
+  }
+
   static LayoutCollisionResult checkCollisions(
     Iterable<LayoutItem> items,
     LayoutRect rect,
