@@ -18,4 +18,4 @@ export 'src/defs.dart';
 export 'src/sliver/layout_delegate.dart';
 export 'src/sliver/render.dart';
 export 'src/sliver/widgets.dart';
-export 'src/sliver/storage.dart';
+export 'src/sliver/controller.dart';

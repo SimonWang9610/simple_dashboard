@@ -51,14 +51,12 @@ class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
       scrollOffset,
     );
 
+    /// If null, it means the [targetEndScrollOffset] is beyond the end of all children.
+    /// In that case, we will try to layout as many children as we can until we run out of children,
+    /// and then set the scroll extent to the max scroll offset provided by the layout.
     final targetLastIndex = targetEndScrollOffset.isFinite
         ? dashboardLayout.getMaxChildIndexForScrollOffset(targetEndScrollOffset)
-        : 0;
-
-    print(
-      "Performing layout with scrollOffset: $scrollOffset, remainingExtent: $remainingExtent, "
-      "firstIndex: $firstIndex, targetLastIndex: $targetLastIndex",
-    );
+        : dashboardLayout.items.length - 1;
 
     if (firstChild != null) {
       final int leadingGarbage = calculateLeadingGarbage(
@@ -119,13 +117,14 @@ class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
       targetLastIndex == null || index <= targetLastIndex;
       ++index
     ) {
+      RenderBox? child = childAfter(trailingChildWithLayout!);
+
       final geometry = dashboardLayout.computeItemGeometry(index);
 
       final BoxConstraints childConstraints = geometry.getBoxConstraints(
         constraints,
       );
 
-      RenderBox? child = childAfter(trailingChildWithLayout!);
       if (child == null || indexOf(child) != index) {
         child = insertAndLayoutChild(
           childConstraints,
@@ -173,9 +172,6 @@ class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
 
     geometry = SliverGeometry(
       scrollExtent: estimatedTotalExtent,
-      // paintExtent: paintExtent > estimatedTotalExtent
-      //     ? estimatedTotalExtent
-      //     : paintExtent,
       paintExtent: paintExtent,
       maxPaintExtent: estimatedTotalExtent,
       cacheExtent: cacheExtent,

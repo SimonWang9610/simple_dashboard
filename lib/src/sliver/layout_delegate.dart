@@ -145,7 +145,7 @@ class SliverDashboardLayout {
           ? item.rect.bottom
           : item.rect.right;
 
-      if (itemCrossAxisEnd >= minCrossAxisSlots) {
+      if (itemCrossAxisEnd > minCrossAxisSlots) {
         return index;
       }
 
@@ -161,7 +161,7 @@ class SliverDashboardLayout {
 
     final maxCrossAxisSlots =
         ((scrollOffset - crossDashboardAxisSpacing) / crossDashboardAxisStride)
-            .ceil();
+            .floor();
 
     int index = items.length - 1;
 
@@ -172,7 +172,7 @@ class SliverDashboardLayout {
           ? item.rect.top
           : item.rect.left;
 
-      if (itemCrossAxisEnd <= maxCrossAxisSlots) {
+      if (itemCrossAxisEnd < maxCrossAxisSlots) {
         return index;
       }
 
