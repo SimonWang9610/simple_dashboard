@@ -11,25 +11,25 @@ class DashboardViewExample extends StatefulWidget {
 }
 
 class _DashboardViewExampleState extends State<DashboardViewExample> {
-  final initialItems = [
-    LayoutItem(
-      id: "initial-0",
-      rect: LayoutRect(x: 0, y: 0, size: LayoutSize(width: 5, height: 2)),
-    ),
+  final initialItems = <LayoutItem>[
+    // LayoutItem(
+    //   id: "initial-0",
+    //   rect: LayoutRect(x: 0, y: 0, size: LayoutSize(width: 5, height: 2)),
+    // ),
 
-    LayoutItem(
-      id: "initial-1",
-      rect: LayoutRect(x: 5, y: 0, size: LayoutSize(width: 1, height: 4)),
-    ),
-    LayoutItem(
-      id: "initial-2",
-      rect: LayoutRect(x: 0, y: 4, size: LayoutSize(width: 3, height: 3)),
-    ),
+    // LayoutItem(
+    //   id: "initial-1",
+    //   rect: LayoutRect(x: 5, y: 0, size: LayoutSize(width: 1, height: 4)),
+    // ),
+    // LayoutItem(
+    //   id: "initial-2",
+    //   rect: LayoutRect(x: 0, y: 4, size: LayoutSize(width: 3, height: 3)),
+    // ),
 
-    LayoutItem(
-      id: "initial-3",
-      rect: LayoutRect(x: 3, y: 4, size: LayoutSize(width: 2, height: 5)),
-    ),
+    // LayoutItem(
+    //   id: "initial-3",
+    //   rect: LayoutRect(x: 3, y: 4, size: LayoutSize(width: 2, height: 5)),
+    // ),
   ];
 
   @override
@@ -48,6 +48,7 @@ class _DashboardViewExampleState extends State<DashboardViewExample> {
                 child: DashboardView.count(
                   axis: DashboardAxis.horizontal,
                   mainAxisSlots: 6,
+                  physics: const NeverScrollableScrollPhysics(),
                   // items: DashboardHelper.sort(
                   //   initialItems,
                   //   DashboardAxis.horizontal,

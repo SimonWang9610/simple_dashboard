@@ -55,6 +55,11 @@ class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
         ? dashboardLayout.getMaxChildIndexForScrollOffset(targetEndScrollOffset)
         : 0;
 
+    print(
+      "Performing layout with scrollOffset: $scrollOffset, remainingExtent: $remainingExtent, "
+      "firstIndex: $firstIndex, targetLastIndex: $targetLastIndex",
+    );
+
     if (firstChild != null) {
       final int leadingGarbage = calculateLeadingGarbage(
         firstIndex: firstIndex,

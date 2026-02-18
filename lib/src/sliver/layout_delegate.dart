@@ -179,15 +179,36 @@ class SliverDashboardLayout {
       index--;
     }
 
-    return null;
+    return 0;
   }
 
   double computeMaxScrollOffset() {
+    /// There is no item in the dashboard
+    /// return the zero scroll offset
+    if (items.isEmpty) {
+      return 0;
+    }
+
     return maxCrossDashboardAxisSlots * crossDashboardAxisStride -
         crossDashboardAxisSpacing;
   }
 
   SliverDashboardGeometry computeItemGeometry(int index) {
+    assert(
+      items.isEmpty || (index >= 0 && index < items.length),
+      "Index out of range: $index, items length: ${items.length}",
+    );
+
+    /// If there is no item, return a default geometry with zero extents.
+    if (items.isEmpty) {
+      return const SliverDashboardGeometry(
+        scrollOffset: 0,
+        crossAxisOffset: 0,
+        mainAxisExtent: 0,
+        crossAxisExtent: 0,
+      );
+    }
+
     final itemRect = items[index].rect;
 
     final (dx, dy) = switch (dashboardAxis) {
