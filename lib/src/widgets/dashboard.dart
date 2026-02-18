@@ -29,8 +29,6 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  LayoutExtentUnit? _extents;
-
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
@@ -55,9 +53,6 @@ class _DashboardState extends State<Dashboard> {
               aspectRatio: widget.aspectRatio,
               mainAxisSpacing: widget.mainAxisSpacing,
               crossAxisSpacing: widget.crossAxisSpacing,
-              onLayoutUnitComputed: (value) {
-                _extents = value;
-              },
             ),
             children: [
               for (int i = 0; i < items.length; i++)

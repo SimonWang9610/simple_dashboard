@@ -14,14 +14,17 @@ class SliverDashboard extends SliverMultiBoxAdaptorWidget {
     final SliverMultiBoxAdaptorElement element =
         context as SliverMultiBoxAdaptorElement;
 
-    assert(() {
-      final scrollable = context.findAncestorStateOfType<ScrollableState>();
+    assert(
+      () {
+        final scrollable = context.findAncestorStateOfType<ScrollableState>();
 
-      return switch (layoutDelegate.axis) {
-        DashboardAxis.vertical => scrollable?.widget.axis == Axis.horizontal,
-        DashboardAxis.horizontal => scrollable?.widget.axis == Axis.vertical,
-      };
-    }(), "SliverDashboard's storage axis must match the scrollable's axis.");
+        return switch (layoutDelegate.axis) {
+          DashboardAxis.vertical => scrollable?.widget.axis == Axis.horizontal,
+          DashboardAxis.horizontal => scrollable?.widget.axis == Axis.vertical,
+        };
+      }(),
+      "SliverDashboard's axis must match the scrollable's axis, given axis: ${layoutDelegate.axis}.",
+    );
 
     return RenderSliverDashboard(
       childManager: element,
@@ -34,14 +37,17 @@ class SliverDashboard extends SliverMultiBoxAdaptorWidget {
     BuildContext context,
     covariant RenderSliverDashboard renderObject,
   ) {
-    assert(() {
-      final scrollable = context.findAncestorStateOfType<ScrollableState>();
+    assert(
+      () {
+        final scrollable = context.findAncestorStateOfType<ScrollableState>();
 
-      return switch (layoutDelegate.axis) {
-        DashboardAxis.vertical => scrollable?.widget.axis == Axis.horizontal,
-        DashboardAxis.horizontal => scrollable?.widget.axis == Axis.vertical,
-      };
-    }(), "SliverDashboard's storage axis must match the scrollable's axis.");
+        return switch (layoutDelegate.axis) {
+          DashboardAxis.vertical => scrollable?.widget.axis == Axis.horizontal,
+          DashboardAxis.horizontal => scrollable?.widget.axis == Axis.vertical,
+        };
+      }(),
+      "SliverDashboard's axis must match the scrollable's axis, given axis: ${layoutDelegate.axis}.",
+    );
 
     renderObject.layoutDelegate = layoutDelegate;
   }

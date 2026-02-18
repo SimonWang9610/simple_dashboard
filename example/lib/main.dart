@@ -33,7 +33,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final controller = DashboardController(
     mainAxisSlots: 4,
-    items: [
+    initialItems: [
       LayoutItem(
         id: "initial-0",
         rect: LayoutRect(x: 0, y: 0, size: LayoutSize(width: 5, height: 2)),
@@ -126,7 +126,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     itemBuilder: (context, item) {
                       return _ItemWidget(
                         item: item,
-                        onRemove: () => controller.removeItem(item.id),
+                        onRemove: () => controller.remove(item.id),
                       );
                     },
                   );
@@ -155,7 +155,7 @@ class _MyHomePageState extends State<MyHomePage> {
       height: faker.randomGenerator.integer(slots ~/ 2, min: 1),
     );
 
-    controller.addItem(
+    controller.add(
       id,
       size,
       strategy: PositionStrategy.head,
@@ -163,18 +163,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _togglePlaceholder() {
-    if (placeholder.value == null) {
-      final length = controller.items.length;
-      final item = controller.items[length ~/ 2];
-
-      controller.removeItem(item.id);
-      placeholder.value = item.placeholder;
-    } else {
-      controller.place(placeholder.value!.item);
-      placeholder.value = null;
-    }
-  }
+  void _togglePlaceholder() {}
 }
 
 class _ItemWidget extends StatelessWidget {

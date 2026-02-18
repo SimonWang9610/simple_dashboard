@@ -2,59 +2,27 @@ import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
 import 'package:simple_dashboard/src/utils/checker.dart';
 
-abstract class DashboardItemStorage {
+abstract class DashboardController extends ChangeNotifier {
+  DashboardController._();
+
   DashboardAxis get axis;
-  List<LayoutItem> get sortedItems;
-  int get itemCount;
+  int get mainAxisSlots;
   int get maxCrossAxisSlots;
-}
+  List<LayoutItem> get items;
+  List<LayoutItem> get sortedItems;
 
-class DashboardLayoutController extends ChangeNotifier {
-  final Map<Object, LayoutItem> _items;
+  set mainAxisSlots(int value);
+  set axis(DashboardAxis value);
+  set items(List<LayoutItem> value);
 
-  DashboardLayoutController({
-    DashboardAxis axis = DashboardAxis.horizontal,
-    required int mainAxisSlots,
-    Iterable<LayoutItem> items = const [],
-  }) : _axis = axis,
-       _mainAxisSlots = mainAxisSlots,
-       _items = {} {
-    /// ensure the initial items are valid and properly adopted
-    final adopted = DashboardHelper.adoptMetrics(
-      items,
-      axis,
-      mainAxisSlots,
-    );
-
-    _refillItems(adopted);
-  }
-
-  DashboardAxis _axis;
-  DashboardAxis get axis => _axis;
-  set axis(DashboardAxis value) {
-    _updateMetrics(value, null);
-  }
-
-  int _mainAxisSlots;
-  int get mainAxisSlots => _mainAxisSlots;
-  set mainAxisSlots(int value) {
-    _updateMetrics(null, value);
-  }
-
-  int _maxCrossAxisSlots = 0;
-  int get maxCrossAxisSlots => _maxCrossAxisSlots;
-
-  late List<LayoutItem> _sortedItems;
-  List<LayoutItem> get sortedItems => List.unmodifiable(_sortedItems);
-
-  void addItem(
+  void add(
     Object id,
     LayoutSize size, {
     required PositionStrategy strategy,
     Object? afterId,
   }) {
     assert(
-      !_items.containsKey(id),
+      !items.any((item) => item.id == id),
       "Each item in the dashboard must have a unique id. An item with id [$id] already exists.",
     );
 
@@ -62,26 +30,26 @@ class DashboardLayoutController extends ChangeNotifier {
 
     final positioner = switch (strategy) {
       PositionStrategy.aggressive => DashboardAggressivePositioner(
-        items: _items.values,
+        items: items,
         axis: axis,
         mainAxisSlots: mainAxisSlots,
         maxCrossSlots: maxCrossAxisSlots,
       ),
       PositionStrategy.append => DashboardAppendPositioner(
-        items: _items.values,
+        items: items,
         axis: axis,
         mainAxisSlots: mainAxisSlots,
         maxCrossSlots: maxCrossAxisSlots,
       ),
       PositionStrategy.after => DashboardAfterPositioner(
-        items: _items.values,
+        items: items,
         axis: axis,
         mainAxisSlots: mainAxisSlots,
         afterId: afterId,
         maxCrossSlots: maxCrossAxisSlots,
       ),
       PositionStrategy.head => DashboardHeadPositioner(
-        items: _items.values,
+        items: items,
         axis: axis,
         mainAxisSlots: mainAxisSlots,
         maxCrossSlots: maxCrossAxisSlots,
@@ -90,34 +58,90 @@ class DashboardLayoutController extends ChangeNotifier {
 
     final newItems = positioner.position(id, validSize);
 
-    _refillItems(newItems);
-
-    notifyListeners();
+    items = newItems;
   }
 
-  /// Checks that the given items do not have any conflicts with each other.
-  void _refillItems(Iterable<LayoutItem> items) {
-    LayoutChecker.assertNoOverflow(items, axis, mainAxisSlots);
-    LayoutChecker.assertNoConflicts(items);
-
-    _items.clear();
-
-    _maxCrossAxisSlots = 0;
-
-    for (final item in items) {
-      _items[item.id] = item;
-
-      final crossAxisSlots = switch (axis) {
-        DashboardAxis.horizontal => item.rect.bottom,
-        DashboardAxis.vertical => item.rect.right,
-      };
-
-      if (crossAxisSlots > _maxCrossAxisSlots) {
-        _maxCrossAxisSlots = crossAxisSlots;
-      }
+  void remove(Object id) {
+    if (!items.any((item) => item.id == id)) {
+      return;
     }
 
-    _sortedItems = DashboardHelper.sort(items, axis);
+    final newItems = items.where((item) => item.id != id).toList();
+
+    assert(
+      newItems.length == items.length - 1,
+      "Exactly one item should be removed.",
+    );
+
+    items = newItems;
+  }
+
+  factory DashboardController({
+    DashboardAxis axis,
+    required int mainAxisSlots,
+    Iterable<LayoutItem>? initialItems,
+  }) = _DashboardControllerImpl;
+}
+
+class _DashboardControllerImpl extends DashboardController {
+  _DashboardControllerImpl({
+    DashboardAxis axis = DashboardAxis.horizontal,
+    required int mainAxisSlots,
+    Iterable<LayoutItem>? initialItems,
+  }) : _axis = axis,
+       _mainAxisSlots = mainAxisSlots,
+       super._() {
+    /// ensure the initial items are valid and properly adopted
+    final adopted = DashboardHelper.adoptMetrics(
+      initialItems ?? [],
+      axis,
+      mainAxisSlots,
+    );
+
+    _refillItems(adopted);
+  }
+
+  DashboardAxis _axis;
+
+  @override
+  DashboardAxis get axis => _axis;
+
+  @override
+  set axis(DashboardAxis value) {
+    _updateMetrics(value, null);
+  }
+
+  int _mainAxisSlots;
+
+  @override
+  int get mainAxisSlots => _mainAxisSlots;
+
+  @override
+  set mainAxisSlots(int value) {
+    _updateMetrics(null, value);
+  }
+
+  int _maxCrossAxisSlots = 0;
+  @override
+  int get maxCrossAxisSlots => _maxCrossAxisSlots;
+
+  late List<LayoutItem> _items;
+
+  @override
+  List<LayoutItem> get items => List.unmodifiable(_items);
+
+  List<LayoutItem>? _sortedItems;
+
+  @override
+  List<LayoutItem> get sortedItems {
+    _sortedItems ??= DashboardHelper.sort(items, axis);
+    return _sortedItems!;
+  }
+
+  @override
+  set items(List<LayoutItem> value) {
+    _refillItems(value);
+    notifyListeners();
   }
 
   void _updateMetrics(DashboardAxis? newAxis, int? newMainAxisSlots) {
@@ -142,13 +166,35 @@ class DashboardLayoutController extends ChangeNotifier {
 
     if (shouldReAdopt) {
       final adoptedItems = DashboardHelper.adoptMetrics(
-        _items.values,
+        items,
         axis,
         mainAxisSlots,
         oldMainAxisSlots: oldMainAxisSlots,
       );
       _refillItems(adoptedItems);
-      notifyListeners();
     }
+  }
+
+  /// Checks that the given items do not have any conflicts with each other.
+  void _refillItems(Iterable<LayoutItem> items) {
+    LayoutChecker.debugLayoutAssertions(items, axis, mainAxisSlots);
+
+    _maxCrossAxisSlots = 0;
+
+    for (final item in items) {
+      final crossAxisSlots = switch (axis) {
+        DashboardAxis.horizontal => item.rect.bottom,
+        DashboardAxis.vertical => item.rect.right,
+      };
+
+      if (crossAxisSlots > _maxCrossAxisSlots) {
+        _maxCrossAxisSlots = crossAxisSlots;
+      }
+    }
+
+    _items = items.toList();
+    _sortedItems = null;
+
+    notifyListeners();
   }
 }

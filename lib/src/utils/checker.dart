@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
 import 'package:simple_dashboard/src/models/layout_collision.dart';
 
@@ -139,6 +140,50 @@ abstract class LayoutChecker {
       topRight: result[CollisionDirection.topRight] ?? [],
       bottomLeft: result[CollisionDirection.bottomLeft] ?? [],
       bottomRight: result[CollisionDirection.bottomRight] ?? [],
+    );
+  }
+
+  static void debugLayoutAssertions(
+    Iterable<LayoutItem> items,
+    DashboardAxis axis,
+    int mainAxisSlots,
+  ) {
+    assert(
+      LayoutChecker.assertNoDuplicatedIds(items),
+      "Each item in the dashboard must have a unique id. Duplicated ids found in items: ${items.map((e) => e.id)}",
+    );
+
+    assert(
+      () {
+        final overflowed = LayoutChecker.findOverflowItems(
+          items,
+          axis,
+          mainAxisSlots,
+        );
+
+        for (final item in overflowed) {
+          debugPrint(
+            "[${item.id}] overflowed: mainSlots: ${axis == DashboardAxis.horizontal ? item.rect.right : item.rect.bottom}, mainAxisSlots=$mainAxisSlots",
+          );
+        }
+
+        return overflowed.isEmpty;
+      }(),
+      "Some items are out of the dashboard bounds. Please ensure all items fit within the dashboard's main axis slots.",
+    );
+
+    assert(
+      () {
+        final conflicts = LayoutChecker.findFirstConflictItems(items);
+        if (conflicts != null) {
+          final (item1, item2) = conflicts;
+          debugPrint(
+            "[${item1.id}] and [${item2.id}] are in conflict: rect1=${item1.rect}, rect2=${item2.rect}",
+          );
+        }
+        return conflicts == null;
+      }(),
+      "Some items are overlapped each other. Please ensure no items overlap with each other.",
     );
   }
 }

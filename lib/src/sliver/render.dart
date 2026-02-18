@@ -1,8 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/rendering.dart';
-import 'package:simple_dashboard/src/sliver/models.dart';
 
-import 'delegates.dart';
+import 'layout_delegate.dart';
 
 class SliverDashboardParentData extends SliverMultiBoxAdaptorParentData {
   double? crossAxisOffset;
