@@ -104,36 +104,6 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ],
           ),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                border: Border.all(color: Colors.red),
-              ),
-              child: ValueListenableBuilder(
-                valueListenable: placeholder,
-                builder: (context, value, child) {
-                  return Dashboard(
-                    controller: controller,
-                    placeholder: value,
-                    placeholderDecoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    emptyBuilder: (context) => const Center(
-                      child: Text('No items'),
-                    ),
-                    itemBuilder: (context, item) {
-                      return _ItemWidget(
-                        item: item,
-                        onRemove: () => controller.remove(item.id),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -164,57 +134,4 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _togglePlaceholder() {}
-}
-
-class _ItemWidget extends StatelessWidget {
-  final LayoutItem item;
-  final VoidCallback? onRemove;
-  final VoidCallback? onDoubleTap;
-  const _ItemWidget({
-    required this.item,
-    this.onRemove,
-    this.onDoubleTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('Item ${item.id}'),
-            content: Text(
-              'Position: (${item.rect.x}, ${item.rect.y})\nSize: ${item.rect.size.width} x ${item.rect.size.height}',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  onRemove?.call();
-                },
-                child: const Text('Remove'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Close'),
-              ),
-            ],
-          ),
-        );
-      },
-      onDoubleTap: onDoubleTap,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.black),
-          color: Colors.primaries[item.id.hashCode % Colors.primaries.length]
-              .withOpacity(0.5),
-        ),
-        child: Center(
-          child: Text('[${item.id}]'),
-        ),
-      ),
-    );
-  }
 }
