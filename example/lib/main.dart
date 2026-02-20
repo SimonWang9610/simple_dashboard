@@ -1,3 +1,5 @@
+import 'package:example/item_widget.dart';
+import 'package:example/sliver_example.dart';
 import 'package:faker/faker.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
@@ -15,6 +17,8 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.deepPurple)),
       home: const MyHomePage(title: 'Simple Dashboard Demo'),
+      // home: _GridViewExample(),
+      // home: const DashboardViewExample(),
     );
   }
 }
@@ -31,20 +35,22 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final controller = DashboardController(
     mainAxisSlots: 4,
-    items: [
-      LayoutItem(
-        id: "initial-0",
-        rect: LayoutRect(x: 0, y: 0, size: LayoutSize(width: 5, height: 2)),
-      ),
+    // initialItems: [
+    //   LayoutItem(
+    //     id: "initial-0",
+    //     rect: LayoutRect(x: 0, y: 0, size: LayoutSize(width: 5, height: 2)),
+    //   ),
 
-      LayoutItem(
-        id: "initial-1",
-        rect: LayoutRect(x: 5, y: 0, size: LayoutSize(width: 3, height: 1)),
-      ),
-    ],
+    //   LayoutItem(
+    //     id: "initial-1",
+    //     rect: LayoutRect(x: 5, y: 0, size: LayoutSize(width: 3, height: 1)),
+    //   ),
+    // ],
   );
 
   final placeholder = ValueNotifier<LayoutPlaceholder?>(null);
+
+  final Map<Object, GlobalKey> itemKeys = {};
 
   @override
   void didChangeDependencies() {
@@ -105,30 +111,25 @@ class _MyHomePageState extends State<MyHomePage> {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.grey[300],
-                border: Border.all(color: Colors.red),
+                border: Border.all(color: Colors.blueAccent, width: 2),
               ),
-              child: ValueListenableBuilder(
-                valueListenable: placeholder,
-                builder: (context, value, child) {
-                  return Dashboard(
-                    controller: controller,
-                    placeholder: value,
-                    placeholderDecoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    emptyBuilder: (context) => const Center(
+              child: Dashboard(
+                controller: controller,
+                emptyBuilder: (context) {
+                  return Container(
+                    color: Colors.grey[200],
+                    child: const Center(
                       child: Text('No items'),
                     ),
-                    itemBuilder: (context, item) {
-                      return _ItemWidget(
-                        item: item,
-                        onRemove: () => controller.removeItem(item.id),
-                      );
-                    },
                   );
                 },
+                itemBuilder: (_, item) => ItemWidget(
+                  key: itemKeys.putIfAbsent(item.id, () => GlobalKey()),
+                  item: item,
+                  onRemove: () {
+                    controller.remove(item.id);
+                  },
+                ),
               ),
             ),
           ),
@@ -152,77 +153,78 @@ class _MyHomePageState extends State<MyHomePage> {
       width: faker.randomGenerator.integer(slots ~/ 2, min: 1),
       height: faker.randomGenerator.integer(slots ~/ 2, min: 1),
     );
+    print(
+      "Adding item $id with size ${size.width} x ${size.height}, max slots: $slots",
+    );
 
-    controller.addItem(
+    controller.add(
       id,
       size,
-      strategy: PositionStrategy.head,
+      strategy: PositionStrategy.after,
       afterId: controller.items.firstOrNull?.id,
     );
   }
 
-  void _togglePlaceholder() {
-    if (placeholder.value == null) {
-      final length = controller.items.length;
-      final item = controller.items[length ~/ 2];
-
-      controller.removeItem(item.id);
-      placeholder.value = item.placeholder;
-    } else {
-      controller.place(placeholder.value!.item);
-      placeholder.value = null;
-    }
-  }
+  void _togglePlaceholder() {}
 }
 
-class _ItemWidget extends StatelessWidget {
-  final LayoutItem item;
-  final VoidCallback? onRemove;
-  final VoidCallback? onDoubleTap;
-  const _ItemWidget({
-    required this.item,
-    this.onRemove,
-    this.onDoubleTap,
-  });
+class _GridViewExample extends StatefulWidget {
+  const _GridViewExample({super.key});
+
+  @override
+  State<_GridViewExample> createState() => __GridViewExampleState();
+}
+
+class __GridViewExampleState extends State<_GridViewExample> {
+  final items = List.generate(
+    3,
+    (index) => LayoutItem(
+      id: "item $index",
+      rect: LayoutRect(x: 0, y: 0, size: LayoutSize(width: 1, height: 1)),
+    ),
+  );
+
+  final Map<Object, GlobalKey> itemKeys = {};
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('Item ${item.id}'),
-            content: Text(
-              'Position: (${item.rect.x}, ${item.rect.y})\nSize: ${item.rect.size.width} x ${item.rect.size.height}',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  onRemove?.call();
-                },
-                child: const Text('Remove'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Close'),
-              ),
-            ],
+    return Scaffold(
+      appBar: AppBar(title: const Text("GridView Example")),
+      body: Column(
+        children: [
+          TextButton(
+            onPressed: () {
+              setState(() {
+                items.insert(
+                  1,
+                  LayoutItem(
+                    id: "item ${items.length}",
+                    rect: LayoutRect(
+                      x: 0,
+                      y: 0,
+                      size: LayoutSize(width: 1, height: 1),
+                    ),
+                  ),
+                );
+              });
+            },
+            child: const Text('Add Item'),
           ),
-        );
-      },
-      onDoubleTap: onDoubleTap,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.black),
-          color: Colors.primaries[item.id.hashCode % Colors.primaries.length]
-              .withOpacity(0.5),
-        ),
-        child: Center(
-          child: Text('[${item.id}]'),
-        ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                return ItemWidget(
+                  key: itemKeys.putIfAbsent(
+                    items[index].id,
+                    () => GlobalKey(),
+                  ),
+                  item: items[index],
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
