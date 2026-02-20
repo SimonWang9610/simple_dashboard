@@ -5,6 +5,7 @@ import 'layout_delegate.dart';
 
 class SliverDashboardParentData extends SliverMultiBoxAdaptorParentData {
   double? crossAxisOffset;
+  Object? id;
 }
 
 class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
@@ -175,6 +176,7 @@ class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
       paintExtent: paintExtent,
       maxPaintExtent: estimatedTotalExtent,
       cacheExtent: cacheExtent,
+      crossAxisExtent: constraints.crossAxisExtent,
       hasVisualOverflow:
           estimatedTotalExtent > paintExtent ||
           constraints.scrollOffset > 0.0 ||
@@ -199,7 +201,6 @@ class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
         child.parentData! as SliverDashboardParentData;
     childParentData.layoutOffset = geometry.scrollOffset;
     childParentData.crossAxisOffset = geometry.crossAxisOffset;
-
     assert(childParentData.index == index);
   }
 

@@ -130,11 +130,9 @@ class SliverDashboardLayout {
 
   /// Returns the index of the first item that should be visible at the given scroll offset.
   int getMinChildIndexForScrollOffset(double scrollOffset) {
-    if (crossDashboardAxisStride <= 0) return 0;
+    if (crossDashboardAxisStride <= 0 || items.isEmpty) return 0;
 
-    final minCrossAxisSlots =
-        ((scrollOffset + crossDashboardAxisSpacing) / crossDashboardAxisStride)
-            .ceil();
+    final minCrossAxisSlots = (scrollOffset / crossDashboardAxisStride).ceil();
 
     int index = 0;
 
@@ -152,12 +150,12 @@ class SliverDashboardLayout {
       index++;
     }
 
-    return index;
+    return index < items.length ? index : items.length - 1;
   }
 
   /// Returns the index of the last item that should be visible at the given scroll offset.
   int? getMaxChildIndexForScrollOffset(double scrollOffset) {
-    if (crossDashboardAxisStride <= 0) return 0;
+    if (crossDashboardAxisStride <= 0 || items.isEmpty) return 0;
 
     final maxCrossAxisSlots =
         ((scrollOffset - crossDashboardAxisSpacing) / crossDashboardAxisStride)
