@@ -29,6 +29,16 @@ int _kDefaultSemanticIndexCallback(Widget _, int localIndex) => localIndex;
 class _ItemKey extends ValueKey<Object> {
   final Object itemId;
   const _ItemKey(this.itemId) : super(itemId);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other.runtimeType != runtimeType) return false;
+    return other is _ItemKey && other.itemId == itemId;
+  }
+
+  @override
+  int get hashCode => itemId.hashCode;
 }
 
 /// Base class for delegates that supply children to a [SliverDashboard].
@@ -285,17 +295,6 @@ class SliverDashboardBuilderDelegate extends SliverDashboardChildDelegate {
 
   @override
   int? get estimatedChildCount => childCount;
-
-  // NOTE: This override is identical to the base-class implementation in
-  // SliverDashboardChildDelegate.findIndexByKey and can be removed.
-  @override
-  int? findIndexByKey(Key key) {
-    if (key is! _ItemKey) {
-      return null;
-    }
-
-    return findItemIndexById?.call(key.itemId);
-  }
 
   @override
   Key? itemKeyForIndex(int index, Key? subKey) {

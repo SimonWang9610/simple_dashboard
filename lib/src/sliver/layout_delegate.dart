@@ -14,7 +14,7 @@ abstract class SliverDashboardLayoutDelegate {
     required this.mainAxisSlots,
     required this.items,
   }) : assert(
-         LayoutChecker.assertValidLayout(items, axis, mainAxisSlots),
+         LayoutChecker.debugAssertValidLayout(items, axis, mainAxisSlots),
          "Invalid layout: ${items.toString()}, axis: $axis, mainAxisSlots: $mainAxisSlots",
        );
 

@@ -80,24 +80,13 @@ class DashboardHelper {
   ///
   /// If [mainAxisSlots] decreases, some items may also need to be repositioned to fit the new slot count;
   /// However, if [mainAxisSlots] increases, all items will still fit without repositioning.
-  ///
-  /// [oldMainAxisSlots] is used to determine whether the main axis slots have been reduced,
-  /// which may cause more items to require repositioning.
-  ///
-  /// When the main axis slots are reduced, the main extent of each flex will increase,
-  /// which may cause some items are overflowed along the main axis and thus require repositioning.
-  ///
-  /// When the main axis slots are increased, the main extent of each flex will decrease,
-  /// so we can safely assume that no items will be overflowed along the main axis,
-  /// and thus no items will require repositioning.
   static List<LayoutItem> adoptMetrics(
     Iterable<LayoutItem> items,
     DashboardAxis axis,
-    int mainAxisSlots, {
-    int? oldMainAxisSlots,
-  }) {
+    int mainAxisSlots,
+  ) {
     assert(
-      LayoutChecker.assertNoDuplicatedIds(items),
+      LayoutChecker.debugAssertNoDuplicatedIds(items),
       "Duplicate item IDs found. Each item must have a unique ID.",
     );
 

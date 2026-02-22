@@ -49,7 +49,7 @@ abstract class LayoutChecker {
     return null;
   }
 
-  static void assertNoConflicts(
+  static void debugAssertNoConflicts(
     Iterable<LayoutItem> items,
   ) {
     assert(
@@ -58,7 +58,7 @@ abstract class LayoutChecker {
     );
   }
 
-  static bool assertNoDuplicatedIds(
+  static bool debugAssertNoDuplicatedIds(
     Iterable<LayoutItem> items,
   ) {
     bool hasDuplicates = false;
@@ -73,7 +73,7 @@ abstract class LayoutChecker {
     return !hasDuplicates;
   }
 
-  static void assertNoOverflow(
+  static void debugAssertNoOverflow(
     Iterable<LayoutItem> items,
     DashboardAxis axis,
     int mainAxisSlots,
@@ -84,7 +84,7 @@ abstract class LayoutChecker {
     );
   }
 
-  static bool assertValidLayout(
+  static bool debugAssertValidLayout(
     Iterable<LayoutItem> items,
     DashboardAxis axis,
     int mainAxisSlots,
@@ -96,7 +96,7 @@ abstract class LayoutChecker {
     assert(() {
       hasOverflow = findOverflowItems(items, axis, mainAxisSlots).isNotEmpty;
       hasConflicts = findFirstConflictItems(items) != null;
-      hasDuplicatedIds = !assertNoDuplicatedIds(items);
+      hasDuplicatedIds = !debugAssertNoDuplicatedIds(items);
       return true;
     }());
 
@@ -148,7 +148,7 @@ abstract class LayoutChecker {
     int mainAxisSlots,
   ) {
     assert(
-      LayoutChecker.assertNoDuplicatedIds(items),
+      LayoutChecker.debugAssertNoDuplicatedIds(items),
       "Each item in the dashboard must have a unique id. Duplicated ids found in items: ${items.map((e) => e.id)}",
     );
 

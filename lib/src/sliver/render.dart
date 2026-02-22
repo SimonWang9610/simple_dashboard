@@ -5,7 +5,6 @@ import 'layout_delegate.dart';
 
 class SliverDashboardParentData extends SliverMultiBoxAdaptorParentData {
   double? crossAxisOffset;
-  Object? id;
 }
 
 class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {

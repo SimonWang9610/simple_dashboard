@@ -45,14 +45,13 @@ class _DashboardState extends State<Dashboard> {
   Widget build(BuildContext context) {
     final emptyPlaceholder = ListenableBuilder(
       listenable: widget.controller,
-      builder: (context, child) {
+      builder: (context, _) {
         final hasItems = widget.controller.items.isNotEmpty;
 
-        return hasItems ? const SizedBox.shrink() : child!;
+        return !hasItems && widget.emptyBuilder != null
+            ? widget.emptyBuilder!(context)
+            : const SizedBox.shrink();
       },
-      child: widget.emptyBuilder != null
-          ? widget.emptyBuilder!(context)
-          : const SizedBox.shrink(),
     );
 
     final loader = widget.isLoading != null
