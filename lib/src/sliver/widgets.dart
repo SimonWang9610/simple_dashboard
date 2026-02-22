@@ -1,13 +1,83 @@
 import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
+import 'package:simple_dashboard/src/sliver/child_delegate.dart';
+
+mixin LayoutItemWidget on Widget {
+  LayoutItem get item;
+}
 
 class SliverDashboard extends SliverMultiBoxAdaptorWidget {
-  final SliverDashboardDelegate layoutDelegate;
+  final SliverDashboardLayoutDelegate layoutDelegate;
+
   const SliverDashboard({
     super.key,
-    required super.delegate,
+    required SliverDashboardChildDelegate delegate,
     required this.layoutDelegate,
-  });
+  }) : super(delegate: delegate);
+
+  SliverDashboard.builder({
+    super.key,
+    required DashboardAxis axis,
+    required int mainAxisSlots,
+    required List<LayoutItem> items,
+    required LayoutItemWidgetBuilder itemBuilder,
+    double aspectRatio = 1.0,
+    double mainAxisSpacing = 4,
+    double crossAxisSpacing = 4,
+  }) : layoutDelegate = SliverDashboardDelegateWithFixedSlotCount(
+         mainAxisSlots: mainAxisSlots,
+         items: items,
+         axis: axis,
+         aspectRatio: aspectRatio,
+         mainAxisSpacing: mainAxisSpacing,
+         crossAxisSpacing: crossAxisSpacing,
+       ),
+       super(
+         delegate: SliverDashboardBuilderDelegate.items(
+           items: items,
+           builder: itemBuilder,
+         ),
+       );
+
+  SliverDashboard.list({
+    super.key,
+    required DashboardAxis axis,
+    required int mainAxisSlots,
+    required List<LayoutItemWidget> children,
+    bool addAutomaticKeepAlives = true,
+    bool addRepaintBoundaries = true,
+    bool addSemanticIndexes = true,
+    double aspectRatio = 1.0,
+    double mainAxisSpacing = 4,
+    double crossAxisSpacing = 4,
+  }) : layoutDelegate = SliverDashboardDelegateWithFixedSlotCount(
+         mainAxisSlots: mainAxisSlots,
+         items: children.map((child) => child.item).toList(),
+         axis: axis,
+         aspectRatio: aspectRatio,
+         mainAxisSpacing: mainAxisSpacing,
+         crossAxisSpacing: crossAxisSpacing,
+       ),
+       super(
+         delegate: SliverDashboardListDelegate(
+           children: children,
+           addAutomaticKeepAlives: addAutomaticKeepAlives,
+           addRepaintBoundaries: addRepaintBoundaries,
+           addSemanticIndexes: addSemanticIndexes,
+           findItemByIndex: (index) {
+             if (index >= 0 && index < children.length) {
+               return children[index].item;
+             }
+             return null;
+           },
+           findItemIndexById: (itemId) {
+             final index = children.indexWhere(
+               (child) => child.item.id == itemId,
+             );
+             return index >= 0 ? index : null;
+           },
+         ),
+       );
 
   @override
   RenderSliverDashboard createRenderObject(BuildContext context) {
@@ -54,15 +124,13 @@ class SliverDashboard extends SliverMultiBoxAdaptorWidget {
 }
 
 class DashboardView extends BoxScrollView {
-  final SliverDashboardDelegate layoutDelegate;
-  final DashboardItemBuilder itemBuilder;
-  final bool addAutomaticKeepAlives;
-  final bool addRepaintBoundaries;
-  final bool addSemanticIndexes;
+  final SliverDashboardLayoutDelegate layoutDelegate;
+  final SliverDashboardChildDelegate delegate;
 
-  DashboardView.withDelegate({
+  DashboardView({
     super.key,
     required this.layoutDelegate,
+    required this.delegate,
     super.controller,
     super.primary,
     super.physics,
@@ -75,17 +143,13 @@ class DashboardView extends BoxScrollView {
     super.restorationId,
     super.clipBehavior,
     super.hitTestBehavior,
-    this.addAutomaticKeepAlives = true,
-    this.addRepaintBoundaries = true,
-    this.addSemanticIndexes = true,
-    required this.itemBuilder,
   }) : super(
          scrollDirection: layoutDelegate.axis == DashboardAxis.horizontal
              ? Axis.vertical
              : Axis.horizontal,
        );
 
-  DashboardView.count({
+  DashboardView.builder({
     super.key,
     super.controller,
     super.primary,
@@ -99,13 +163,13 @@ class DashboardView extends BoxScrollView {
     super.restorationId,
     super.clipBehavior,
     super.hitTestBehavior,
-    this.addAutomaticKeepAlives = true,
-    this.addRepaintBoundaries = true,
-    this.addSemanticIndexes = true,
+    bool addAutomaticKeepAlives = true,
+    bool addRepaintBoundaries = true,
+    bool addSemanticIndexes = true,
     required DashboardAxis axis,
     required int mainAxisSlots,
     required List<LayoutItem> items,
-    required this.itemBuilder,
+    required LayoutItemWidgetBuilder itemBuilder,
     double aspectRatio = 1.0,
     double mainAxisSpacing = 4,
     double crossAxisSpacing = 4,
@@ -117,6 +181,68 @@ class DashboardView extends BoxScrollView {
          mainAxisSpacing: mainAxisSpacing,
          crossAxisSpacing: crossAxisSpacing,
        ),
+       delegate = SliverDashboardBuilderDelegate.items(
+         items: items,
+         builder: itemBuilder,
+         addAutomaticKeepAlives: addAutomaticKeepAlives,
+         addRepaintBoundaries: addRepaintBoundaries,
+         addSemanticIndexes: addSemanticIndexes,
+       ),
+       super(
+         scrollDirection: axis == DashboardAxis.horizontal
+             ? Axis.vertical
+             : Axis.horizontal,
+       );
+
+  DashboardView.list({
+    super.key,
+    super.controller,
+    super.primary,
+    super.physics,
+    super.shrinkWrap,
+    super.padding,
+    super.cacheExtent,
+    super.semanticChildCount,
+    super.dragStartBehavior,
+    super.keyboardDismissBehavior,
+    super.restorationId,
+    super.clipBehavior,
+    super.hitTestBehavior,
+    bool addAutomaticKeepAlives = true,
+    bool addRepaintBoundaries = true,
+    bool addSemanticIndexes = true,
+    required DashboardAxis axis,
+    required int mainAxisSlots,
+    required List<LayoutItemWidget> children,
+    double aspectRatio = 1.0,
+    double mainAxisSpacing = 4,
+    double crossAxisSpacing = 4,
+  }) : layoutDelegate = SliverDashboardDelegateWithFixedSlotCount(
+         mainAxisSlots: mainAxisSlots,
+         items: children.map((child) => child.item).toList(),
+         axis: axis,
+         aspectRatio: aspectRatio,
+         mainAxisSpacing: mainAxisSpacing,
+         crossAxisSpacing: crossAxisSpacing,
+       ),
+       delegate = SliverDashboardListDelegate(
+         children: children,
+         addAutomaticKeepAlives: addAutomaticKeepAlives,
+         addRepaintBoundaries: addRepaintBoundaries,
+         addSemanticIndexes: addSemanticIndexes,
+         findItemByIndex: (index) {
+           if (index >= 0 && index < children.length) {
+             return children[index].item;
+           }
+           return null;
+         },
+         findItemIndexById: (itemId) {
+           final index = children.indexWhere(
+             (child) => child.item.id == itemId,
+           );
+           return index >= 0 ? index : null;
+         },
+       ),
        super(
          scrollDirection: axis == DashboardAxis.horizontal
              ? Axis.vertical
@@ -127,16 +253,7 @@ class DashboardView extends BoxScrollView {
   Widget buildChildLayout(BuildContext context) {
     return SliverDashboard(
       layoutDelegate: layoutDelegate,
-      delegate: SliverChildBuilderDelegate(
-        (BuildContext context, int index) {
-          final item = layoutDelegate.items[index];
-          return itemBuilder(context, item);
-        },
-        childCount: layoutDelegate.items.length,
-        addAutomaticKeepAlives: addAutomaticKeepAlives,
-        addRepaintBoundaries: addRepaintBoundaries,
-        addSemanticIndexes: addSemanticIndexes,
-      ),
+      delegate: delegate,
     );
   }
 }

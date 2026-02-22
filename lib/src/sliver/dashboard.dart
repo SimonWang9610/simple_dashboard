@@ -75,7 +75,7 @@ class _DashboardState extends State<Dashboard> {
         ListenableBuilder(
           listenable: widget.controller,
           builder: (_, _) {
-            return DashboardView.count(
+            return DashboardView.builder(
               controller: widget.scrollController,
               addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
               addRepaintBoundaries: widget.addRepaintBoundaries,

@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
 
-class ItemWidget extends StatefulWidget {
+class ItemWidget extends StatefulWidget with LayoutItemWidget {
+  @override
   final LayoutItem item;
+
   final VoidCallback? onRemove;
   final VoidCallback? onDoubleTap;
   const ItemWidget({
@@ -44,22 +46,10 @@ class _ItemWidgetState extends State<ItemWidget>
   @override
   void didUpdateWidget(covariant ItemWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // print('Updating item to ${widget.item.id}');
+    print('Updating item ${widget.item.id}, old id: ${oldWidget.item.id}');
     if (oldWidget.item.id != widget.item.id) {
       count = 0;
     }
-  }
-
-  @override
-  void activate() {
-    super.activate();
-    // print('Activating item ${widget.item.id}');
-  }
-
-  @override
-  void deactivate() {
-    super.deactivate();
-    // print('Deactivating item ${widget.item.id}');
   }
 
   @override

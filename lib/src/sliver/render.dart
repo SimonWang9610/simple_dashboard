@@ -11,7 +11,7 @@ class SliverDashboardParentData extends SliverMultiBoxAdaptorParentData {
 class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
   RenderSliverDashboard({
     required super.childManager,
-    required SliverDashboardDelegate layoutDelegate,
+    required SliverDashboardLayoutDelegate layoutDelegate,
   }) : _layoutDelegate = layoutDelegate;
 
   @override
@@ -21,8 +21,8 @@ class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
     }
   }
 
-  SliverDashboardDelegate _layoutDelegate;
-  set layoutDelegate(SliverDashboardDelegate value) {
+  SliverDashboardLayoutDelegate _layoutDelegate;
+  set layoutDelegate(SliverDashboardLayoutDelegate value) {
     if (_layoutDelegate == value) return;
 
     if (value.runtimeType != _layoutDelegate.runtimeType ||
@@ -71,7 +71,7 @@ class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
       collectGarbage(0, 0);
     }
 
-    final firstChildGeometry = dashboardLayout.computeItemGeometry(firstIndex);
+    final firstChildGeometry = dashboardLayout.computeGeometry(firstIndex);
 
     if (firstChild == null) {
       if (!addInitialChild(
@@ -93,7 +93,7 @@ class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
     bool reachedEnd = false;
 
     for (int index = indexOf(firstChild!) - 1; index >= firstIndex; --index) {
-      final geometry = dashboardLayout.computeItemGeometry(index);
+      final geometry = dashboardLayout.computeGeometry(index);
       final RenderBox child = insertAndLayoutLeadingChild(
         geometry.getBoxConstraints(constraints),
       )!;
@@ -120,7 +120,7 @@ class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
     ) {
       RenderBox? child = childAfter(trailingChildWithLayout!);
 
-      final geometry = dashboardLayout.computeItemGeometry(index);
+      final geometry = dashboardLayout.computeGeometry(index);
 
       final BoxConstraints childConstraints = geometry.getBoxConstraints(
         constraints,

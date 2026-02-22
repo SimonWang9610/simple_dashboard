@@ -97,7 +97,6 @@ abstract class LayoutChecker {
       hasOverflow = findOverflowItems(items, axis, mainAxisSlots).isNotEmpty;
       hasConflicts = findFirstConflictItems(items) != null;
       hasDuplicatedIds = !assertNoDuplicatedIds(items);
-
       return true;
     }());
 

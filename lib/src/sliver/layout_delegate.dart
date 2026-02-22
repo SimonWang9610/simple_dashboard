@@ -3,12 +3,12 @@ import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
 import 'package:simple_dashboard/src/models/enums.dart';
 import 'package:simple_dashboard/src/utils/checker.dart';
 
-abstract class SliverDashboardDelegate {
+abstract class SliverDashboardLayoutDelegate {
   final DashboardAxis axis;
   final int mainAxisSlots;
   final List<LayoutItem> items;
 
-  SliverDashboardDelegate({
+  SliverDashboardLayoutDelegate({
     required this.axis,
     required this.mainAxisSlots,
     required this.items,
@@ -19,7 +19,7 @@ abstract class SliverDashboardDelegate {
 
   SliverDashboardLayout getLayout(SliverConstraints constraints);
 
-  bool shouldRelayout(covariant SliverDashboardDelegate oldDelegate) {
+  bool shouldRelayout(covariant SliverDashboardLayoutDelegate oldDelegate) {
     return oldDelegate.axis != axis ||
         oldDelegate.mainAxisSlots != mainAxisSlots ||
         oldDelegate.items != items;
@@ -27,7 +27,7 @@ abstract class SliverDashboardDelegate {
 }
 
 final class SliverDashboardDelegateWithFixedSlotCount
-    extends SliverDashboardDelegate {
+    extends SliverDashboardLayoutDelegate {
   /// The aspect ratio of each slot in the main axis.
   /// mainAxisSlotExtent / crossAxisSlotExtent = aspectRatio.
   final double aspectRatio;
@@ -86,7 +86,7 @@ final class SliverDashboardDelegateWithFixedSlotCount
   }
 
   @override
-  bool shouldRelayout(covariant SliverDashboardDelegate oldDelegate) {
+  bool shouldRelayout(covariant SliverDashboardLayoutDelegate oldDelegate) {
     if (oldDelegate is! SliverDashboardDelegateWithFixedSlotCount) {
       return true;
     }
@@ -191,7 +191,7 @@ class SliverDashboardLayout {
         crossDashboardAxisSpacing;
   }
 
-  SliverDashboardGeometry computeItemGeometry(int index) {
+  SliverDashboardGeometry computeGeometry(int index) {
     assert(
       items.isEmpty || (index >= 0 && index < items.length),
       "Index out of range: $index, items length: ${items.length}",
@@ -207,8 +207,11 @@ class SliverDashboardLayout {
       );
     }
 
-    final itemRect = items[index].rect;
+    final item = items[index];
+    return computeItemGeometry(item.rect);
+  }
 
+  SliverDashboardGeometry computeItemGeometry(LayoutRect itemRect) {
     final (dx, dy) = switch (dashboardAxis) {
       DashboardAxis.horizontal => (
         itemRect.left * mainDashboardAxisStride,
@@ -275,4 +278,35 @@ class SliverDashboardGeometry {
     );
     return result;
   }
+
+  Size getSize(DashboardAxis axis) {
+    return switch (axis) {
+      DashboardAxis.horizontal => Size(crossAxisExtent, mainAxisExtent),
+      DashboardAxis.vertical => Size(mainAxisExtent, crossAxisExtent),
+    };
+  }
+
+  Offset getOrigin(DashboardAxis axis) {
+    return switch (axis) {
+      DashboardAxis.horizontal => Offset(crossAxisOffset, scrollOffset),
+      DashboardAxis.vertical => Offset(scrollOffset, crossAxisOffset),
+    };
+  }
+
+  BoxItemGeometry getBoxItemGeometry(DashboardAxis axis) {
+    return BoxItemGeometry(
+      origin: getOrigin(axis),
+      size: getSize(axis),
+    );
+  }
+}
+
+class BoxItemGeometry {
+  final Offset origin;
+  final Size size;
+
+  const BoxItemGeometry({
+    required this.origin,
+    required this.size,
+  });
 }

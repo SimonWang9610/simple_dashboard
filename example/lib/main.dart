@@ -124,7 +124,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   );
                 },
                 itemBuilder: (_, item) => ItemWidget(
-                  key: itemKeys.putIfAbsent(item.id, () => GlobalKey()),
+                  // key: itemKeys.putIfAbsent(item.id, () => GlobalKey()),
                   item: item,
                   onRemove: () {
                     controller.remove(item.id);
