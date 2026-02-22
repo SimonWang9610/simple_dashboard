@@ -343,25 +343,23 @@ class SliverDashboardBuilderDelegate extends SliverDashboardChildDelegate {
 /// ```
 class SliverDashboardListDelegate extends SliverDashboardChildDelegate {
   /// The pre-built child widgets in list order.
-  final List<Widget> children;
+  final List<LayoutItemWidget> children;
 
-  /// Returns the [LayoutItem] for the given list index.
-  ///
-  /// Optional, but should be provided alongside [findItemIndexById] to enable
-  /// stable [_ItemKey]-based keying for correct element reconciliation during
-  /// reorders.
-  final LayoutItemFinder? findItemByIndex;
-
-  const SliverDashboardListDelegate({
+  SliverDashboardListDelegate({
     super.addRepaintBoundaries,
     super.addAutomaticKeepAlives,
     super.addSemanticIndexes,
     super.semanticIndexCallback,
     super.semanticIndexOffset,
     required this.children,
-    this.findItemByIndex,
-    super.findItemIndexById,
-  });
+  }) : super(
+         findItemIndexById: (itemId) {
+           final index = children.indexWhere(
+             (child) => child.item.id == itemId,
+           );
+           return index >= 0 ? index : null;
+         },
+       );
 
   @override
   int? get estimatedChildCount => children.length;
@@ -377,11 +375,7 @@ class SliverDashboardListDelegate extends SliverDashboardChildDelegate {
 
   @override
   Key? itemKeyForIndex(int index, Key? subKey) {
-    final item = findItemByIndex?.call(index);
-
-    if (item == null) {
-      return subKey;
-    }
+    final item = children[index].item;
 
     return _ItemKey(item.id);
   }

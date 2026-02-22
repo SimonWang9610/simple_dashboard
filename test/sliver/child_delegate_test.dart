@@ -2,6 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
 
+class _LayoutContainer extends StatelessWidget with LayoutItemWidget {
+  @override
+  final LayoutItem item;
+
+  const _LayoutContainer({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
+_LayoutContainer _layoutContainer(String id, int x, int y, int w, int h) {
+  return _LayoutContainer(
+    item: LayoutItem(
+      id: id,
+      rect: LayoutRect(
+        x: x,
+        y: y,
+        size: LayoutSize(width: w, height: h),
+      ),
+    ),
+  );
+}
+
+bool _isItemKey(Key? key) {
+  return key is ValueKey && key.runtimeType.toString().startsWith('_ItemKey');
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 LayoutItem _item(String id, int x, int y, int w, int h) => LayoutItem(
@@ -331,7 +360,11 @@ void main() {
   group('SliverDashboardListDelegate', () {
     test('estimatedChildCount equals children.length', () {
       final delegate = SliverDashboardListDelegate(
-        children: [Container(), Container(), Container()],
+        children: [
+          _layoutContainer('a', 0, 0, 1, 1),
+          _layoutContainer('b', 1, 0, 1, 1),
+          _layoutContainer('c', 2, 0, 1, 1),
+        ],
       );
       expect(delegate.estimatedChildCount, 3);
     });
@@ -355,7 +388,9 @@ void main() {
           ),
         ),
       );
-      final delegate = SliverDashboardListDelegate(children: [Container()]);
+      final delegate = SliverDashboardListDelegate(
+        children: [_layoutContainer('a', 0, 0, 1, 1)],
+      );
       expect(delegate.buildItemWidget(ctx, -1), isNull);
     });
 
@@ -373,7 +408,11 @@ void main() {
           ),
         ),
       );
-      final delegate = SliverDashboardListDelegate(children: [Container()]);
+      final delegate = SliverDashboardListDelegate(
+        children: [
+          _layoutContainer('a', 0, 0, 1, 1),
+        ],
+      );
       expect(delegate.buildItemWidget(ctx, 1), isNull);
     });
 
@@ -391,45 +430,26 @@ void main() {
           ),
         ),
       );
-      final a = Container(key: const ValueKey('a'));
-      final b = Container(key: const ValueKey('b'));
+      final a = _layoutContainer('a', 0, 0, 1, 1);
+      final b = _layoutContainer('b', 1, 0, 1, 1);
       final delegate = SliverDashboardListDelegate(children: [a, b]);
       expect(delegate.buildItemWidget(ctx, 0), same(a));
       expect(delegate.buildItemWidget(ctx, 1), same(b));
     });
 
-    test('itemKeyForIndex returns subKey when findItemByIndex is null', () {
-      final delegate = SliverDashboardListDelegate(children: [Container()]);
-      const subKey = ValueKey('x');
-      expect(delegate.itemKeyForIndex(0, subKey), subKey);
-    });
-
-    test(
-      'itemKeyForIndex returns subKey when findItemByIndex returns null',
-      () {
-        final delegate = SliverDashboardListDelegate(
-          children: [Container()],
-          findItemByIndex: (_) => null,
-        );
-        const subKey = ValueKey('x');
-        expect(delegate.itemKeyForIndex(0, subKey), subKey);
-      },
-    );
-
-    test('findIndexByKey returns null for a plain ValueKey', () {
-      final delegate = SliverDashboardListDelegate(children: [Container()]);
-      expect(delegate.findIndexByKey(const ValueKey('a')), isNull);
+    test('itemKeyForIndex always returns an _ItemKey', () {
+      final delegate = SliverDashboardListDelegate(
+        children: [_layoutContainer('a', 0, 0, 1, 1)],
+      );
+      expect(_isItemKey(delegate.itemKeyForIndex(0, null)), isTrue);
     });
 
     test('key round-trip: itemKeyForIndex → findIndexByKey', () {
-      final items = [_item('a', 0, 0, 1, 1), _item('b', 1, 0, 1, 1)];
       final delegate = SliverDashboardListDelegate(
-        children: [Container(), Container()],
-        findItemByIndex: (i) => i < items.length ? items[i] : null,
-        findItemIndexById: (id) {
-          final idx = items.indexWhere((item) => item.id == id);
-          return idx >= 0 ? idx : null;
-        },
+        children: [
+          _layoutContainer('a', 0, 0, 1, 1),
+          _layoutContainer('b', 1, 0, 1, 1),
+        ],
       );
       final key0 = delegate.itemKeyForIndex(0, null)!;
       expect(delegate.findIndexByKey(key0), 0);
@@ -439,10 +459,11 @@ void main() {
     });
 
     test('keys for different items are distinct', () {
-      final items = [_item('a', 0, 0, 1, 1), _item('b', 1, 0, 1, 1)];
       final delegate = SliverDashboardListDelegate(
-        children: [Container(), Container()],
-        findItemByIndex: (i) => i < items.length ? items[i] : null,
+        children: [
+          _layoutContainer('a', 0, 0, 1, 1),
+          _layoutContainer('b', 1, 0, 1, 1),
+        ],
       );
       final key0 = delegate.itemKeyForIndex(0, null);
       final key1 = delegate.itemKeyForIndex(1, null);
@@ -472,7 +493,7 @@ void main() {
           );
 
           final delegate = SliverDashboardListDelegate(
-            children: [const Text('hello')],
+            children: [_layoutContainer('a', 0, 0, 1, 1)],
             addRepaintBoundaries: true,
             addSemanticIndexes: false,
             addAutomaticKeepAlives: false,
@@ -500,7 +521,7 @@ void main() {
           );
 
           final delegate = SliverDashboardListDelegate(
-            children: [const Text('hello')],
+            children: [_layoutContainer('a', 0, 0, 1, 1)],
             addRepaintBoundaries: false,
             addSemanticIndexes: false,
             addAutomaticKeepAlives: false,
