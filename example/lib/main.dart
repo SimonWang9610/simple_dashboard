@@ -48,6 +48,8 @@ class _MyHomePageState extends State<MyHomePage> {
     // ],
   );
 
+  final _loading = ValueNotifier<bool>(false);
+
   final placeholder = ValueNotifier<LayoutPlaceholder?>(null);
 
   final Map<Object, GlobalKey> itemKeys = {};
@@ -103,8 +105,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: const Text('reverse axis'),
               ),
               TextButton(
-                onPressed: _togglePlaceholder,
-                child: const Text('Toggle Placeholder'),
+                onPressed: _load,
+                child: const Text('Loading'),
               ),
             ],
           ),
@@ -115,9 +117,20 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               child: Dashboard(
                 controller: controller,
+                isLoading: _loading,
+                loadingBuilder: (context) {
+                  return Container(
+                    color: Colors.black12,
+
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                },
                 emptyBuilder: (context) {
                   return Container(
                     color: Colors.grey[200],
+
                     child: const Center(
                       child: Text('No items'),
                     ),
@@ -165,7 +178,14 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _togglePlaceholder() {}
+  void _load() async {
+    if (_loading.value) return;
+
+    _loading.value = true;
+    await Future.delayed(const Duration(seconds: 2));
+    _addItem();
+    _loading.value = false;
+  }
 }
 
 class _GridViewExample extends StatefulWidget {
