@@ -116,7 +116,7 @@ class SliverDashboard extends SliverMultiBoxAdaptorWidget {
           DashboardAxis.horizontal => scrollable?.widget.axis == Axis.vertical,
         };
       }(),
-      "SliverDashboard's axis must match the scrollable's axis, given axis: ${layoutDelegate.axis}.",
+      "SliverDashboard's axis does not match the scrollable's axis, given axis: ${layoutDelegate.axis}.",
     );
 
     return RenderSliverDashboard(
@@ -139,7 +139,7 @@ class SliverDashboard extends SliverMultiBoxAdaptorWidget {
           DashboardAxis.horizontal => scrollable?.widget.axis == Axis.vertical,
         };
       }(),
-      "SliverDashboard's axis must match the scrollable's axis, given axis: ${layoutDelegate.axis}.",
+      "SliverDashboard's axis does not match the scrollable's axis, given axis: ${layoutDelegate.axis}.",
     );
 
     renderObject.layoutDelegate = layoutDelegate;

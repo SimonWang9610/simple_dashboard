@@ -128,7 +128,7 @@ class _DashboardControllerImpl extends DashboardController {
   late List<LayoutItem> _items;
 
   @override
-  List<LayoutItem> get items => List.unmodifiable(_items);
+  List<LayoutItem> get items => _items;
 
   List<LayoutItem>? _sortedItems;
 
@@ -172,6 +172,7 @@ class _DashboardControllerImpl extends DashboardController {
         oldMainAxisSlots: oldMainAxisSlots,
       );
       _refillItems(adoptedItems);
+      notifyListeners();
     }
   }
 
@@ -192,9 +193,7 @@ class _DashboardControllerImpl extends DashboardController {
       }
     }
 
-    _items = items.toList();
+    _items = List.unmodifiable(items);
     _sortedItems = null;
-
-    notifyListeners();
   }
 }

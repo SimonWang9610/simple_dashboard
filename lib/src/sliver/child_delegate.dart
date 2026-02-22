@@ -25,8 +25,7 @@ int _kDefaultSemanticIndexCallback(Widget _, int localIndex) => localIndex;
 /// back to a list index when the framework needs to reuse or relocate an
 /// existing element (e.g. after a scroll).
 ///
-/// [itemId] through the [ValueKey] super-class.
-//   Either incorporate it into identity or remove the field.
+/// Stores the stable [itemId] via the [ValueKey] super-class.
 class _ItemKey extends ValueKey<Object> {
   final Object itemId;
   const _ItemKey(this.itemId) : super(itemId);
@@ -122,7 +121,7 @@ abstract class SliverDashboardChildDelegate extends SliverChildDelegate {
 
   /// Returns the list index for the element identified by [key].
   ///
-  /// Only [_ItemKey] instances produced by [_itemKeyForIndex] carry an item
+  /// Only [_ItemKey] instances produced by [itemKeyForIndex] carry an item
   /// identifier. All other key types return `null`.
   @override
   int? findIndexByKey(Key key) {
@@ -177,7 +176,7 @@ abstract class SliverDashboardChildDelegate extends SliverChildDelegate {
     }
 
     return KeyedSubtree(
-      key: _itemKeyForIndex(index, child.key),
+      key: itemKeyForIndex(index, child.key),
       child: child,
     );
   }
@@ -201,7 +200,7 @@ abstract class SliverDashboardChildDelegate extends SliverChildDelegate {
   /// > **Warning:** This is a library-private method. Subclasses in other files
   /// > cannot override it. If you need custom keying in an external subclass,
   /// > consider making this method protected and public.
-  Key? _itemKeyForIndex(int index, Key? subKey) => null;
+  Key? itemKeyForIndex(int index, Key? subKey) => null;
 }
 
 /// A [SliverDashboardChildDelegate] that builds children lazily using a
@@ -299,7 +298,7 @@ class SliverDashboardBuilderDelegate extends SliverDashboardChildDelegate {
   }
 
   @override
-  Key? _itemKeyForIndex(int index, Key? subKey) {
+  Key? itemKeyForIndex(int index, Key? subKey) {
     final item = findItemByIndex(index);
 
     if (item == null) {
@@ -378,7 +377,7 @@ class SliverDashboardListDelegate extends SliverDashboardChildDelegate {
   }
 
   @override
-  Key? _itemKeyForIndex(int index, Key? subKey) {
+  Key? itemKeyForIndex(int index, Key? subKey) {
     final item = findItemByIndex?.call(index);
 
     if (item == null) {

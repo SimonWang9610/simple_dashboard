@@ -76,16 +76,22 @@ class _DashboardState extends State<Dashboard> {
           listenable: widget.controller,
           builder: (_, _) {
             return DashboardView.builder(
-              controller: widget.scrollController,
-              addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
-              addRepaintBoundaries: widget.addRepaintBoundaries,
-              addSemanticIndexes: widget.addSemanticIndexes,
-              cacheExtent: widget.cacheExtent,
-              physics: widget.physics,
+              /// DashboardView parameters
               items: widget.controller.items,
               axis: widget.controller.axis,
               mainAxisSlots: widget.controller.mainAxisSlots,
               itemBuilder: widget.itemBuilder,
+              mainAxisSpacing: widget.mainAxisSpacing,
+              crossAxisSpacing: widget.crossAxisSpacing,
+              aspectRatio: widget.aspectRatio,
+              addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
+              addRepaintBoundaries: widget.addRepaintBoundaries,
+              addSemanticIndexes: widget.addSemanticIndexes,
+
+              /// scroll parameters
+              controller: widget.scrollController,
+              cacheExtent: widget.cacheExtent,
+              physics: widget.physics,
             );
           },
         ),

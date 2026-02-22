@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
 import 'package:simple_dashboard/src/models/enums.dart';
@@ -22,7 +23,7 @@ abstract class SliverDashboardLayoutDelegate {
   bool shouldRelayout(covariant SliverDashboardLayoutDelegate oldDelegate) {
     return oldDelegate.axis != axis ||
         oldDelegate.mainAxisSlots != mainAxisSlots ||
-        oldDelegate.items != items;
+        !listEquals(oldDelegate.items, items);
   }
 }
 
@@ -166,11 +167,11 @@ class SliverDashboardLayout {
     while (index >= 0) {
       final item = items[index];
 
-      final itemCrossAxisEnd = dashboardAxis == DashboardAxis.horizontal
+      final itemCrossAxisStart = dashboardAxis == DashboardAxis.horizontal
           ? item.rect.top
           : item.rect.left;
 
-      if (itemCrossAxisEnd < maxCrossAxisSlots) {
+      if (itemCrossAxisStart < maxCrossAxisSlots) {
         return index;
       }
 
