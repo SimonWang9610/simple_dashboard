@@ -35,10 +35,7 @@ class _AnimatedDashboardLayoutState
 
   @override
   Widget build(BuildContext context) {
-    return DashboardLayout(
-      rect: _rectTween!.evaluate(animation),
-      child: widget.child,
-    );
+    throw UnimplementedError("AnimatedDashboardLayout is not implemented yet.");
   }
 }
 

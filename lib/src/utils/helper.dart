@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
 import 'package:simple_dashboard/src/utils/checker.dart';
 
@@ -167,10 +166,7 @@ class DashboardHelper {
       maxCrossSlots = crossSlots > maxCrossSlots ? crossSlots : maxCrossSlots;
     }
 
-    assert(
-      _guard(guardedItems, axis, mainAxisSlots) != null,
-      "The adopted items still have overflow or collisions.",
-    );
+    LayoutChecker.debugLayoutAssertions(guardedItems, axis, mainAxisSlots);
 
     return guardedItems;
   }
@@ -187,23 +183,6 @@ class DashboardHelper {
     );
 
     final conflicts = LayoutChecker.findFirstConflictItems(items);
-
-    assert(() {
-      for (final item in overflowed) {
-        debugPrint(
-          "[${item.id}] overflowed: mainSlots: ${axis == DashboardAxis.horizontal ? item.rect.right : item.rect.bottom}, mainAxisSlots=$mainAxisSlots",
-        );
-      }
-
-      if (conflicts != null) {
-        final (item1, item2) = conflicts;
-        debugPrint(
-          "[${item1.id}] and [${item2.id}] are in conflict: rect1=${item1.rect}, rect2=${item2.rect}",
-        );
-      }
-
-      return true;
-    }());
 
     if (overflowed.isEmpty && conflicts == null) {
       return items.toList();

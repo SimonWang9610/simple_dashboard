@@ -2,7 +2,7 @@ import 'package:benchmark_harness/benchmark_harness.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
 
 class DashboardAddItemsBenchmark extends BenchmarkBase {
-  DashboardAddItemsBenchmark() : super('DashboardController.addItem');
+  DashboardAddItemsBenchmark() : super('DashboardController.add');
 
   @override
   void setup() {}
@@ -20,7 +20,7 @@ class DashboardAddItemsBenchmark extends BenchmarkBase {
 
     // Stress test by adding 50 items with aggressive strategy
     for (int i = 0; i < 100; i++) {
-      controller.addItem(
+      controller.add(
         'item_$i',
         irregularSize(i),
         strategy: PositionStrategy.aggressive,
