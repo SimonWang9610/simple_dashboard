@@ -62,22 +62,8 @@ final class SliverDashboardDelegateWithFixedSlotCount
     final mainDashboardAxisSlotExtent =
         usableMainAxisSlotExtent / mainAxisSlots;
 
-    int maxCrossAxisSlots = 0;
-
-    for (final item in items) {
-      final itemCrossAxisSlots = switch (axis) {
-        DashboardAxis.horizontal => item.rect.bottom,
-        DashboardAxis.vertical => item.rect.right,
-      };
-
-      if (itemCrossAxisSlots > maxCrossAxisSlots) {
-        maxCrossAxisSlots = itemCrossAxisSlots;
-      }
-    }
-
     return SliverDashboardLayout(
       dashboardAxis: axis,
-      maxCrossDashboardAxisSlots: maxCrossAxisSlots,
       mainDashboardAxisSlotExtent: mainDashboardAxisSlotExtent,
       crossDashboardAxisSlotExtent: mainDashboardAxisSlotExtent / aspectRatio,
       mainDashboardAxisSpacing: mainAxisSpacing,
@@ -101,7 +87,6 @@ final class SliverDashboardDelegateWithFixedSlotCount
 
 class SliverDashboardLayout {
   final DashboardAxis dashboardAxis;
-  final int maxCrossDashboardAxisSlots;
   final double mainDashboardAxisSlotExtent;
   final double crossDashboardAxisSlotExtent;
 
@@ -114,7 +99,6 @@ class SliverDashboardLayout {
     required this.crossDashboardAxisSlotExtent,
     required this.items,
     required this.dashboardAxis,
-    required this.maxCrossDashboardAxisSlots,
     this.mainDashboardAxisSpacing = 0,
     this.crossDashboardAxisSpacing = 0,
   });
@@ -179,6 +163,23 @@ class SliverDashboardLayout {
     }
 
     return 0;
+  }
+
+  int get maxCrossDashboardAxisSlots {
+    int maxCrossAxisSlots = 0;
+
+    for (final item in items) {
+      final itemCrossAxisSlots = switch (dashboardAxis) {
+        DashboardAxis.horizontal => item.rect.bottom,
+        DashboardAxis.vertical => item.rect.right,
+      };
+
+      if (itemCrossAxisSlots > maxCrossAxisSlots) {
+        maxCrossAxisSlots = itemCrossAxisSlots;
+      }
+    }
+
+    return maxCrossAxisSlots;
   }
 
   double computeMaxScrollOffset() {

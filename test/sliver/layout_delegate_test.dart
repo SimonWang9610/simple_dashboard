@@ -6,7 +6,11 @@ import 'package:simple_dashboard/simple_dashboard.dart';
 
 LayoutItem _item(String id, int x, int y, int w, int h) => LayoutItem(
   id: id,
-  rect: LayoutRect(x: x, y: y, size: LayoutSize(width: w, height: h)),
+  rect: LayoutRect(
+    x: x,
+    y: y,
+    size: LayoutSize(width: w, height: h),
+  ),
 );
 
 /// SliverConstraints with axis=Axis.vertical (used for DashboardAxis.horizontal).
@@ -61,7 +65,6 @@ SliverDashboardLayout _makeHLayout({
     mainDashboardAxisSpacing: mainSpacing,
     crossDashboardAxisSpacing: crossSpacing,
     items: items ?? [],
-    maxCrossDashboardAxisSlots: maxCrossSlots,
   );
 }
 
@@ -80,7 +83,6 @@ SliverDashboardLayout _makeVLayout({
     mainDashboardAxisSpacing: mainSpacing,
     crossDashboardAxisSpacing: crossSpacing,
     items: items ?? [],
-    maxCrossDashboardAxisSlots: maxCrossSlots,
   );
 }
 
@@ -116,16 +118,19 @@ void main() {
         expect(layout.computeMaxScrollOffset(), 0.0);
       });
 
-      test('horizontal: maxScrollOffset = maxCrossSlots * crossStride - crossSpacing', () {
-        // crossStride = 100 + 10 = 110; maxOffset = 3 * 110 - 10 = 320
-        final layout = _makeHLayout(
-          crossSlotExtent: 100,
-          crossSpacing: 10,
-          maxCrossSlots: 3,
-          items: [_item('a', 0, 0, 1, 3)],
-        );
-        expect(layout.computeMaxScrollOffset(), 320.0);
-      });
+      test(
+        'horizontal: maxScrollOffset = maxCrossSlots * crossStride - crossSpacing',
+        () {
+          // crossStride = 100 + 10 = 110; maxOffset = 3 * 110 - 10 = 320
+          final layout = _makeHLayout(
+            crossSlotExtent: 100,
+            crossSpacing: 10,
+            maxCrossSlots: 3,
+            items: [_item('a', 0, 0, 1, 3)],
+          );
+          expect(layout.computeMaxScrollOffset(), 320.0);
+        },
+      );
 
       test('no spacing: maxScrollOffset = maxCrossSlots * crossSlotExtent', () {
         final layout = _makeHLayout(
@@ -396,31 +401,38 @@ void main() {
     });
 
     group('getBoxItemGeometry', () {
-      test('horizontal: origin and size are consistent with getOrigin/getSize',
-          () {
-        final boxGeo = geo.getBoxItemGeometry(DashboardAxis.horizontal);
-        final origin = geo.getOrigin(DashboardAxis.horizontal);
-        final size = geo.getSize(DashboardAxis.horizontal);
-        expect(boxGeo.origin, origin);
-        expect(boxGeo.size, size);
-      });
+      test(
+        'horizontal: origin and size are consistent with getOrigin/getSize',
+        () {
+          final boxGeo = geo.getBoxItemGeometry(DashboardAxis.horizontal);
+          final origin = geo.getOrigin(DashboardAxis.horizontal);
+          final size = geo.getSize(DashboardAxis.horizontal);
+          expect(boxGeo.origin, origin);
+          expect(boxGeo.size, size);
+        },
+      );
 
-      test('vertical: origin and size are consistent with getOrigin/getSize',
-          () {
-        final boxGeo = geo.getBoxItemGeometry(DashboardAxis.vertical);
-        final origin = geo.getOrigin(DashboardAxis.vertical);
-        final size = geo.getSize(DashboardAxis.vertical);
-        expect(boxGeo.origin, origin);
-        expect(boxGeo.size, size);
-      });
+      test(
+        'vertical: origin and size are consistent with getOrigin/getSize',
+        () {
+          final boxGeo = geo.getBoxItemGeometry(DashboardAxis.vertical);
+          final origin = geo.getOrigin(DashboardAxis.vertical);
+          final size = geo.getSize(DashboardAxis.vertical);
+          expect(boxGeo.origin, origin);
+          expect(boxGeo.size, size);
+        },
+      );
     });
 
-    test('getBoxConstraints returns BoxConstraints with correct main extent', () {
-      final constraints = _verticalConstraints(crossAxisExtent: 400);
-      final boxConstraints = geo.getBoxConstraints(constraints);
-      expect(boxConstraints.minHeight, geo.mainAxisExtent);
-      expect(boxConstraints.maxHeight, geo.mainAxisExtent);
-    });
+    test(
+      'getBoxConstraints returns BoxConstraints with correct main extent',
+      () {
+        final constraints = _verticalConstraints(crossAxisExtent: 400);
+        final boxConstraints = geo.getBoxConstraints(constraints);
+        expect(boxConstraints.minHeight, geo.mainAxisExtent);
+        expect(boxConstraints.maxHeight, geo.mainAxisExtent);
+      },
+    );
   });
 
   // ── BoxItemGeometry ────────────────────────────────────────────────────────
