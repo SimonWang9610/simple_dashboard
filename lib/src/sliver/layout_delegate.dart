@@ -121,11 +121,12 @@ class SliverDashboardLayout {
   int getMinChildIndexForScrollOffset(double scrollOffset) {
     if (crossDashboardAxisStride <= 0 || items.isEmpty) return 0;
 
-    final minCrossAxisSlots = (scrollOffset / crossDashboardAxisStride).ceil();
+    final minCrossAxisSlots = (scrollOffset / crossDashboardAxisStride).floor();
 
-    int index = 0;
+    int index = -1;
 
     while (index < items.length) {
+      index++;
       final item = items[index];
 
       final itemCrossAxisEnd = dashboardAxis == DashboardAxis.horizontal
@@ -135,11 +136,9 @@ class SliverDashboardLayout {
       if (itemCrossAxisEnd > minCrossAxisSlots) {
         return index;
       }
-
-      index++;
     }
 
-    return index < items.length ? index : items.length - 1;
+    return items.length;
   }
 
   /// Returns the index of the last item that should be visible at the given scroll offset.
