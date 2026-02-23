@@ -158,7 +158,7 @@ class _DashboardControllerImpl extends DashboardController {
 
     if (shouldReAdopt) {
       final adoptedItems = DashboardHelper.adoptMetrics(
-        items,
+        sortedItems,
         axis,
         mainAxisSlots,
       );
