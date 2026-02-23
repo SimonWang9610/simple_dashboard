@@ -76,7 +76,7 @@ class _DashboardState extends State<Dashboard> {
           builder: (_, _) {
             return DashboardView.builder(
               /// DashboardView parameters
-              items: widget.controller.items,
+              items: widget.controller.sortedItems,
               axis: widget.controller.axis,
               mainAxisSlots: widget.controller.mainAxisSlots,
               itemBuilder: widget.itemBuilder,

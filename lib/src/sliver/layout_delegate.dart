@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
-import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
-import 'package:simple_dashboard/src/models/enums.dart';
+import 'package:simple_dashboard/simple_dashboard.dart';
 import 'package:simple_dashboard/src/utils/checker.dart';
 
 abstract class SliverDashboardLayoutDelegate {
@@ -16,6 +15,11 @@ abstract class SliverDashboardLayoutDelegate {
   }) : assert(
          LayoutChecker.debugAssertValidLayout(items, axis, mainAxisSlots),
          "Invalid layout: ${items.toString()}, axis: $axis, mainAxisSlots: $mainAxisSlots",
+       ),
+       assert(
+         DashboardHelper.assertSorted(items, axis),
+         "Items must be sorted by their position along the main axis; "
+         "otherwise, the layout delegate may produce incorrect layouts and cause rendering issues.",
        );
 
   SliverDashboardLayout getLayout(SliverConstraints constraints);
