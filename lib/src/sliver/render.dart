@@ -5,7 +5,6 @@ import 'layout_delegate.dart';
 
 class SliverDashboardParentData extends SliverMultiBoxAdaptorParentData {
   double? crossAxisOffset;
-  Object? id;
 }
 
 class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
@@ -69,6 +68,18 @@ class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
       collectGarbage(leadingGarbage, trailingGarbage);
     } else {
       collectGarbage(0, 0);
+    }
+
+    /// If the dashboard is empty, or the dashboard is scrolled beyond the end of all children,
+    /// we should still provide a scroll extent so that the user can scroll back,
+    /// while not providing any children to layout.
+    if (firstIndex >= dashboardLayout.items.length) {
+      // There are either no children, or we are past the end of all our children.
+      final double max = dashboardLayout.computeMaxScrollOffset();
+
+      geometry = SliverGeometry(scrollExtent: max, maxPaintExtent: max);
+      childManager.didFinishLayout();
+      return;
     }
 
     final firstChildGeometry = dashboardLayout.computeGeometry(firstIndex);

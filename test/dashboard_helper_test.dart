@@ -583,13 +583,11 @@ void main() {
         items,
         DashboardAxis.horizontal,
         4,
-        oldMainAxisSlots: 6,
       );
       final resultWithSmaller = DashboardHelper.adoptMetrics(
         items,
         DashboardAxis.horizontal,
         4,
-        oldMainAxisSlots: 2,
       );
 
       // All three calls must produce identical output because oldMainAxisSlots

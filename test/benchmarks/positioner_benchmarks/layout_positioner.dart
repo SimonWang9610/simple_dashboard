@@ -33,7 +33,7 @@ void main() async {
       expect(duration, lessThan(5000)); // Should complete in < 5 seconds
 
       expect(
-        () => LayoutChecker.assertNoOverflow(
+        () => LayoutChecker.debugAssertNoOverflow(
           items,
           DashboardAxis.horizontal,
           12,
@@ -42,7 +42,7 @@ void main() async {
       );
 
       expect(
-        () => LayoutChecker.assertNoConflicts(items),
+        () => LayoutChecker.debugAssertNoConflicts(items),
         returnsNormally,
       );
     });
@@ -69,7 +69,7 @@ void main() async {
       expect(duration, lessThan(5000));
 
       expect(
-        () => LayoutChecker.assertNoOverflow(
+        () => LayoutChecker.debugAssertNoOverflow(
           items,
           DashboardAxis.horizontal,
           12,
@@ -78,7 +78,7 @@ void main() async {
       );
 
       expect(
-        () => LayoutChecker.assertNoConflicts(items),
+        () => LayoutChecker.debugAssertNoConflicts(items),
         returnsNormally,
       );
     });
@@ -120,7 +120,7 @@ void main() async {
       expect(duration, lessThan(10000)); // More complex, allow 10 seconds
 
       expect(
-        () => LayoutChecker.assertNoOverflow(
+        () => LayoutChecker.debugAssertNoOverflow(
           items,
           DashboardAxis.horizontal,
           12,
@@ -129,7 +129,7 @@ void main() async {
       );
 
       expect(
-        () => LayoutChecker.assertNoConflicts(items),
+        () => LayoutChecker.debugAssertNoConflicts(items),
         returnsNormally,
       );
     });
@@ -166,7 +166,7 @@ void main() async {
       expect(duration, lessThan(15000)); // Allow 15 seconds for 100 items
 
       expect(
-        () => LayoutChecker.assertNoOverflow(
+        () => LayoutChecker.debugAssertNoOverflow(
           items,
           DashboardAxis.horizontal,
           20,
@@ -175,7 +175,7 @@ void main() async {
       );
 
       expect(
-        () => LayoutChecker.assertNoConflicts(items),
+        () => LayoutChecker.debugAssertNoConflicts(items),
         returnsNormally,
       );
     });
@@ -244,7 +244,7 @@ void main() async {
       expect(duration, lessThan(12000));
 
       expect(
-        () => LayoutChecker.assertNoOverflow(
+        () => LayoutChecker.debugAssertNoOverflow(
           items,
           DashboardAxis.horizontal,
           12,
@@ -253,7 +253,7 @@ void main() async {
       );
 
       expect(
-        () => LayoutChecker.assertNoConflicts(items),
+        () => LayoutChecker.debugAssertNoConflicts(items),
         returnsNormally,
       );
     });
@@ -302,7 +302,7 @@ void main() async {
       ); // More complex, but should still be reasonable
 
       expect(
-        () => LayoutChecker.assertNoOverflow(
+        () => LayoutChecker.debugAssertNoOverflow(
           items,
           DashboardAxis.horizontal,
           10,
@@ -311,7 +311,7 @@ void main() async {
       );
 
       expect(
-        () => LayoutChecker.assertNoConflicts(items),
+        () => LayoutChecker.debugAssertNoConflicts(items),
         returnsNormally,
       );
     });
@@ -344,7 +344,7 @@ void main() async {
       expect(duration, lessThan(5000));
 
       expect(
-        () => LayoutChecker.assertNoOverflow(
+        () => LayoutChecker.debugAssertNoOverflow(
           items,
           DashboardAxis.vertical,
           12,
@@ -353,7 +353,7 @@ void main() async {
       );
 
       expect(
-        () => LayoutChecker.assertNoConflicts(items),
+        () => LayoutChecker.debugAssertNoConflicts(items),
         returnsNormally,
       );
     });
@@ -385,7 +385,7 @@ void main() async {
       expect(ids.length, 200); // All unique IDs
 
       expect(
-        () => LayoutChecker.assertNoOverflow(
+        () => LayoutChecker.debugAssertNoOverflow(
           items,
           DashboardAxis.horizontal,
           20,
@@ -394,7 +394,7 @@ void main() async {
       );
 
       expect(
-        () => LayoutChecker.assertNoConflicts(items),
+        () => LayoutChecker.debugAssertNoConflicts(items),
         returnsNormally,
       );
     });
@@ -424,7 +424,7 @@ void main() async {
       expect(items.length, 50);
 
       expect(
-        () => LayoutChecker.assertNoOverflow(
+        () => LayoutChecker.debugAssertNoOverflow(
           items,
           DashboardAxis.horizontal,
           12,
@@ -433,7 +433,7 @@ void main() async {
       );
 
       expect(
-        () => LayoutChecker.assertNoConflicts(items),
+        () => LayoutChecker.debugAssertNoConflicts(items),
         returnsNormally,
       );
     });
@@ -458,7 +458,7 @@ void main() async {
       expect(stopwatch.elapsedMilliseconds, lessThan(3000));
 
       expect(
-        () => LayoutChecker.assertNoOverflow(
+        () => LayoutChecker.debugAssertNoOverflow(
           items,
           DashboardAxis.horizontal,
           50,
@@ -467,7 +467,7 @@ void main() async {
       );
 
       expect(
-        () => LayoutChecker.assertNoConflicts(items),
+        () => LayoutChecker.debugAssertNoConflicts(items),
         returnsNormally,
       );
     });
@@ -494,7 +494,7 @@ void main() async {
       expect(stopwatch.elapsedMilliseconds, lessThan(3000));
 
       expect(
-        () => LayoutChecker.assertNoOverflow(
+        () => LayoutChecker.debugAssertNoOverflow(
           items,
           DashboardAxis.horizontal,
           10,
@@ -503,7 +503,7 @@ void main() async {
       );
 
       expect(
-        () => LayoutChecker.assertNoConflicts(items),
+        () => LayoutChecker.debugAssertNoConflicts(items),
         returnsNormally,
       );
     });

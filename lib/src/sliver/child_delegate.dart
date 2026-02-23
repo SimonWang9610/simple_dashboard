@@ -29,6 +29,15 @@ int _kDefaultSemanticIndexCallback(Widget _, int localIndex) => localIndex;
 class _ItemKey extends ValueKey<Object> {
   final Object itemId;
   const _ItemKey(this.itemId) : super(itemId);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is _ItemKey && other.itemId == itemId;
+  }
+
+  @override
+  int get hashCode => itemId.hashCode & super.hashCode;
 }
 
 /// Base class for delegates that supply children to a [SliverDashboard].
@@ -286,17 +295,6 @@ class SliverDashboardBuilderDelegate extends SliverDashboardChildDelegate {
   @override
   int? get estimatedChildCount => childCount;
 
-  // NOTE: This override is identical to the base-class implementation in
-  // SliverDashboardChildDelegate.findIndexByKey and can be removed.
-  @override
-  int? findIndexByKey(Key key) {
-    if (key is! _ItemKey) {
-      return null;
-    }
-
-    return findItemIndexById?.call(key.itemId);
-  }
-
   @override
   Key? itemKeyForIndex(int index, Key? subKey) {
     final item = findItemByIndex(index);
@@ -344,25 +342,23 @@ class SliverDashboardBuilderDelegate extends SliverDashboardChildDelegate {
 /// ```
 class SliverDashboardListDelegate extends SliverDashboardChildDelegate {
   /// The pre-built child widgets in list order.
-  final List<Widget> children;
+  final List<LayoutItemWidget> children;
 
-  /// Returns the [LayoutItem] for the given list index.
-  ///
-  /// Optional, but should be provided alongside [findItemIndexById] to enable
-  /// stable [_ItemKey]-based keying for correct element reconciliation during
-  /// reorders.
-  final LayoutItemFinder? findItemByIndex;
-
-  const SliverDashboardListDelegate({
+  SliverDashboardListDelegate({
     super.addRepaintBoundaries,
     super.addAutomaticKeepAlives,
     super.addSemanticIndexes,
     super.semanticIndexCallback,
     super.semanticIndexOffset,
     required this.children,
-    this.findItemByIndex,
-    super.findItemIndexById,
-  });
+  }) : super(
+         findItemIndexById: (itemId) {
+           final index = children.indexWhere(
+             (child) => child.item.id == itemId,
+           );
+           return index >= 0 ? index : null;
+         },
+       );
 
   @override
   int? get estimatedChildCount => children.length;
@@ -378,11 +374,7 @@ class SliverDashboardListDelegate extends SliverDashboardChildDelegate {
 
   @override
   Key? itemKeyForIndex(int index, Key? subKey) {
-    final item = findItemByIndex?.call(index);
-
-    if (item == null) {
-      return subKey;
-    }
+    final item = children[index].item;
 
     return _ItemKey(item.id);
   }

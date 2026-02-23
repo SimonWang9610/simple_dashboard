@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
-import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
-import 'package:simple_dashboard/src/models/enums.dart';
+import 'package:simple_dashboard/simple_dashboard.dart';
 import 'package:simple_dashboard/src/utils/checker.dart';
 
 abstract class SliverDashboardLayoutDelegate {
@@ -14,8 +13,13 @@ abstract class SliverDashboardLayoutDelegate {
     required this.mainAxisSlots,
     required this.items,
   }) : assert(
-         LayoutChecker.assertValidLayout(items, axis, mainAxisSlots),
+         LayoutChecker.debugAssertValidLayout(items, axis, mainAxisSlots),
          "Invalid layout: ${items.toString()}, axis: $axis, mainAxisSlots: $mainAxisSlots",
+       ),
+       assert(
+         DashboardHelper.assertSorted(items, axis),
+         "Items must be sorted by their position along the main axis; "
+         "otherwise, the layout delegate may produce incorrect layouts and cause rendering issues.",
        );
 
   SliverDashboardLayout getLayout(SliverConstraints constraints);
@@ -62,22 +66,8 @@ final class SliverDashboardDelegateWithFixedSlotCount
     final mainDashboardAxisSlotExtent =
         usableMainAxisSlotExtent / mainAxisSlots;
 
-    int maxCrossAxisSlots = 0;
-
-    for (final item in items) {
-      final itemCrossAxisSlots = switch (axis) {
-        DashboardAxis.horizontal => item.rect.bottom,
-        DashboardAxis.vertical => item.rect.right,
-      };
-
-      if (itemCrossAxisSlots > maxCrossAxisSlots) {
-        maxCrossAxisSlots = itemCrossAxisSlots;
-      }
-    }
-
     return SliverDashboardLayout(
       dashboardAxis: axis,
-      maxCrossDashboardAxisSlots: maxCrossAxisSlots,
       mainDashboardAxisSlotExtent: mainDashboardAxisSlotExtent,
       crossDashboardAxisSlotExtent: mainDashboardAxisSlotExtent / aspectRatio,
       mainDashboardAxisSpacing: mainAxisSpacing,
@@ -101,7 +91,6 @@ final class SliverDashboardDelegateWithFixedSlotCount
 
 class SliverDashboardLayout {
   final DashboardAxis dashboardAxis;
-  final int maxCrossDashboardAxisSlots;
   final double mainDashboardAxisSlotExtent;
   final double crossDashboardAxisSlotExtent;
 
@@ -114,7 +103,6 @@ class SliverDashboardLayout {
     required this.crossDashboardAxisSlotExtent,
     required this.items,
     required this.dashboardAxis,
-    required this.maxCrossDashboardAxisSlots,
     this.mainDashboardAxisSpacing = 0,
     this.crossDashboardAxisSpacing = 0,
   });
@@ -133,7 +121,11 @@ class SliverDashboardLayout {
   int getMinChildIndexForScrollOffset(double scrollOffset) {
     if (crossDashboardAxisStride <= 0 || items.isEmpty) return 0;
 
-    final minCrossAxisSlots = (scrollOffset / crossDashboardAxisStride).ceil();
+    final minCrossAxisSlots = (scrollOffset / crossDashboardAxisStride).floor();
+
+    if (items.isEmpty) {
+      return 0;
+    }
 
     int index = 0;
 
@@ -151,7 +143,7 @@ class SliverDashboardLayout {
       index++;
     }
 
-    return index < items.length ? index : items.length - 1;
+    return items.length;
   }
 
   /// Returns the index of the last item that should be visible at the given scroll offset.
@@ -179,6 +171,23 @@ class SliverDashboardLayout {
     }
 
     return 0;
+  }
+
+  int get maxCrossDashboardAxisSlots {
+    int maxCrossAxisSlots = 0;
+
+    for (final item in items) {
+      final itemCrossAxisSlots = switch (dashboardAxis) {
+        DashboardAxis.horizontal => item.rect.bottom,
+        DashboardAxis.vertical => item.rect.right,
+      };
+
+      if (itemCrossAxisSlots > maxCrossAxisSlots) {
+        maxCrossAxisSlots = itemCrossAxisSlots;
+      }
+    }
+
+    return maxCrossAxisSlots;
   }
 
   double computeMaxScrollOffset() {

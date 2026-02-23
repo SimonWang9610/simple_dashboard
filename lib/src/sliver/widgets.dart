@@ -87,18 +87,6 @@ class SliverDashboard extends SliverMultiBoxAdaptorWidget {
            addAutomaticKeepAlives: addAutomaticKeepAlives,
            addRepaintBoundaries: addRepaintBoundaries,
            addSemanticIndexes: addSemanticIndexes,
-           findItemByIndex: (index) {
-             if (index >= 0 && index < children.length) {
-               return children[index].item;
-             }
-             return null;
-           },
-           findItemIndexById: (itemId) {
-             final index = children.indexWhere(
-               (child) => child.item.id == itemId,
-             );
-             return index >= 0 ? index : null;
-           },
          ),
        );
 
@@ -253,18 +241,6 @@ class DashboardView extends BoxScrollView {
          addAutomaticKeepAlives: addAutomaticKeepAlives,
          addRepaintBoundaries: addRepaintBoundaries,
          addSemanticIndexes: addSemanticIndexes,
-         findItemByIndex: (index) {
-           if (index >= 0 && index < children.length) {
-             return children[index].item;
-           }
-           return null;
-         },
-         findItemIndexById: (itemId) {
-           final index = children.indexWhere(
-             (child) => child.item.id == itemId,
-           );
-           return index >= 0 ? index : null;
-         },
        ),
        super(
          scrollDirection: axis == DashboardAxis.horizontal

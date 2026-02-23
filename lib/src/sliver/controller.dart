@@ -68,11 +68,6 @@ abstract class DashboardController extends ChangeNotifier {
 
     final newItems = items.where((item) => item.id != id).toList();
 
-    assert(
-      newItems.length == items.length - 1,
-      "Exactly one item should be removed.",
-    );
-
     items = newItems;
   }
 
@@ -156,10 +151,7 @@ class _DashboardControllerImpl extends DashboardController {
       shouldReAdopt = true;
     }
 
-    int? oldMainAxisSlots;
-
     if (newMainAxisSlots != null && newMainAxisSlots != mainAxisSlots) {
-      oldMainAxisSlots = _mainAxisSlots;
       _mainAxisSlots = newMainAxisSlots;
       shouldReAdopt = true;
     }
@@ -169,7 +161,6 @@ class _DashboardControllerImpl extends DashboardController {
         items,
         axis,
         mainAxisSlots,
-        oldMainAxisSlots: oldMainAxisSlots,
       );
       _refillItems(adoptedItems);
       notifyListeners();
