@@ -33,12 +33,11 @@ class _ItemKey extends ValueKey<Object> {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other.runtimeType != runtimeType) return false;
     return other is _ItemKey && other.itemId == itemId;
   }
 
   @override
-  int get hashCode => itemId.hashCode;
+  int get hashCode => itemId.hashCode & super.hashCode;
 }
 
 /// Base class for delegates that supply children to a [SliverDashboard].

@@ -123,10 +123,13 @@ class SliverDashboardLayout {
 
     final minCrossAxisSlots = (scrollOffset / crossDashboardAxisStride).floor();
 
-    int index = -1;
+    if (items.isEmpty) {
+      return 0;
+    }
+
+    int index = 0;
 
     while (index < items.length) {
-      index++;
       final item = items[index];
 
       final itemCrossAxisEnd = dashboardAxis == DashboardAxis.horizontal
@@ -136,6 +139,8 @@ class SliverDashboardLayout {
       if (itemCrossAxisEnd > minCrossAxisSlots) {
         return index;
       }
+
+      index++;
     }
 
     return items.length;
