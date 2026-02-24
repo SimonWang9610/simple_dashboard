@@ -2,7 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
 import 'package:simple_dashboard/src/utils/checker.dart';
 
-abstract class DashboardController extends ChangeNotifier {
+abstract class DashboardController extends ChangeNotifier
+    implements DashboardResizer {
   DashboardController._();
 
   DashboardAxis get axis;
@@ -78,7 +79,8 @@ abstract class DashboardController extends ChangeNotifier {
   }) = _DashboardControllerImpl;
 }
 
-class _DashboardControllerImpl extends DashboardController {
+class _DashboardControllerImpl extends DashboardController
+    with _DashboardControllerResizerImpl {
   _DashboardControllerImpl({
     DashboardAxis axis = DashboardAxis.horizontal,
     required int mainAxisSlots,
@@ -186,5 +188,22 @@ class _DashboardControllerImpl extends DashboardController {
 
     _items = List.unmodifiable(items);
     _sortedItems = null;
+  }
+}
+
+mixin _DashboardControllerResizerImpl on DashboardController, DashboardResizer {
+  @override
+  void startResize(ResizeDirection direction, LayoutItem item) {
+    print("Start resizing item ${item.id} in direction $direction");
+  }
+
+  @override
+  void updateResize(Offset localPosition) {
+    print("Update resizing at position $localPosition");
+  }
+
+  @override
+  void endResize(bool confirmed) {
+    print("End resizing, confirmed: $confirmed");
   }
 }

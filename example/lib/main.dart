@@ -136,12 +136,18 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   );
                 },
-                itemBuilder: (_, item) => ItemWidget(
-                  // key: itemKeys.putIfAbsent(item.id, () => GlobalKey()),
+                itemBuilder: (_, item) => ResizableItemWidget(
                   item: item,
-                  onRemove: () {
-                    controller.remove(item.id);
-                  },
+                  resizer: controller,
+                  edgeThreshold: 20,
+                  child: ItemWidget(
+                    // key: itemKeys.putIfAbsent(item.id, () => GlobalKey()),
+                    item: item,
+                    padding: const EdgeInsets.all(8.0),
+                    onRemove: () {
+                      controller.remove(item.id);
+                    },
+                  ),
                 ),
               ),
             ),

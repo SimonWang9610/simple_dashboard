@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
-import 'package:simple_dashboard/src/sliver/child_delegate.dart';
 
 /// A mixin for widgets that represent a [LayoutItem] in the dashboard.
 /// It enforces the widget to have an [item] property
