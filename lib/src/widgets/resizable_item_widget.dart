@@ -46,19 +46,13 @@ class _ResizableItemWidgetState extends State<ResizableItemWidget> {
           }
         },
         onPanUpdate: (details) {
-          if (_resizeDirection != null) {
-            widget.resizer.updateResize(details.localPosition);
-          }
+          widget.resizer.updateResize(details.localPosition, details.delta);
         },
         onPanEnd: (details) {
-          if (_resizeDirection != null) {
-            widget.resizer.endResize(true);
-          }
+          widget.resizer.endResize(true);
         },
         onPanCancel: () {
-          if (_resizeDirection != null) {
-            widget.resizer.endResize(false);
-          }
+          widget.resizer.endResize(false);
         },
         child: widget.child,
       ),

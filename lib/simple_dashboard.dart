@@ -14,6 +14,7 @@ export 'src/sliver/render.dart';
 export 'src/sliver/widgets.dart';
 export 'src/sliver/controller.dart';
 export 'src/sliver/dashboard.dart';
+export 'src/sliver/placeholder_painter.dart';
 
 export 'src/widgets/resizable_item_widget.dart';
 

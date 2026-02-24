@@ -86,6 +86,7 @@ class _DashboardState extends State<Dashboard> {
               addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
               addRepaintBoundaries: widget.addRepaintBoundaries,
               addSemanticIndexes: widget.addSemanticIndexes,
+              placeholderPainter: widget.controller.placeholderPainter,
 
               /// scroll parameters
               controller: widget.scrollController,

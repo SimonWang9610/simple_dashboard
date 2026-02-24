@@ -14,6 +14,8 @@ enum ResizeDirection {
 
 abstract interface class DashboardResizer {
   void startResize(ResizeDirection direction, LayoutItem item);
-  void updateResize(Offset localPosition);
+  void updateResize(Offset localPosition, Offset delta);
   void endResize(bool confirmed);
+
+  DashboardPlaceholderPainter? get placeholderPainter;
 }

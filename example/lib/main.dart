@@ -143,7 +143,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: ItemWidget(
                     // key: itemKeys.putIfAbsent(item.id, () => GlobalKey()),
                     item: item,
-                    padding: const EdgeInsets.all(8.0),
+                    // padding: const EdgeInsets.all(8.0),
                     onRemove: () {
                       controller.remove(item.id);
                     },

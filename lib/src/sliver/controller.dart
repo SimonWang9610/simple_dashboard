@@ -193,17 +193,38 @@ class _DashboardControllerImpl extends DashboardController
 
 mixin _DashboardControllerResizerImpl on DashboardController, DashboardResizer {
   @override
+  DashboardPlaceholderPainter? get placeholderPainter => _painter;
+
+  final _placeholderNotifier = ValueNotifier<LayoutPlaceholder?>(null);
+
+  DashboardPlaceholderPainter? _painter;
+  Offset? _accumulatedDelta;
+
+  @override
   void startResize(ResizeDirection direction, LayoutItem item) {
-    print("Start resizing item ${item.id} in direction $direction");
+    _placeholderNotifier.value = item.placeholder;
+    _painter ??= DashboardPlaceholderPainter(_placeholderNotifier);
+    notifyListeners();
   }
 
   @override
-  void updateResize(Offset localPosition) {
-    print("Update resizing at position $localPosition");
+  void updateResize(Offset localPosition, Offset delta) {
+    _accumulatedDelta = (_accumulatedDelta ?? Offset.zero) + delta;
   }
 
   @override
   void endResize(bool confirmed) {
-    print("End resizing, confirmed: $confirmed");
+    if (_painter != null) {
+      _placeholderNotifier.value = null;
+      _painter = null;
+      notifyListeners();
+    }
+  }
+
+  @override
+  void dispose() {
+    _painter = null;
+    _placeholderNotifier.dispose();
+    super.dispose();
   }
 }
