@@ -13,7 +13,12 @@ enum ResizeDirection {
 }
 
 abstract interface class DashboardResizer {
-  void startResize(ResizeDirection direction, LayoutItem item);
+  /// Begin a resize gesture.
+  ///
+  /// [widgetSize] is the current pixel size of the widget being resized and is
+  /// used to derive the slot-to-pixel ratio needed for converting drag deltas
+  /// into grid-slot deltas.
+  void startResize(ResizeDirection direction, LayoutItem item, Size widgetSize);
   void updateResize(Offset localPosition, Offset delta);
   void endResize(bool confirmed);
 

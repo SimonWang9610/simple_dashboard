@@ -136,10 +136,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   );
                 },
-                itemBuilder: (_, item) => ResizableItemWidget(
+                itemBuilder: (_, item) => DraggableItemWidget(
                   item: item,
-                  resizer: controller,
-                  edgeThreshold: 20,
+                  dragger: controller,
                   child: ItemWidget(
                     // key: itemKeys.putIfAbsent(item.id, () => GlobalKey()),
                     item: item,

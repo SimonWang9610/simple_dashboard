@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/src/classes/resizer.dart';
 import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
@@ -10,11 +12,19 @@ class ResizableItemWidget extends StatefulWidget with LayoutItemWidget {
   final DashboardResizer resizer;
   final Widget child;
 
+  /// Pixels from the viewport edge at which auto-scrolling kicks in.
+  final double autoScrollEdgeThreshold;
+
+  /// Pixels per frame scrolled during auto-scroll (at 60 fps ≈ 10 px/frame).
+  final double autoScrollSpeed;
+
   const ResizableItemWidget({
     super.key,
     required this.item,
     required this.resizer,
     this.edgeThreshold = 10.0,
+    this.autoScrollEdgeThreshold = 50.0,
+    this.autoScrollSpeed = 10.0,
     required this.child,
   });
 
@@ -25,11 +35,21 @@ class ResizableItemWidget extends StatefulWidget with LayoutItemWidget {
 class _ResizableItemWidgetState extends State<ResizableItemWidget> {
   MouseCursor _cursor = MouseCursor.defer;
   ResizeDirection? _resizeDirection;
+  bool _isResizing = false;
+
+  // Auto-scroll
+  Timer? _autoScrollTimer;
 
   @override
   void didUpdateWidget(covariant ResizableItemWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _reset();
+    if (!_isResizing) _reset();
+  }
+
+  @override
+  void dispose() {
+    _stopAutoScroll();
+    super.dispose();
   }
 
   @override
@@ -37,22 +57,38 @@ class _ResizableItemWidgetState extends State<ResizableItemWidget> {
     return MouseRegion(
       cursor: _cursor,
       onEnter: (_) => _computeEdgeRects(),
-      onExit: (_) => _reset(),
+      onExit: (_) {
+        if (!_isResizing) _reset();
+      },
       onHover: (event) => _update(event.localPosition),
       child: GestureDetector(
         onPanStart: (details) {
           if (_resizeDirection != null) {
-            widget.resizer.startResize(_resizeDirection!, widget.item);
+            final size = context.size ?? Size.zero;
+            widget.resizer.startResize(_resizeDirection!, widget.item, size);
+            _isResizing = true;
           }
         },
         onPanUpdate: (details) {
-          widget.resizer.updateResize(details.localPosition, details.delta);
+          if (_isResizing) {
+            widget.resizer.updateResize(
+              details.localPosition,
+              details.delta,
+            );
+            _maybeAutoScroll(details.localPosition);
+          }
         },
         onPanEnd: (details) {
+          _stopAutoScroll();
           widget.resizer.endResize(true);
+          _isResizing = false;
+          _reset();
         },
         onPanCancel: () {
+          _stopAutoScroll();
           widget.resizer.endResize(false);
+          _isResizing = false;
+          _reset();
         },
         child: widget.child,
       ),
@@ -69,6 +105,7 @@ class _ResizableItemWidgetState extends State<ResizableItemWidget> {
 
   void _reset() {
     _resizeDirection = null;
+    _edgeRects = {};
 
     if (_cursor != MouseCursor.defer) {
       setState(() {
@@ -78,6 +115,7 @@ class _ResizableItemWidgetState extends State<ResizableItemWidget> {
   }
 
   void _update(Offset localPosition) {
+    if (_edgeRects.isEmpty) _computeEdgeRects();
     if (_edgeRects.isEmpty) return;
 
     ResizeDirection? newDirection;
@@ -105,6 +143,72 @@ class _ResizableItemWidgetState extends State<ResizableItemWidget> {
         _cursor = newCursor;
       });
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Auto-scroll
+  // ---------------------------------------------------------------------------
+
+  void _maybeAutoScroll(Offset localPosition) {
+    final scrollable = Scrollable.maybeOf(context);
+    if (scrollable == null) {
+      _stopAutoScroll();
+      return;
+    }
+
+    final renderObject = context.findRenderObject();
+    final viewportRenderObject = scrollable.context.findRenderObject();
+    if (renderObject == null || viewportRenderObject == null) {
+      _stopAutoScroll();
+      return;
+    }
+
+    // Convert local position to viewport coordinates.
+    final transform = renderObject.getTransformTo(viewportRenderObject);
+    final globalInViewport = MatrixUtils.transformPoint(transform, localPosition);
+
+    final viewportSize = viewportRenderObject.paintBounds;
+    final scrollAxis = scrollable.widget.axis;
+    double? scrollDir;
+
+    if (scrollAxis == Axis.vertical) {
+      if (globalInViewport.dy < widget.autoScrollEdgeThreshold) {
+        scrollDir = -1.0;
+      } else if (globalInViewport.dy >
+          viewportSize.height - widget.autoScrollEdgeThreshold) {
+        scrollDir = 1.0;
+      }
+    } else {
+      if (globalInViewport.dx < widget.autoScrollEdgeThreshold) {
+        scrollDir = -1.0;
+      } else if (globalInViewport.dx >
+          viewportSize.width - widget.autoScrollEdgeThreshold) {
+        scrollDir = 1.0;
+      }
+    }
+
+    if (scrollDir == null) {
+      _stopAutoScroll();
+    } else {
+      _startAutoScroll(scrollDir, scrollable.position);
+    }
+  }
+
+  void _startAutoScroll(double direction, ScrollPosition position) {
+    if (_autoScrollTimer != null) return; // already running
+    _autoScrollTimer = Timer.periodic(
+      const Duration(milliseconds: 16),
+      (_) {
+        final newPixels = (position.pixels + direction * widget.autoScrollSpeed)
+            .clamp(position.minScrollExtent, position.maxScrollExtent);
+        position.jumpTo(newPixels);
+      },
+    );
+  }
+
+  void _stopAutoScroll() {
+    _autoScrollTimer?.cancel();
+    _autoScrollTimer = null;
   }
 }
 
