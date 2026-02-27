@@ -48,7 +48,6 @@ class _ItemWidgetState extends State<ItemWidget>
   @override
   void didUpdateWidget(covariant ItemWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    print('Updating item ${widget.item.id}, old id: ${oldWidget.item.id}');
     if (oldWidget.item.id != widget.item.id) {
       count = 0;
     }

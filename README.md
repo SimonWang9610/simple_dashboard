@@ -2,6 +2,5 @@
 
 ## TODOs
 
-- h/v spacing between items
-- ~~out-of-order after a certain times of insertions~~
-- implement reorder logic of the list of item rects
+- keep dragging item alive when dragging out of the dashboard, and move it back when dragging back in. ensure the item does not lose its state when dragging out and back in.
+- auto scroll when dragging near the edge of the dashboard.

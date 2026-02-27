@@ -3,7 +3,7 @@ import 'package:simple_dashboard/simple_dashboard.dart';
 import 'package:simple_dashboard/src/utils/checker.dart';
 
 abstract class DashboardController extends ChangeNotifier
-    implements DashboardResizer, DashboardDragger {
+    implements DashboardResizer {
   DashboardController._();
 
   DashboardAxis get axis;
@@ -195,8 +195,7 @@ class _DashboardControllerImpl extends DashboardController
 // Combined resize + drag gesture mixin
 // =============================================================================
 
-mixin _DashboardControllerGestureImpl
-    on DashboardController, DashboardResizer, DashboardDragger {
+mixin _DashboardControllerGestureImpl on DashboardController, DashboardResizer {
   // ---------------------------------------------------------------------------
   // Shared painter / notifier
   // ---------------------------------------------------------------------------
@@ -221,24 +220,24 @@ mixin _DashboardControllerGestureImpl
   // Drag state
   // ---------------------------------------------------------------------------
 
-  LayoutItem? _draggingItem;
-  Offset _dragAccumDelta = Offset.zero;
-  double _dragSlotExtentX = 1.0;
-  double _dragSlotExtentY = 1.0;
+  // LayoutItem? _draggingItem;
+  // Offset _dragAccumDelta = Offset.zero;
+  // double _dragSlotExtentX = 1.0;
+  // double _dragSlotExtentY = 1.0;
 
-  DragStrategy _dragStrategy = DragStrategy.swap;
+  // DragStrategy _dragStrategy = DragStrategy.swap;
 
-  DragResult? _lastDragResult;
+  // DragResult? _lastDragResult;
 
-  @override
-  DragStrategy get dragStrategy => _dragStrategy;
+  // @override
+  // DragStrategy get dragStrategy => _dragStrategy;
 
-  DashboardDragDelegate? _dragDelegate;
+  // DashboardDragDelegate? _dragDelegate;
 
-  @override
-  set dragStrategy(DragStrategy value) {
-    _dragStrategy = value;
-  }
+  // @override
+  // set dragStrategy(DragStrategy value) {
+  //   _dragStrategy = value;
+  // }
 
   // ---------------------------------------------------------------------------
   // DashboardResizer
@@ -305,89 +304,89 @@ mixin _DashboardControllerGestureImpl
   // DashboardDragger
   // ---------------------------------------------------------------------------
 
-  @override
-  void startDrag(LayoutItem item, Size widgetSize) {
-    _dragDelegate = switch (dragStrategy) {
-      DragStrategy.emptySpace => const EmptySpaceDragDelegate(),
-      DragStrategy.swap => const SwapDragDelegate(),
-    };
+  // @override
+  // void startDrag(LayoutItem item, Size widgetSize) {
+  //   _dragDelegate = switch (dragStrategy) {
+  //     DragStrategy.emptySpace => const EmptySpaceDragDelegate(),
+  //     DragStrategy.swap => const SwapDragDelegate(),
+  //   };
 
-    _draggingItem = item;
-    _dragAccumDelta = Offset.zero;
-    _lastDragResult = null;
+  //   _draggingItem = item;
+  //   _dragAccumDelta = Offset.zero;
+  //   _lastDragResult = null;
 
-    _dragSlotExtentX = widgetSize.width > 0
-        ? widgetSize.width / item.rect.size.width
-        : 1.0;
-    _dragSlotExtentY = widgetSize.height > 0
-        ? widgetSize.height / item.rect.size.height
-        : 1.0;
+  //   _dragSlotExtentX = widgetSize.width > 0
+  //       ? widgetSize.width / item.rect.size.width
+  //       : 1.0;
+  //   _dragSlotExtentY = widgetSize.height > 0
+  //       ? widgetSize.height / item.rect.size.height
+  //       : 1.0;
 
-    _setPlaceholder(item.placeholder);
-    notifyListeners();
-  }
+  //   _setPlaceholder(item.placeholder);
+  //   notifyListeners();
+  // }
 
-  @override
-  void updateDrag(Offset delta) {
-    if (_draggingItem == null) return;
+  // @override
+  // void updateDrag(Offset delta) {
+  //   if (_draggingItem == null) return;
 
-    _dragAccumDelta += delta;
+  //   _dragAccumDelta += delta;
 
-    final dx = (_dragAccumDelta.dx / _dragSlotExtentX).round();
-    final dy = (_dragAccumDelta.dy / _dragSlotExtentY).round();
+  //   final dx = (_dragAccumDelta.dx / _dragSlotExtentX).round();
+  //   final dy = (_dragAccumDelta.dy / _dragSlotExtentY).round();
 
-    final original = _draggingItem!.rect;
-    final targetRect = LayoutRect(
-      x: original.x + dx,
-      y: original.y + dy,
-      size: original.size,
-    );
+  //   final original = _draggingItem!.rect;
+  //   final targetRect = LayoutRect(
+  //     x: original.x + dx,
+  //     y: original.y + dy,
+  //     size: original.size,
+  //   );
 
-    final result = _dragDelegate!.findCandidatePosition(
-      draggingItem: _draggingItem!,
-      targetRect: targetRect,
-      currentItems: items,
-      axis: axis,
-      mainAxisSlots: mainAxisSlots,
-    );
+  //   final result = _dragDelegate!.findCandidatePosition(
+  //     draggingItem: _draggingItem!,
+  //     targetRect: targetRect,
+  //     currentItems: items,
+  //     axis: axis,
+  //     mainAxisSlots: mainAxisSlots,
+  //   );
 
-    _lastDragResult = result;
+  //   _lastDragResult = result;
 
-    final placeholder = result != null
-        ? LayoutItem(
-            id: _draggingItem!.id,
-            rect: result.candidateRect,
-          ).placeholder
-        : null;
+  //   final placeholder = result != null
+  //       ? LayoutItem(
+  //           id: _draggingItem!.id,
+  //           rect: result.candidateRect,
+  //         ).placeholder
+  //       : null;
 
-    if (_placeholderNotifier.value?.rect != placeholder?.rect) {
-      _setPlaceholder(placeholder);
-    }
-  }
+  //   if (_placeholderNotifier.value?.rect != placeholder?.rect) {
+  //     _setPlaceholder(placeholder);
+  //   }
+  // }
 
-  @override
-  void endDrag(bool confirmed) {
-    if (_draggingItem != null) {
-      if (confirmed && _lastDragResult != null) {
-        final updatedItems = _dragDelegate!.applyDrag(
-          draggingItem: _draggingItem!,
-          result: _lastDragResult!,
-          currentItems: items,
-          axis: axis,
-          mainAxisSlots: mainAxisSlots,
-        );
-        items = updatedItems; // calls notifyListeners via setter
-      }
-      _draggingItem = null;
-      _dragAccumDelta = Offset.zero;
-      _lastDragResult = null;
-    }
+  // @override
+  // void endDrag(bool confirmed) {
+  //   if (_draggingItem != null) {
+  //     if (confirmed && _lastDragResult != null) {
+  //       final updatedItems = _dragDelegate!.applyDrag(
+  //         draggingItem: _draggingItem!,
+  //         result: _lastDragResult!,
+  //         currentItems: items,
+  //         axis: axis,
+  //         mainAxisSlots: mainAxisSlots,
+  //       );
+  //       items = updatedItems; // calls notifyListeners via setter
+  //     }
+  //     _draggingItem = null;
+  //     _dragAccumDelta = Offset.zero;
+  //     _lastDragResult = null;
+  //   }
 
-    _dragDelegate = null;
+  //   _dragDelegate = null;
 
-    _clearPainter();
-    notifyListeners();
-  }
+  //   _clearPainter();
+  //   notifyListeners();
+  // }
 
   // ---------------------------------------------------------------------------
   // Dispose

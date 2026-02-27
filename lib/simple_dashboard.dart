@@ -23,3 +23,4 @@ export 'src/classes/layout_positioner.dart';
 export 'src/classes/resizer.dart';
 export 'src/classes/dragger.dart';
 export 'src/classes/drag_delegate.dart';
+export 'src/classes/auto_scroll_controller.dart';

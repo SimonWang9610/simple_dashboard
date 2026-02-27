@@ -28,7 +28,7 @@ abstract interface class DashboardDragger {
   /// exists (placeholder is visible), the item is moved there.
   void endDrag(bool confirmed);
 
-  /// The active drag strategy; defaults to [DragStrategy.emptySpace].
-  DragStrategy get dragStrategy;
-  set dragStrategy(DragStrategy value);
+  // /// The active drag strategy; defaults to [DragStrategy.emptySpace].
+  // DragStrategy get dragStrategy;
+  // set dragStrategy(DragStrategy value);
 }

@@ -52,7 +52,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final placeholder = ValueNotifier<LayoutPlaceholder?>(null);
 
-  final Map<Object, GlobalKey> itemKeys = {};
+  final autoScroll = AutoScrollController(
+    edgeThreshold: 50,
+    speed: 10,
+  );
 
   @override
   void didChangeDependencies() {
@@ -74,6 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void dispose() {
     placeholder.dispose();
     controller.dispose();
+    autoScroll.stop();
     super.dispose();
   }
 
@@ -138,7 +142,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 itemBuilder: (_, item) => DraggableItemWidget(
                   item: item,
-                  dragger: controller,
                   child: ItemWidget(
                     // key: itemKeys.putIfAbsent(item.id, () => GlobalKey()),
                     item: item,

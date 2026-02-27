@@ -3,6 +3,18 @@ import 'package:simple_dashboard/simple_dashboard.dart';
 import 'package:simple_dashboard/src/models/layout_collision.dart';
 
 abstract class LayoutChecker {
+  static bool isValidRect(
+    LayoutRect rect,
+    DashboardAxis axis,
+    int mainAxisSlots,
+  ) {
+    return rect.x >= 0 &&
+        rect.y >= 0 &&
+        rect.size.width > 0 &&
+        rect.size.height > 0 &&
+        !rect.isOverflow(axis, mainAxisSlots);
+  }
+
   static List<LayoutItem> findOverflowItems(
     Iterable<LayoutItem> items,
     DashboardAxis axis,
