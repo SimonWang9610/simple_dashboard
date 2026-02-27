@@ -50,7 +50,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final _loading = ValueNotifier<bool>(false);
 
-  final placeholder = ValueNotifier<LayoutPlaceholder?>(null);
+  final placeholder = ValueNotifier<ItemPlaceholder?>(null);
 
   final autoScroll = AutoScrollController(
     edgeThreshold: 50,

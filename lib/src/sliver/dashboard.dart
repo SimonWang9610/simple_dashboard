@@ -163,7 +163,7 @@ class DashboardState extends State<Dashboard> {
 
     final result = LayoutChecker.checkCollisions(
       _freezedItems!.where(
-        (i) => i.id != _draggingItem!.id && i is! LayoutPlaceholder,
+        (i) => i.id != _draggingItem!.id && i is! ItemPlaceholder,
       ),
       candidateRect,
     );
@@ -186,7 +186,7 @@ class DashboardState extends State<Dashboard> {
   void endDrag(bool confirmed) {
     if (confirmed) {
       controller.items = controller.items.map((i) {
-        if (i is LayoutPlaceholder && i.item.id == _draggingItem!.id) {
+        if (i is ItemPlaceholder && i.item.id == _draggingItem!.id) {
           return i.item;
         }
         return i;
@@ -221,7 +221,7 @@ class DashboardState extends State<Dashboard> {
       return;
     }
 
-    if (event is PointerDownEvent && dragInfo.item is! LayoutPlaceholder) {
+    if (event is PointerDownEvent && dragInfo.item is! ItemPlaceholder) {
       _dragGestureRecognizer.addPointer(event);
       _currentDragInfo = dragInfo;
     }

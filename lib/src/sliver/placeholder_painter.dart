@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
 
 class DashboardPlaceholderPainter extends Listenable {
-  final ValueListenable<LayoutPlaceholder?>? _placeholder;
+  final ValueListenable<ItemPlaceholder?>? _placeholder;
 
   const DashboardPlaceholderPainter(this._placeholder);
 

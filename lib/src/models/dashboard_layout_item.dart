@@ -127,31 +127,36 @@ class LayoutItem extends Equatable {
     );
   }
 
-  LayoutPlaceholder get placeholder {
-    return LayoutPlaceholder._(
-      itemId: id,
-      rect: rect,
-    );
+  ItemPlaceholder get placeholder {
+    return ItemPlaceholder(this);
   }
 
   @override
   List<Object?> get props => [id, rect, minSize, maxSize];
 }
 
-final class LayoutPlaceholder extends LayoutItem {
-  LayoutPlaceholder._({
-    required Object itemId,
-    required super.rect,
-  }) : super(id: "$itemId#placeholder");
+final class ItemPlaceholder extends LayoutItem {
+  final LayoutItem item;
 
-  LayoutItem get item {
-    final itemId = RegExp(
-      r"^(.*)#placeholder$",
-    ).firstMatch(id.toString())?.group(1);
+  ItemPlaceholder(this.item)
+    : super(
+        id: PlaceholderId(item.id),
+        rect: item.rect,
+      );
+}
 
-    return LayoutItem(
-      id: itemId!,
-      rect: rect,
-    );
+final class PlaceholderId {
+  final Object itemId;
+
+  const PlaceholderId(this.itemId);
+
+  @override
+  int get hashCode => itemId.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! PlaceholderId) return false;
+    return itemId == other.itemId;
   }
 }

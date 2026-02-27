@@ -203,7 +203,7 @@ mixin _DashboardControllerGestureImpl on DashboardController, DashboardResizer {
   @override
   DashboardPlaceholderPainter? get placeholderPainter => _painter;
 
-  final _placeholderNotifier = ValueNotifier<LayoutPlaceholder?>(null);
+  final _placeholderNotifier = ValueNotifier<ItemPlaceholder?>(null);
   DashboardPlaceholderPainter? _painter;
 
   // ---------------------------------------------------------------------------
@@ -731,7 +731,7 @@ mixin _DashboardControllerGestureImpl on DashboardController, DashboardResizer {
   // Painter helpers
   // ---------------------------------------------------------------------------
 
-  void _setPlaceholder(LayoutPlaceholder? placeholder) {
+  void _setPlaceholder(ItemPlaceholder? placeholder) {
     _placeholderNotifier.value = placeholder;
     if (placeholder != null) {
       _painter ??= DashboardPlaceholderPainter(_placeholderNotifier);

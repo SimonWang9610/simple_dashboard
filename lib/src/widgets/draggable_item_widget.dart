@@ -35,7 +35,7 @@ class DraggableItemWidget extends StatelessWidget with LayoutItemWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (item is LayoutPlaceholder) {
+    if (item is ItemPlaceholder) {
       return ColoredBox(color: Colors.red);
     }
 
