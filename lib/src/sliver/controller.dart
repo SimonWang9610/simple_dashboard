@@ -3,7 +3,7 @@ import 'package:simple_dashboard/simple_dashboard.dart';
 import 'package:simple_dashboard/src/utils/checker.dart';
 
 abstract class DashboardController extends ChangeNotifier
-    implements DashboardResizer {
+    implements DashboardResizer, DashboardDragger {
   DashboardController._();
 
   DashboardAxis get axis;
@@ -80,7 +80,7 @@ abstract class DashboardController extends ChangeNotifier
 }
 
 class _DashboardControllerImpl extends DashboardController
-    with _DashboardControllerGestureImpl {
+    with _DashboardControllerGestureImpl, _DashboardDraggerImpl {
   _DashboardControllerImpl({
     DashboardAxis axis = DashboardAxis.horizontal,
     required int mainAxisSlots,
@@ -188,6 +188,113 @@ class _DashboardControllerImpl extends DashboardController
 
     _items = List.unmodifiable(items);
     _sortedItems = null;
+  }
+}
+
+mixin _DashboardDraggerImpl on DashboardController, DashboardDragger {
+  List<LayoutItem>? _freezedItems;
+  Offset _dragDelta = Offset.zero;
+
+  double _dragSlotExtentX = 1.0;
+  double _dragSlotExtentY = 1.0;
+
+  DragInfo? _dragInfo;
+
+  LayoutRect get _draggingItemRect => _dragInfo!.item.rect;
+
+  @override
+  bool get isDragging => _dragInfo != null;
+
+  @override
+  void startDrag(DragInfo dragInfo) {
+    if (_dragInfo != null) return;
+
+    _dragInfo = dragInfo;
+    _freezedItems = List.unmodifiable(items);
+    _dragDelta = Offset.zero;
+
+    _dragSlotExtentX = dragInfo.size.width > 0
+        ? dragInfo.size.width / dragInfo.item.rect.size.width
+        : 1.0;
+    _dragSlotExtentY = dragInfo.size.height > 0
+        ? dragInfo.size.height / dragInfo.item.rect.size.height
+        : 1.0;
+
+    items = _freezedItems!
+        .map((i) => i.id == dragInfo.item.id ? i.placeholder : i)
+        .toList();
+  }
+
+  @override
+  void updateDrag(Offset delta) {
+    if (_dragInfo == null) return;
+
+    _dragDelta += delta;
+
+    final dx = (_dragDelta.dx / _dragSlotExtentX).round();
+    final dy = (_dragDelta.dy / _dragSlotExtentY).round();
+
+    final candidateRect = LayoutRect(
+      x: _draggingItemRect.x + dx,
+      y: _draggingItemRect.y + dy,
+      size: _draggingItemRect.size,
+    );
+
+    if (!LayoutChecker.isValidRect(
+      candidateRect,
+      axis,
+      mainAxisSlots,
+    )) {
+      return;
+    }
+
+    final result = LayoutChecker.checkCollisions(
+      _freezedItems!.where(
+        (i) => i is! ItemPlaceholder && i.id != _dragInfo!.item.id,
+      ),
+      candidateRect,
+    );
+
+    if (!result.hasCollision) {
+      final newPlaceholder = ItemPlaceholder(
+        _dragInfo!.item.id,
+        rect: candidateRect,
+      );
+
+      /// here we use the current items to update the old placeholder
+      /// instead of using the freezed items that have no placeholder
+      /// because we want the placeholder to be able to "jump" over other items when dragging
+      items = items.map(
+        (i) {
+          if (i.id == newPlaceholder.id) {
+            return newPlaceholder;
+          }
+          return i;
+        },
+      ).toList();
+    }
+  }
+
+  @override
+  void endDrag(bool confirmed) {
+    if (_dragInfo == null) return;
+
+    if (confirmed) {
+      items = items.map((i) {
+        if (i is ItemPlaceholder && i.isPlaceholderOf(_dragInfo!.item.id)) {
+          return i.item;
+        }
+        return i;
+      }).toList();
+    } else {
+      items = List.of(_freezedItems!);
+    }
+
+    _freezedItems = null;
+    _dragInfo = null;
+    _dragDelta = Offset.zero;
+    _dragSlotExtentX = 1.0;
+    _dragSlotExtentY = 1.0;
   }
 }
 

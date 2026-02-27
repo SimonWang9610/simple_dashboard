@@ -128,7 +128,10 @@ class LayoutItem extends Equatable {
   }
 
   ItemPlaceholder get placeholder {
-    return ItemPlaceholder(this);
+    return ItemPlaceholder(
+      id,
+      rect: rect,
+    );
   }
 
   @override
@@ -136,13 +139,23 @@ class LayoutItem extends Equatable {
 }
 
 final class ItemPlaceholder extends LayoutItem {
-  final LayoutItem item;
+  final Object itemId;
 
-  ItemPlaceholder(this.item)
+  ItemPlaceholder(this.itemId, {required super.rect})
     : super(
-        id: PlaceholderId(item.id),
-        rect: item.rect,
+        id: PlaceholderId(itemId),
       );
+
+  LayoutItem get item {
+    return LayoutItem(
+      id: itemId,
+      rect: rect,
+    );
+  }
+
+  bool isPlaceholderOf(Object id) {
+    return itemId == id;
+  }
 }
 
 final class PlaceholderId {
@@ -151,12 +164,10 @@ final class PlaceholderId {
   const PlaceholderId(this.itemId);
 
   @override
-  int get hashCode => itemId.hashCode;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PlaceholderId && other.itemId == itemId;
 
   @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! PlaceholderId) return false;
-    return itemId == other.itemId;
-  }
+  int get hashCode => itemId.hashCode;
 }

@@ -52,11 +52,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final placeholder = ValueNotifier<ItemPlaceholder?>(null);
 
-  final autoScroll = AutoScrollController(
-    edgeThreshold: 50,
-    speed: 10,
-  );
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -77,7 +72,6 @@ class _MyHomePageState extends State<MyHomePage> {
   void dispose() {
     placeholder.dispose();
     controller.dispose();
-    autoScroll.stop();
     super.dispose();
   }
 

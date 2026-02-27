@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
-import 'package:simple_dashboard/src/utils/checker.dart';
 
 class Dashboard extends StatefulWidget {
   final DashboardController controller;
@@ -53,8 +52,17 @@ class Dashboard extends StatefulWidget {
   }
 }
 
-class DashboardState extends State<Dashboard> {
+class DashboardState extends State<Dashboard> with DashboardDragGestureHandler {
   final Map<Object, GlobalKey> _itemCacheKeys = {};
+
+  ScrollController? _fallbackScrollController;
+
+  ScrollController get _scrollController =>
+      widget.scrollController ??
+      (_fallbackScrollController ??= ScrollController());
+
+  @override
+  DashboardDragger get dragger => widget.controller;
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +112,7 @@ class DashboardState extends State<Dashboard> {
               placeholderPainter: widget.controller.placeholderPainter,
 
               /// scroll parameters
-              controller: widget.scrollController,
+              controller: _scrollController,
               cacheExtent: widget.cacheExtent,
               physics: widget.physics,
             );
@@ -114,134 +122,43 @@ class DashboardState extends State<Dashboard> {
       ],
     );
   }
+}
 
-  DashboardController get controller => widget.controller;
-
-  List<LayoutItem>? _freezedItems;
-  LayoutItem? _draggingItem;
-  Offset _dragDelta = Offset.zero;
-
-  double _dragSlotExtentX = 1.0;
-  double _dragSlotExtentY = 1.0;
-
-  void startDrag(LayoutItem item, Size widgetSize) {
-    _freezedItems = List.unmodifiable(controller.items);
-    _draggingItem = item;
-    _dragDelta = Offset.zero;
-
-    _dragSlotExtentX = widgetSize.width > 0
-        ? widgetSize.width / item.rect.size.width
-        : 1.0;
-    _dragSlotExtentY = widgetSize.height > 0
-        ? widgetSize.height / item.rect.size.height
-        : 1.0;
-
-    controller.items = _freezedItems!
-        .map((i) => i.id == item.id ? i.placeholder : i)
-        .toList();
-  }
-
-  void updateDrag(Offset delta) {
-    _dragDelta += delta;
-
-    final dx = (_dragDelta.dx / _dragSlotExtentX).round();
-    final dy = (_dragDelta.dy / _dragSlotExtentY).round();
-
-    final candidateRect = LayoutRect(
-      x: _draggingItem!.rect.x + dx,
-      y: _draggingItem!.rect.y + dy,
-      size: _draggingItem!.rect.size,
-    );
-
-    if (!LayoutChecker.isValidRect(
-      candidateRect,
-      controller.axis,
-      controller.mainAxisSlots,
-    )) {
-      return;
-    }
-
-    final result = LayoutChecker.checkCollisions(
-      _freezedItems!.where(
-        (i) => i.id != _draggingItem!.id && i is! ItemPlaceholder,
-      ),
-      candidateRect,
-    );
-
-    if (!result.hasCollision) {
-      final newPlaceholder = LayoutItem(
-        id: _draggingItem!.id,
-        rect: candidateRect,
-      ).placeholder;
-
-      controller.items = controller.items.map((i) {
-        if (i.id == newPlaceholder.id) {
-          return newPlaceholder;
-        }
-        return i;
-      }).toList();
-    }
-  }
-
-  void endDrag(bool confirmed) {
-    if (confirmed) {
-      controller.items = controller.items.map((i) {
-        if (i is ItemPlaceholder && i.item.id == _draggingItem!.id) {
-          return i.item;
-        }
-        return i;
-      }).toList();
-    } else {
-      controller.items = List.of(_freezedItems!);
-    }
-
-    _freezedItems = null;
-    _draggingItem = null;
-    _dragDelta = Offset.zero;
-    _dragSlotExtentX = 1.0;
-    _dragSlotExtentY = 1.0;
-  }
-
-  @override
-  void dispose() {
-    _currentDraggingOrigin?.dispose();
-    _dragGestureRecognizer.dispose();
-    super.dispose();
-  }
+mixin DashboardDragGestureHandler<T extends StatefulWidget> on State<T> {
+  DashboardDragger get dragger;
 
   late final _dragGestureRecognizer = PanGestureRecognizer()
     ..onStart = _onDragStart
     ..onUpdate = _onDragUpdate
-    ..onEnd = _onDragEnd;
+    ..onEnd = _onDragEnd
+    ..onCancel = () => _endDrag(false);
 
-  final autoScroll = AutoScrollController(edgeThreshold: 60, speed: 10);
+  DragInfo? _dragInfo;
+  OverlayEntry? _draggingOverlay;
+  ValueNotifier<Offset>? _draggingGlobalOrigin;
 
-  void routePointerEvent(PointerEvent event, DragInfo dragInfo) {
-    if (_draggingItem != null) {
-      return;
-    }
+  void absorbPointer(PointerDownEvent event, DragInfo dragInfo) {
+    if (_dragInfo != null) return;
 
-    if (event is PointerDownEvent && dragInfo.item is! ItemPlaceholder) {
-      _dragGestureRecognizer.addPointer(event);
-      _currentDragInfo = dragInfo;
-    }
+    _dragGestureRecognizer.addPointer(event);
+    _dragInfo = dragInfo;
   }
 
-  DragInfo? _currentDragInfo;
-
-  ValueNotifier<Offset>? _currentDraggingOrigin;
-
   void _onDragStart(DragStartDetails details) {
-    startDrag(_currentDragInfo!.item, _currentDragInfo!.size);
+    assert(_dragInfo != null);
+    assert(_draggingOverlay == null);
 
-    _currentDraggingOrigin = ValueNotifier(_currentDragInfo!.origin);
+    dragger.startDrag(_dragInfo!);
+
+    _draggingGlobalOrigin?.dispose();
+    _draggingGlobalOrigin = ValueNotifier(_dragInfo!.origin);
 
     final themeData = Theme.of(context);
 
-    _overlayEntry = OverlayEntry(
+    _draggingOverlay = OverlayEntry(
       builder: (context) {
         return ValueListenableBuilder(
-          valueListenable: _currentDraggingOrigin!,
+          valueListenable: _draggingGlobalOrigin!,
           builder: (context, value, child) {
             return Positioned(
               left: value.dx,
@@ -253,51 +170,48 @@ class DashboardState extends State<Dashboard> {
             data: themeData,
             child: Material(
               child: SizedBox.fromSize(
-                size: _currentDragInfo!.size,
-                child: _currentDragInfo!.feedback,
+                size: _dragInfo!.size,
+                child: _dragInfo!.feedback,
               ),
             ),
           ),
         );
       },
     );
-    Overlay.of(context).insert(_overlayEntry!);
 
-    autoScroll.start(context, details.localPosition);
+    Overlay.of(context).insert(_draggingOverlay!);
   }
 
   void _onDragUpdate(DragUpdateDetails details) {
-    updateDrag(details.delta);
-
-    if (_currentDraggingOrigin != null) {
-      _currentDraggingOrigin!.value += details.delta;
+    if (_draggingGlobalOrigin != null) {
+      _draggingGlobalOrigin!.value += details.delta;
     }
+    dragger.updateDrag(details.delta);
   }
 
   void _onDragEnd(DragEndDetails details) {
-    endDrag(true);
-    _overlayEntry?.remove();
-    _overlayEntry = null;
-    _currentDraggingOrigin?.dispose();
-    _currentDraggingOrigin = null;
-    _currentDragInfo = null;
-
-    autoScroll.stop();
+    _endDrag(true);
   }
 
-  OverlayEntry? _overlayEntry;
-}
+  void _endDrag(bool confirmed) {
+    dragger.endDrag(confirmed);
+    _dragInfo = null;
+    _draggingOverlay?.remove();
+    _draggingOverlay = null;
+    _draggingGlobalOrigin?.dispose();
+    _draggingGlobalOrigin = null;
+  }
 
-class DragInfo {
-  final LayoutItem item;
-  final Size size;
-  final Offset origin;
-  final Widget feedback;
+  @override
+  void didUpdateWidget(covariant T oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _endDrag(false);
+  }
 
-  DragInfo({
-    required this.item,
-    required this.size,
-    required this.origin,
-    required this.feedback,
-  });
+  @override
+  void dispose() {
+    _endDrag(false);
+    _dragGestureRecognizer.dispose();
+    super.dispose();
+  }
 }

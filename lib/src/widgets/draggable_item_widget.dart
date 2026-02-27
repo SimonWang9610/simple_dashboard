@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:simple_dashboard/src/classes/dragger.dart';
 import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
 import 'package:simple_dashboard/src/sliver/dashboard.dart';
 import 'package:simple_dashboard/src/sliver/widgets.dart';
@@ -48,15 +49,15 @@ class DraggableItemWidget extends StatelessWidget with LayoutItemWidget {
 
     return Listener(
       behavior: HitTestBehavior.opaque,
-      onPointerDown: (details) {
+      onPointerDown: (event) {
         final box = context.findRenderObject() as RenderBox?;
         final dashboard = Dashboard.of(context);
 
         if (box == null || dashboard == null) return;
         final itemOrigin = box.localToGlobal(box.size.topLeft(Offset.zero));
 
-        dashboard.routePointerEvent(
-          details,
+        dashboard.absorbPointer(
+          event,
           DragInfo(
             item: item,
             feedback: keyedChild,
