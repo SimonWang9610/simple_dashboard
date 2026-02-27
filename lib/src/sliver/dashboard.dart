@@ -40,9 +40,22 @@ class Dashboard extends StatefulWidget {
 
   @override
   State<Dashboard> createState() => DashboardState();
+
+  static DashboardState? of(BuildContext context) {
+    return context.findAncestorStateOfType<DashboardState>();
+  }
+
+  static GlobalKey? getCacheKeyForItem(BuildContext context, Object itemId) {
+    final state = of(context);
+    if (state == null) return null;
+
+    return state._itemCacheKeys.putIfAbsent(itemId, () => GlobalKey());
+  }
 }
 
 class DashboardState extends State<Dashboard> {
+  final Map<Object, GlobalKey> _itemCacheKeys = {};
+
   @override
   Widget build(BuildContext context) {
     final emptyPlaceholder = ListenableBuilder(
@@ -223,10 +236,11 @@ class DashboardState extends State<Dashboard> {
 
     _currentDraggingOrigin = ValueNotifier(_currentDragInfo!.origin);
 
+    final themeData = Theme.of(context);
+
     _overlayEntry = OverlayEntry(
       builder: (context) {
         return ValueListenableBuilder(
-          key: _currentDragInfo!.itemKey,
           valueListenable: _currentDraggingOrigin!,
           builder: (context, value, child) {
             return Positioned(
@@ -235,7 +249,15 @@ class DashboardState extends State<Dashboard> {
               child: child!,
             );
           },
-          child: widget.itemBuilder(context, _draggingItem!),
+          child: Theme(
+            data: themeData,
+            child: Material(
+              child: SizedBox.fromSize(
+                size: _currentDragInfo!.size,
+                child: _currentDragInfo!.feedback,
+              ),
+            ),
+          ),
         );
       },
     );
@@ -268,14 +290,14 @@ class DashboardState extends State<Dashboard> {
 
 class DragInfo {
   final LayoutItem item;
-  final GlobalKey itemKey;
   final Size size;
   final Offset origin;
+  final Widget feedback;
 
   DragInfo({
     required this.item,
-    required this.itemKey,
     required this.size,
     required this.origin,
+    required this.feedback,
   });
 }

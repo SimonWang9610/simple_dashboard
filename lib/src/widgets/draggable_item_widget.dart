@@ -21,7 +21,7 @@ import 'package:simple_dashboard/src/sliver/widgets.dart';
 ///   ),
 /// )
 /// ```
-class DraggableItemWidget extends StatefulWidget with LayoutItemWidget {
+class DraggableItemWidget extends StatelessWidget with LayoutItemWidget {
   @override
   final LayoutItem item;
 
@@ -34,39 +34,38 @@ class DraggableItemWidget extends StatefulWidget with LayoutItemWidget {
   });
 
   @override
-  State<DraggableItemWidget> createState() => _DraggableItemWidgetState();
-}
-
-class _DraggableItemWidgetState extends State<DraggableItemWidget> {
-  final _cacheKey = GlobalKey();
-
-  @override
   Widget build(BuildContext context) {
-    if (widget.item is LayoutPlaceholder) {
+    if (item is LayoutPlaceholder) {
       return ColoredBox(color: Colors.red);
     }
+
+    final cacheKey = Dashboard.getCacheKeyForItem(context, item.id);
+
+    final keyedChild = KeyedSubtree(
+      key: cacheKey,
+      child: child,
+    );
 
     return Listener(
       behavior: HitTestBehavior.opaque,
       onPointerDown: (details) {
         final box = context.findRenderObject() as RenderBox?;
-        if (box == null) return;
+        final dashboard = Dashboard.of(context);
+
+        if (box == null || dashboard == null) return;
         final itemOrigin = box.localToGlobal(box.size.topLeft(Offset.zero));
-        final dashboard = context.findAncestorStateOfType<DashboardState>();
-        dashboard?.routePointerEvent(
+
+        dashboard.routePointerEvent(
           details,
           DragInfo(
-            item: widget.item,
-            itemKey: _cacheKey,
+            item: item,
+            feedback: keyedChild,
             size: box.size,
             origin: itemOrigin,
           ),
         );
       },
-      child: KeyedSubtree(
-        key: _cacheKey,
-        child: widget.child,
-      ),
+      child: keyedChild,
     );
   }
 }
