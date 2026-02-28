@@ -116,6 +116,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Dashboard(
                 controller: controller,
                 isLoading: _loading,
+                dropStrategy: DropStrategy.reflow,
                 loadingBuilder: (context) {
                   return Container(
                     color: Colors.black12,

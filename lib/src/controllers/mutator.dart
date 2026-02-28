@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
-import 'package:simple_dashboard/src/utils/checker.dart';
+import 'package:simple_dashboard/src/controllers/mutator_delegates.dart';
 
 abstract mixin class DashboardItemMutator {
   List<LayoutItem> get items;
@@ -15,18 +15,20 @@ abstract mixin class DashboardItemMutator {
   double _dragSlotExtentY = 1.0;
 
   DragInfo? _dragInfo;
+  DashboardMutatorDelegate? _delegate;
 
   LayoutRect get _draggingItemRect => _dragInfo!.item.rect;
 
   bool get isMutating => _dragInfo != null;
 
-  void startMutation(DragInfo dragInfo) {
+  void startMutation(DragInfo dragInfo, DashboardMutatorDelegate delegate) {
     if (_dragInfo != null) return;
 
     _dragInfo = dragInfo;
     _freezedItems = List.unmodifiable(items);
 
     _dragDelta = Offset.zero;
+    _delegate = delegate;
 
     _dragSlotExtentX = dragInfo.size.width > 0
         ? dragInfo.size.width / dragInfo.item.rect.size.width
@@ -63,30 +65,26 @@ abstract mixin class DashboardItemMutator {
       return;
     }
 
-    final result = LayoutChecker.checkCollisions(
-      _freezedItems!.where((i) => i is! ItemPlaceholder),
+    final repositionedItems = _delegate?.adopt(
       candidateRect,
+      _dragInfo!,
+      items,
     );
 
-    if (!result.hasCollision) {
-      final newPlaceholder = ItemPlaceholder(
-        _dragInfo!.item.id,
-        rect: candidateRect,
-      );
-
-      /// here we use the current items to update the old placeholder
-      /// instead of using the freezed items that have no placeholder
-      /// because we want the placeholder to be able to "jump" over other items when dragging
-      updateItems(
-        items.map(
-          (i) {
-            if (i.id == newPlaceholder.id) {
-              return newPlaceholder;
+    if (repositionedItems != null) {
+      assert(
+        () {
+          for (final item in repositionedItems) {
+            if (item.id is PlaceholderId && item is! ItemPlaceholder) {
+              return false;
             }
-            return i;
-          },
-        ).toList(),
+          }
+
+          return true;
+        }(),
+        "All placeholders in the items list should be of type ItemPlaceholder.",
       );
+      updateItems(repositionedItems);
     }
   }
 
@@ -112,63 +110,9 @@ abstract mixin class DashboardItemMutator {
   void _reset() {
     _freezedItems = null;
     _dragInfo = null;
+    _delegate = null;
     _dragDelta = Offset.zero;
     _dragSlotExtentX = 1.0;
     _dragSlotExtentY = 1.0;
-  }
-}
-
-final class EmptyMutatorDelegate {
-  const EmptyMutatorDelegate();
-
-  List<LayoutItem>? adopt(
-    LayoutRect rect,
-    DragInfo dragInfo,
-    List<LayoutItem> items,
-  ) {
-    final collisions = LayoutChecker.checkCollisions(items, rect);
-
-    if (collisions.hasCollision) {
-      return null;
-    }
-
-    final newPlaceholder = ItemPlaceholder(
-      dragInfo.item.id,
-      rect: rect,
-    );
-
-    return items.map((i) {
-      if (i.id == newPlaceholder.id) {
-        return newPlaceholder;
-      }
-      return i;
-    }).toList();
-  }
-}
-
-final class ReorderMutatorDelegate {
-  final DashboardAxis axis;
-  const ReorderMutatorDelegate(this.axis);
-
-  List<LayoutItem>? adopt(
-    LayoutRect rect,
-    DragInfo dragInfo,
-    List<LayoutItem> items,
-  ) {
-    final collisions = LayoutChecker.checkCollisions(items, rect);
-
-    if (!collisions.hasCollision) {
-      final newPlaceholder = ItemPlaceholder(
-        dragInfo.item.id,
-        rect: rect,
-      );
-
-      return items.map((i) {
-        if (i.id == newPlaceholder.id) {
-          return newPlaceholder;
-        }
-        return i;
-      }).toList();
-    }
   }
 }

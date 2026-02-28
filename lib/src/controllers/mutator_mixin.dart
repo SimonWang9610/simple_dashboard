@@ -6,6 +6,8 @@ mixin DashboardMutatorStateMixin<T extends StatefulWidget> on State<T> {
   DashboardItemMutator? getDashboardMutator();
   AutoScroll get autoScroll;
 
+  DashboardMutatorDelegate get mutatorDelegate;
+
   RenderBox? get viewport {
     final renderObject = context.findRenderObject();
     if (renderObject is RenderBox) {
@@ -39,7 +41,7 @@ mixin DashboardMutatorStateMixin<T extends StatefulWidget> on State<T> {
     assert(_dragInfo != null);
     assert(_draggingOverlay == null);
 
-    _mutator?.startMutation(_dragInfo!);
+    _mutator?.startMutation(_dragInfo!, mutatorDelegate);
 
     _draggingGlobalOrigin?.dispose();
     _draggingGlobalOrigin = ValueNotifier(_dragInfo!.origin);

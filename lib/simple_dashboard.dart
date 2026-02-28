@@ -27,3 +27,4 @@ export 'src/classes/auto_scroll_controller.dart';
 export 'src/controllers/base.dart';
 export 'src/controllers/mutator.dart';
 export 'src/controllers/controller.dart';
+export 'src/controllers/mutator_delegates.dart';

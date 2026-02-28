@@ -204,7 +204,10 @@ final class DashboardAfterPositioner extends DashboardPositioner {
 
   @override
   List<LayoutItem> position(Object id, LayoutSize size) {
-    assert(afterId != id, "An item cannot be positioned after itself.");
+    assert(
+      afterId != id,
+      "An item cannot be positioned after itself, but got id [$id] and afterId [$afterId]",
+    );
 
     final after = items.firstWhereOrNull((item) => item.id == afterId);
 

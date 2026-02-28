@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
+import 'package:simple_dashboard/src/controllers/mutator_delegates.dart';
 import 'package:simple_dashboard/src/controllers/mutator_mixin.dart';
 
 class Dashboard extends StatefulWidget {
@@ -18,6 +19,7 @@ class Dashboard extends StatefulWidget {
   final WidgetBuilder? emptyBuilder;
   final WidgetBuilder? loadingBuilder;
   final ValueListenable<bool>? isLoading;
+  final DropStrategy dropStrategy;
 
   const Dashboard({
     super.key,
@@ -35,6 +37,7 @@ class Dashboard extends StatefulWidget {
     this.emptyBuilder,
     this.loadingBuilder,
     this.isLoading,
+    this.dropStrategy = DropStrategy.noCollision,
   });
 
   @override
@@ -48,7 +51,10 @@ class Dashboard extends StatefulWidget {
     final state = of(context);
     if (state == null) return null;
 
-    return state._itemCacheKeys.putIfAbsent(itemId, () => GlobalKey());
+    return state._itemCacheKeys.putIfAbsent(
+      itemId,
+      () => GlobalKey(debugLabel: "cacheKey-$itemId"),
+    );
   }
 }
 
@@ -66,6 +72,12 @@ class DashboardState extends State<Dashboard> with DashboardMutatorStateMixin {
 
   @override
   AutoScroll get autoScroll => _autoScroll;
+
+  @override
+  DashboardMutatorDelegate get mutatorDelegate => switch (widget.dropStrategy) {
+    DropStrategy.noCollision => NoCollisionMutatorDelegate(),
+    DropStrategy.reflow => ReflowMutatorDelegate(widget.controller),
+  };
 
   late final AutoScroll _autoScroll = AutoScrollWithController(
     edgeThreshold: 50.0,
@@ -138,150 +150,3 @@ class DashboardState extends State<Dashboard> with DashboardMutatorStateMixin {
     );
   }
 }
-
-// mixin DashboardDragGestureHandler<T extends StatefulWidget> on State<T> {
-//   DashboardItemMutator get mutator;
-//   AutoScroll get autoScroll;
-
-//   late final _dragGestureRecognizer = PanGestureRecognizer()
-//     ..onStart = _onDragStart
-//     ..onUpdate = _onDragUpdate
-//     ..onEnd = _onDragEnd
-//     ..onCancel = () => _endDrag(false);
-
-//   DragInfo? _dragInfo;
-//   OverlayEntry? _draggingOverlay;
-//   ValueNotifier<Offset>? _draggingGlobalOrigin;
-
-//   void absorbPointer(PointerDownEvent event, DragInfo dragInfo) {
-//     if (_dragInfo != null) return;
-
-//     _dragGestureRecognizer.addPointer(event);
-//     _dragInfo = dragInfo;
-//   }
-
-//   void _onDragStart(DragStartDetails details) {
-//     assert(_dragInfo != null);
-//     assert(_draggingOverlay == null);
-
-//     mutator.startMutation(_dragInfo!);
-
-//     _draggingGlobalOrigin?.dispose();
-//     _draggingGlobalOrigin = ValueNotifier(_dragInfo!.origin);
-
-//     final themeData = Theme.of(context);
-
-//     _draggingOverlay = OverlayEntry(
-//       builder: (context) {
-//         return ValueListenableBuilder(
-//           valueListenable: _draggingGlobalOrigin!,
-//           builder: (context, value, child) {
-//             return Positioned(
-//               left: value.dx,
-//               top: value.dy,
-//               child: child!,
-//             );
-//           },
-//           child: Theme(
-//             data: themeData,
-//             child: Material(
-//               child: SizedBox.fromSize(
-//                 size: _dragInfo!.size,
-//                 child: _dragInfo!.feedback,
-//               ),
-//             ),
-//           ),
-//         );
-//       },
-//     );
-
-//     Overlay.of(context).insert(_draggingOverlay!);
-
-//     /// the local position is relative to the item size,
-//     /// so we need to compute the distance from the pointer to the item center,
-//     /// and use it to compute the item center position relative to the viewport during dragging
-//     /// to achieve better auto scroll experience
-//     _pointerToItemCenter =
-//         _dragInfo!.size.center(Offset.zero) - details.localPosition;
-
-//     final result = _computePointerPosition(details.globalPosition);
-
-//     if (result != null) {
-//       autoScroll.start(result.$1, result.$2);
-//     } else {
-//       autoScroll.stop();
-//     }
-//   }
-
-//   /// the relative distance between the start pointer local position and the item center,
-//   /// used to compute the item center position during dragging for better auto scroll experience
-//   Offset? _pointerToItemCenter;
-
-//   /// compute the local position relative to the viewport based on the given global position,
-//   /// and return it with the viewport size
-//   (Size, Offset)? _computePointerPosition(Offset globalPosition) {
-//     final box = context.findRenderObject() as RenderBox?;
-
-//     if (box == null) return null;
-
-//     final localPointerPosition = box.globalToLocal(globalPosition);
-
-//     final Offset position;
-
-//     /// if we have the distance from the pointer to the item center,
-//     /// we compute the item center position,
-//     if (_pointerToItemCenter != null) {
-//       position = localPointerPosition + _pointerToItemCenter!;
-//     } else {
-//       position = localPointerPosition;
-//     }
-
-//     return (box.size, position);
-//   }
-
-//   void _onDragUpdate(DragUpdateDetails details) {
-//     if (_draggingGlobalOrigin != null) {
-//       _draggingGlobalOrigin!.value += details.delta;
-//     }
-
-//     mutator.updateMutation(details.delta);
-
-//     final result = _computePointerPosition(details.globalPosition);
-
-//     if (result != null) {
-//       autoScroll.start(result.$1, result.$2);
-//     } else {
-//       autoScroll.stop();
-//     }
-//   }
-
-//   void _onDragEnd(DragEndDetails details) {
-//     _endDrag(true);
-//   }
-
-//   void _endDrag(bool confirmed) {
-//     mutator.endMutation(confirmed);
-//     _dragInfo = null;
-//     _draggingOverlay?.remove();
-//     _draggingOverlay = null;
-//     _draggingGlobalOrigin?.dispose();
-//     _draggingGlobalOrigin = null;
-
-//     /// === clean up auto scroll state ===
-//     autoScroll.stop();
-//     _pointerToItemCenter = null;
-//   }
-
-//   @override
-//   void didUpdateWidget(covariant T oldWidget) {
-//     super.didUpdateWidget(oldWidget);
-//     _endDrag(false);
-//   }
-
-//   @override
-//   void dispose() {
-//     _endDrag(false);
-//     _dragGestureRecognizer.dispose();
-//     super.dispose();
-//   }
-// }
