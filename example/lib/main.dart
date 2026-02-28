@@ -168,9 +168,6 @@ class _MyHomePageState extends State<MyHomePage> {
       width: faker.randomGenerator.integer(slots ~/ 2, min: 1),
       height: faker.randomGenerator.integer(slots ~/ 2, min: 1),
     );
-    print(
-      "Adding item $id with size ${size.width} x ${size.height}, max slots: $slots",
-    );
 
     controller.add(
       id,

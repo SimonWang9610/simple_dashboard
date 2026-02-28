@@ -170,4 +170,7 @@ final class PlaceholderId {
 
   @override
   int get hashCode => itemId.hashCode;
+
+  @override
+  String toString() => "PlaceholderId($itemId)";
 }

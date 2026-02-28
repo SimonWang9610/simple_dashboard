@@ -120,7 +120,8 @@ abstract class LayoutChecker {
     LayoutRect rect,
   ) {
     final conflicts = items.where(
-      (item) => item.rect.hasConflicts(rect) && item.rect != rect,
+      // (item) => item.rect.hasConflicts(rect) && item.rect != rect,
+      (item) => item.rect.hasConflicts(rect),
     );
 
     final Map<CollisionDirection, List<LayoutItem>> result = {};

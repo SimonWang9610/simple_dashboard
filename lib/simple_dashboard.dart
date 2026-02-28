@@ -23,3 +23,7 @@ export 'src/classes/layout_positioner.dart';
 export 'src/classes/resizer.dart';
 export 'src/classes/dragger.dart';
 export 'src/classes/auto_scroll_controller.dart';
+
+export 'src/controllers/base.dart';
+export 'src/controllers/mutator.dart';
+export 'src/controllers/controller.dart';
