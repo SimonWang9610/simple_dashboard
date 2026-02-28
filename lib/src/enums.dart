@@ -35,3 +35,19 @@ enum CollisionDirection {
   bottomLeft,
   bottomRight,
 }
+
+enum ResizeDirection {
+  left,
+  right,
+  up,
+  down,
+  topLeft,
+  topRight,
+  bottomLeft,
+  bottomRight,
+}
+
+enum MoveDropStrategy {
+  noCollision,
+  reflow,
+}

@@ -1,4 +1,4 @@
-import 'package:simple_dashboard/src/models/enums.dart';
+import 'package:simple_dashboard/src/enums.dart';
 import 'package:equatable/equatable.dart';
 
 class LayoutRect extends Equatable {

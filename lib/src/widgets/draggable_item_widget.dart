@@ -1,27 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:simple_dashboard/src/classes/dragger.dart';
+import 'package:simple_dashboard/src/classes/drags.dart';
 import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
 import 'package:simple_dashboard/src/sliver/dashboard.dart';
 import 'package:simple_dashboard/src/sliver/widgets.dart';
 
-/// A widget that wraps a dashboard item and makes it draggable.
-///
-/// Use a **long-press** to initiate a drag.  While dragging, a semi-transparent
-/// [feedback] widget follows the finger/cursor, and the dashboard's placeholder
-/// painter shows where the item will be dropped.
-///
-/// Combine with [ResizableItemWidget] when both resize and drag are needed:
-/// ```dart
-/// DraggableItemWidget(
-///   item: item,
-///   dragger: controller,
-///   child: ResizableItemWidget(
-///     item: item,
-///     resizer: controller,
-///     child: MyItemContent(item: item),
-///   ),
-/// )
-/// ```
 class DraggableItemWidget extends StatelessWidget with LayoutItemWidget {
   @override
   final LayoutItem item;
@@ -63,6 +45,7 @@ class DraggableItemWidget extends StatelessWidget with LayoutItemWidget {
             feedback: keyedChild,
             size: box.size,
             origin: itemOrigin,
+            localPosition: event.localPosition,
           ),
         );
       },

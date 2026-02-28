@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
-import 'package:simple_dashboard/src/controllers/mutator_delegates.dart';
-import 'package:simple_dashboard/src/controllers/mutator_mixin.dart';
+import 'package:simple_dashboard/src/classes/drags.dart';
+import 'package:simple_dashboard/src/controllers/mutator_state.dart';
 
 class Dashboard extends StatefulWidget {
   final DashboardController controller;
@@ -19,7 +19,7 @@ class Dashboard extends StatefulWidget {
   final WidgetBuilder? emptyBuilder;
   final WidgetBuilder? loadingBuilder;
   final ValueListenable<bool>? isLoading;
-  final DropStrategy dropStrategy;
+  final MoveDropStrategy moveDropStrategy;
 
   const Dashboard({
     super.key,
@@ -37,7 +37,7 @@ class Dashboard extends StatefulWidget {
     this.emptyBuilder,
     this.loadingBuilder,
     this.isLoading,
-    this.dropStrategy = DropStrategy.noCollision,
+    this.moveDropStrategy = MoveDropStrategy.noCollision,
   });
 
   @override
@@ -58,7 +58,7 @@ class Dashboard extends StatefulWidget {
   }
 }
 
-class DashboardState extends State<Dashboard> with DashboardMutatorStateMixin {
+class DashboardState extends State<Dashboard> with DashboardMutatingStateMixin {
   final Map<Object, GlobalKey> _itemCacheKeys = {};
 
   ScrollController? _fallbackScrollController;
@@ -68,16 +68,16 @@ class DashboardState extends State<Dashboard> with DashboardMutatorStateMixin {
       (_fallbackScrollController ??= ScrollController());
 
   @override
-  DashboardItemMutator getDashboardMutator() => widget.controller;
+  DashboardItemMutator get mutator => widget.controller;
+
+  @override
+  DashboardMetricsManager get metrics => widget.controller;
 
   @override
   AutoScroll get autoScroll => _autoScroll;
 
   @override
-  DashboardMutatorDelegate get mutatorDelegate => switch (widget.dropStrategy) {
-    DropStrategy.noCollision => NoCollisionMutatorDelegate(),
-    DropStrategy.reflow => ReflowMutatorDelegate(widget.controller),
-  };
+  MoveDropStrategy get moveDropStrategy => widget.moveDropStrategy;
 
   late final AutoScroll _autoScroll = AutoScrollWithController(
     edgeThreshold: 50.0,

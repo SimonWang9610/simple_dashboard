@@ -1,15 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
-import 'package:simple_dashboard/src/classes/resizer.dart';
-import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
-import 'package:simple_dashboard/src/sliver/widgets.dart';
+import 'package:simple_dashboard/simple_dashboard.dart';
 
 class ResizableItemWidget extends StatefulWidget with LayoutItemWidget {
   @override
   final LayoutItem item;
   final double edgeThreshold;
-  final DashboardResizer resizer;
   final Widget child;
 
   /// Pixels from the viewport edge at which auto-scrolling kicks in.
@@ -21,7 +18,6 @@ class ResizableItemWidget extends StatefulWidget with LayoutItemWidget {
   const ResizableItemWidget({
     super.key,
     required this.item,
-    required this.resizer,
     this.edgeThreshold = 10.0,
     this.autoScrollEdgeThreshold = 50.0,
     this.autoScrollSpeed = 10.0,
@@ -64,29 +60,29 @@ class _ResizableItemWidgetState extends State<ResizableItemWidget> {
       child: GestureDetector(
         onPanStart: (details) {
           if (_resizeDirection != null) {
-            final size = context.size ?? Size.zero;
-            widget.resizer.startResize(_resizeDirection!, widget.item, size);
+            // final size = context.size ?? Size.zero;
+            // widget.resizer.startResize(_resizeDirection!, widget.item, size);
             _isResizing = true;
           }
         },
         onPanUpdate: (details) {
           if (_isResizing) {
-            widget.resizer.updateResize(
-              details.localPosition,
-              details.delta,
-            );
+            // widget.resizer.updateResize(
+            //   details.localPosition,
+            //   details.delta,
+            // );
             _maybeAutoScroll(details.localPosition);
           }
         },
         onPanEnd: (details) {
           _stopAutoScroll();
-          widget.resizer.endResize(true);
+          // widget.resizer.endResize(true);
           _isResizing = false;
           _reset();
         },
         onPanCancel: () {
           _stopAutoScroll();
-          widget.resizer.endResize(false);
+          // widget.resizer.endResize(false);
           _isResizing = false;
           _reset();
         },
@@ -165,7 +161,10 @@ class _ResizableItemWidgetState extends State<ResizableItemWidget> {
 
     // Convert local position to viewport coordinates.
     final transform = renderObject.getTransformTo(viewportRenderObject);
-    final globalInViewport = MatrixUtils.transformPoint(transform, localPosition);
+    final globalInViewport = MatrixUtils.transformPoint(
+      transform,
+      localPosition,
+    );
 
     final viewportSize = viewportRenderObject.paintBounds;
     final scrollAxis = scrollable.widget.axis;
