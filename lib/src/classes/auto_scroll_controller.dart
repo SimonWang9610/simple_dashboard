@@ -155,9 +155,6 @@ sealed class AutoScroll {
         break;
     }
 
-    print(
-      "currentPointerPosition: $currentPointerPosition, scrollUnit: $scrollUnit, size: $viewportSize, scroll unit: $scrollUnit",
-    ); // Debug print
     if (scrollUnit == null) {
       stop();
       return;

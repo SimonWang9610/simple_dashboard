@@ -267,6 +267,9 @@ mixin DashboardDragGestureHandler<T extends StatefulWidget> on State<T> {
     _draggingOverlay = null;
     _draggingGlobalOrigin?.dispose();
     _draggingGlobalOrigin = null;
+
+    /// === clean up auto scroll state ===
+    autoScroll.stop();
     _pointerToItemCenter = null;
   }
 
