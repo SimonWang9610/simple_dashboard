@@ -65,6 +65,22 @@ class DashboardState extends State<Dashboard> with DashboardDragGestureHandler {
   DashboardDragger get dragger => widget.controller;
 
   @override
+  AutoScroll get autoScroll => _autoScroll;
+
+  late final AutoScroll _autoScroll = AutoScrollWithController(
+    edgeThreshold: 50.0,
+    speed: 10.0,
+    direction: AxisDirection.down,
+    controller: _scrollController,
+  );
+
+  @override
+  void dispose() {
+    _autoScroll.stop();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final emptyPlaceholder = ListenableBuilder(
       listenable: widget.controller,
@@ -126,6 +142,7 @@ class DashboardState extends State<Dashboard> with DashboardDragGestureHandler {
 
 mixin DashboardDragGestureHandler<T extends StatefulWidget> on State<T> {
   DashboardDragger get dragger;
+  AutoScroll get autoScroll;
 
   late final _dragGestureRecognizer = PanGestureRecognizer()
     ..onStart = _onDragStart
@@ -180,13 +197,63 @@ mixin DashboardDragGestureHandler<T extends StatefulWidget> on State<T> {
     );
 
     Overlay.of(context).insert(_draggingOverlay!);
+
+    /// the local position is relative to the item size,
+    /// so we need to compute the distance from the pointer to the item center,
+    /// and use it to compute the item center position relative to the viewport during dragging
+    /// to achieve better auto scroll experience
+    _pointerToItemCenter =
+        _dragInfo!.size.center(Offset.zero) - details.localPosition;
+
+    final result = _computePointerPosition(details.globalPosition);
+
+    if (result != null) {
+      autoScroll.start(result.$1, result.$2);
+    } else {
+      autoScroll.stop();
+    }
+  }
+
+  /// the relative distance between the start pointer local position and the item center,
+  /// used to compute the item center position during dragging for better auto scroll experience
+  Offset? _pointerToItemCenter;
+
+  /// compute the local position relative to the viewport based on the given global position,
+  /// and return it with the viewport size
+  (Size, Offset)? _computePointerPosition(Offset globalPosition) {
+    final box = context.findRenderObject() as RenderBox?;
+
+    if (box == null) return null;
+
+    final localPointerPosition = box.globalToLocal(globalPosition);
+
+    final Offset position;
+
+    /// if we have the distance from the pointer to the item center,
+    /// we compute the item center position,
+    if (_pointerToItemCenter != null) {
+      position = localPointerPosition + _pointerToItemCenter!;
+    } else {
+      position = localPointerPosition;
+    }
+
+    return (box.size, position);
   }
 
   void _onDragUpdate(DragUpdateDetails details) {
     if (_draggingGlobalOrigin != null) {
       _draggingGlobalOrigin!.value += details.delta;
     }
+
     dragger.updateDrag(details.delta);
+
+    final result = _computePointerPosition(details.globalPosition);
+
+    if (result != null) {
+      autoScroll.start(result.$1, result.$2);
+    } else {
+      autoScroll.stop();
+    }
   }
 
   void _onDragEnd(DragEndDetails details) {
@@ -200,6 +267,7 @@ mixin DashboardDragGestureHandler<T extends StatefulWidget> on State<T> {
     _draggingOverlay = null;
     _draggingGlobalOrigin?.dispose();
     _draggingGlobalOrigin = null;
+    _pointerToItemCenter = null;
   }
 
   @override
