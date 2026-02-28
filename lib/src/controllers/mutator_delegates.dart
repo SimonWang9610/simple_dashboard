@@ -27,7 +27,7 @@ final class NoCollisionMutatorDelegate extends DashboardMutatorDelegate {
     List<LayoutItem> items,
   ) {
     final collisions = LayoutChecker.checkCollisions(
-      items.where((i) => i.id is! ItemPlaceholder),
+      items.where((i) => i.id is! PlaceholderId),
       rect,
     );
 

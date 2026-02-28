@@ -37,4 +37,9 @@ class LayoutCollisionResult {
   bool get hasBottomCollision {
     return bottomLeft.isNotEmpty || bottomRight.isNotEmpty;
   }
+
+  @override
+  String toString() {
+    return 'LayoutCollisionResult(rect: $rect, topLeft: $topLeft, topRight: $topRight, bottomLeft: $bottomLeft, bottomRight: $bottomRight)';
+  }
 }

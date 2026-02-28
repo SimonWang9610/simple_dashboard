@@ -35,6 +35,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final controller = DashboardController(
     mainAxisSlots: 4,
+    axis: DashboardAxis.horizontal,
     // initialItems: [
     //   LayoutItem(
     //     id: "initial-0",
@@ -116,7 +117,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Dashboard(
                 controller: controller,
                 isLoading: _loading,
-                dropStrategy: DropStrategy.reflow,
+                dropStrategy: DropStrategy.noCollision,
                 loadingBuilder: (context) {
                   return Container(
                     color: Colors.black12,

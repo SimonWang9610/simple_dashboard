@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
-import 'package:simple_dashboard/src/controllers/mutator_delegates.dart';
 
 abstract mixin class DashboardItemMutator {
   List<LayoutItem> get items;
@@ -64,6 +63,10 @@ abstract mixin class DashboardItemMutator {
     if (!validLayoutRect(candidateRect)) {
       return;
     }
+
+    print(
+      "dx: $dx, dy: $dy, candidateRect: $candidateRect",
+    ); // debug
 
     final repositionedItems = _delegate?.adopt(
       candidateRect,
