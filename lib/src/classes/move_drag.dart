@@ -6,6 +6,21 @@ import 'package:simple_dashboard/src/utils/checker.dart';
 final class MoveItemDrag extends ItemDrag {
   final DashboardMetricsManager metrics;
   final MoveDropStrategy strategy;
+  final Offset initialPosition;
+
+  /// Whether we should compute the final global position of the pointer
+  /// and synthesize a new [DragEndDetails] when the drag is ended.
+  ///
+  /// For [MultiDragGestureRecognizer], when the drag is ended,
+  /// it does not provider the final global position of the pointer,
+  /// so we must compute it manually by accumulating the delta to the initial position.
+  ///
+  /// So when using [MoveItemDrag] with [MultiDragGestureRecognizer],
+  /// you should set [synthesizedEnd] to true to get the correct final position in the [DragEndDetails].
+  ///
+  /// See also:
+  ///   - [MultiDragPointerState]
+  final bool synthesizedEnd;
 
   MoveItemDrag({
     required super.dragInfo,
@@ -14,12 +29,27 @@ final class MoveItemDrag extends ItemDrag {
     required super.viewport,
     required this.strategy,
     required this.metrics,
+    required this.initialPosition,
     required super.builder,
     super.onDragEnd,
     super.autoScroll,
+    this.synthesizedEnd = true,
   });
 
   List<LayoutItem>? _freezedItems;
+
+  @override
+  void end(DragEndDetails details) {
+    final synthesizedDetails = synthesizedEnd
+        ? DragEndDetails(
+            globalPosition: initialPosition + accumulatedDelta,
+            velocity: details.velocity,
+            primaryVelocity: details.primaryVelocity,
+          )
+        : details;
+
+    super.end(synthesizedDetails);
+  }
 
   @override
   void startDragging() {
@@ -93,6 +123,8 @@ final class MoveItemDrag extends ItemDrag {
     } else {
       mutator.updateItems(List.of(_freezedItems!));
     }
+
+    _freezedItems = null;
   }
 }
 

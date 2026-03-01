@@ -20,7 +20,7 @@ mixin DashboardMutatingStateMixin<T extends StatefulWidget> on State<T> {
   bool _isDragging = false;
 
   void absorbPointer(PointerDownEvent event, DragInfo dragInfo) {
-    if (_isDragging || mutator == null) {
+    if (_isDragging) {
       return;
     }
 
@@ -46,6 +46,7 @@ mixin DashboardMutatingStateMixin<T extends StatefulWidget> on State<T> {
     final themeData = Theme.of(context);
 
     return ItemDrag.move(
+      initialPosition: globalPosition,
       dragInfo: _dragInfo!,
       mutator: mutator!,
       overlayState: Overlay.of(context),

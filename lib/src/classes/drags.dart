@@ -10,6 +10,7 @@ class DragInfo {
   final Offset origin;
   final Widget feedback;
   final Offset localPosition;
+  final Offset globalPosition;
 
   const DragInfo({
     required this.item,
@@ -17,6 +18,7 @@ class DragInfo {
     required this.origin,
     required this.feedback,
     required this.localPosition,
+    required this.globalPosition,
   });
 
   /// Compute the offset from the pointer to the center of the item,
@@ -92,7 +94,9 @@ abstract base class ItemDrag extends Drag {
     required RenderBox viewport,
     required MoveDropStrategy strategy,
     required DashboardMetricsManager metrics,
+    required Offset initialPosition,
     required DraggingItemFeedbackBuilder builder,
+    bool synthesizedEnd,
     VoidCallback? onDragEnd,
     AutoScroll? autoScroll,
   }) = MoveItemDrag;
@@ -140,6 +144,10 @@ abstract base class ItemDrag extends Drag {
     autoScroll?.start(result.$1, result.$2);
   }
 
+  Offset get accumulatedDelta => _delta.value;
+
+  /// TODO: should remove placeholder when the pointer moves out of the original item boundary,
+  /// instead of waiting until the drag ends?
   @override
   void update(DragUpdateDetails details) {
     _delta.value += details.delta;

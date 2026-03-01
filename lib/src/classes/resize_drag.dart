@@ -63,5 +63,7 @@ final class ResizeItemDrag extends ItemDrag {
     } else {
       mutator.updateItems(List.of(_freezedItems!));
     }
+
+    _freezedItems = null;
   }
 }
