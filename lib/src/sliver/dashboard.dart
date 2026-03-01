@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
-import 'package:simple_dashboard/src/classes/drags.dart';
 import 'package:simple_dashboard/src/controllers/mutator_state.dart';
+import 'package:simple_dashboard/src/widgets/cache_key_store.dart';
 
 class Dashboard extends StatefulWidget {
   final DashboardController controller;
@@ -42,20 +42,6 @@ class Dashboard extends StatefulWidget {
 
   @override
   State<Dashboard> createState() => DashboardState();
-
-  static DashboardState? of(BuildContext context) {
-    return context.findAncestorStateOfType<DashboardState>();
-  }
-
-  static GlobalKey? getCacheKeyForItem(BuildContext context, Object itemId) {
-    final state = of(context);
-    if (state == null) return null;
-
-    return state._itemCacheKeys.putIfAbsent(
-      itemId,
-      () => GlobalKey(debugLabel: "cacheKey-$itemId"),
-    );
-  }
 }
 
 class DashboardState extends State<Dashboard> with DashboardMutatingStateMixin {
@@ -88,6 +74,8 @@ class DashboardState extends State<Dashboard> with DashboardMutatingStateMixin {
 
   @override
   void dispose() {
+    _fallbackScrollController?.dispose();
+    _itemCacheKeys.clear();
     _autoScroll.stop();
     super.dispose();
   }
@@ -119,34 +107,38 @@ class DashboardState extends State<Dashboard> with DashboardMutatingStateMixin {
           )
         : emptyPlaceholder;
 
-    return Stack(
-      fit: StackFit.passthrough,
-      children: [
-        ListenableBuilder(
-          listenable: widget.controller,
-          builder: (_, _) {
-            return DashboardView.builder(
-              /// DashboardView parameters
-              items: widget.controller.sortedItems,
-              axis: widget.controller.axis,
-              mainAxisSlots: widget.controller.mainAxisSlots,
-              itemBuilder: widget.itemBuilder,
-              mainAxisSpacing: widget.mainAxisSpacing,
-              crossAxisSpacing: widget.crossAxisSpacing,
-              aspectRatio: widget.aspectRatio,
-              addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
-              addRepaintBoundaries: widget.addRepaintBoundaries,
-              addSemanticIndexes: widget.addSemanticIndexes,
+    return ItemCacheKeyStore(
+      autoGenerateCacheKeys: true,
+      cacheKeys: _itemCacheKeys,
+      child: Stack(
+        fit: StackFit.passthrough,
+        children: [
+          ListenableBuilder(
+            listenable: widget.controller,
+            builder: (_, _) {
+              return DashboardView.builder(
+                /// DashboardView parameters
+                items: widget.controller.sortedItems,
+                axis: widget.controller.axis,
+                mainAxisSlots: widget.controller.mainAxisSlots,
+                itemBuilder: widget.itemBuilder,
+                mainAxisSpacing: widget.mainAxisSpacing,
+                crossAxisSpacing: widget.crossAxisSpacing,
+                aspectRatio: widget.aspectRatio,
+                addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
+                addRepaintBoundaries: widget.addRepaintBoundaries,
+                addSemanticIndexes: widget.addSemanticIndexes,
 
-              /// scroll parameters
-              controller: _scrollController,
-              cacheExtent: widget.cacheExtent,
-              physics: widget.physics,
-            );
-          },
-        ),
-        Positioned.fill(child: loader),
-      ],
+                /// scroll parameters
+                controller: _scrollController,
+                cacheExtent: widget.cacheExtent,
+                physics: widget.physics,
+              );
+            },
+          ),
+          Positioned.fill(child: loader),
+        ],
+      ),
     );
   }
 }

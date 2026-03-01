@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:simple_dashboard/src/classes/drags.dart';
 import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
-import 'package:simple_dashboard/src/sliver/dashboard.dart';
 import 'package:simple_dashboard/src/sliver/widgets.dart';
+import 'package:simple_dashboard/src/utils/extensions.dart';
+import 'package:simple_dashboard/src/widgets/cache_key_store.dart';
 
 class DraggableItemWidget extends StatelessWidget with LayoutItemWidget {
   @override
@@ -22,7 +23,7 @@ class DraggableItemWidget extends StatelessWidget with LayoutItemWidget {
       return ColoredBox(color: Colors.red);
     }
 
-    final cacheKey = Dashboard.getCacheKeyForItem(context, item.id);
+    final cacheKey = ItemCacheKeyStore.getCacheKeyForItem(context, item.id);
 
     final keyedChild = KeyedSubtree(
       key: cacheKey,
@@ -33,12 +34,13 @@ class DraggableItemWidget extends StatelessWidget with LayoutItemWidget {
       behavior: HitTestBehavior.opaque,
       onPointerDown: (event) {
         final box = context.findRenderObject() as RenderBox?;
-        final dashboard = Dashboard.of(context);
+        final mutator = context.ofDashboardMutator();
 
-        if (box == null || dashboard == null) return;
+        if (box == null || mutator == null) return;
+
         final itemOrigin = box.localToGlobal(box.size.topLeft(Offset.zero));
 
-        dashboard.absorbPointer(
+        mutator.absorbPointer(
           event,
           DragInfo(
             item: item,
@@ -46,6 +48,7 @@ class DraggableItemWidget extends StatelessWidget with LayoutItemWidget {
             size: box.size,
             origin: itemOrigin,
             localPosition: event.localPosition,
+            globalPosition: event.position,
           ),
         );
       },
