@@ -1,6 +1,4 @@
 import 'dart:math' as math;
-import 'dart:typed_data';
-import 'dart:ui';
 import 'package:flutter/rendering.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
 import 'package:simple_dashboard/src/sliver/grid_painter.dart';

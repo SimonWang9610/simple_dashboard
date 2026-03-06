@@ -24,12 +24,16 @@ final class ResizeDragHandler extends DragLayoutHandler {
   void startDragging() {
     _freezedItems = List.unmodifiable(mutator.items);
 
+    _currentPlaceholder = draggingItem.placeholder;
+
     mutator.updateItems(
       _freezedItems!
-          .map((i) => i.id == draggingItem.id ? i.placeholder : i)
+          .map((i) => i.id == draggingItem.id ? _currentPlaceholder! : i)
           .toList(),
     );
   }
+
+  ItemPlaceholder? _currentPlaceholder;
 
   @override
   bool updateDragging(int dx, int dy) {
@@ -45,6 +49,12 @@ final class ResizeDragHandler extends DragLayoutHandler {
       return false;
     }
 
+    /// all onstage items have been resized relative to the previous placeholder,
+    /// so the incoming dx and dy should be relative to the previous placeholder's position
+    /// instead of the original dragging item's position,
+    // final shiftedX = candidateRect.x - _currentPlaceholder!.rect.x;
+    // final shiftedY = candidateRect.y - _currentPlaceholder!.rect.y;
+
     final resolved = ResizeDragHelper.resolveCollision(
       draggingItem,
       candidateRect,
@@ -56,7 +66,8 @@ final class ResizeDragHandler extends DragLayoutHandler {
     );
 
     if (resolved != null) {
-      mutator.updateItems(resolved);
+      _currentPlaceholder = resolved.$1;
+      mutator.updateItems(resolved.$2);
     }
 
     return resolved != null;
@@ -119,7 +130,7 @@ abstract class ResizeDragHelper {
     return candidate;
   }
 
-  static List<LayoutItem>? resolveCollision(
+  static (ItemPlaceholder, List<LayoutItem>)? resolveCollision(
     LayoutItem draggingItem,
     LayoutRect candidateRect,
     ResizeDirection direction,
@@ -141,12 +152,15 @@ abstract class ResizeDragHelper {
         rect: candidateRect,
       );
 
-      return items.map((i) {
-        if (i.id == placeholder.id) {
-          return placeholder;
-        }
-        return i;
-      }).toList();
+      return (
+        placeholder,
+        items.map((i) {
+          if (i.id == placeholder.id) {
+            return placeholder;
+          }
+          return i;
+        }).toList(),
+      );
     }
 
     /// 1. iterate through the collisions and apply the same delta according to the collision direction and resize direction.
@@ -185,24 +199,27 @@ abstract class ResizeDragHelper {
       rect: candidateRect,
     );
 
-    return items.map((i) {
-      if (i.id == placeholder.id) {
-        return placeholder;
-      }
+    return (
+      placeholder,
+      items.map((i) {
+        if (i.id == placeholder.id) {
+          return placeholder;
+        }
 
-      final newRect = newRects[i.id];
+        final newRect = newRects[i.id];
 
-      if (newRect != null) {
-        return LayoutItem(
-          id: i.id,
-          rect: newRect,
-          minSize: i.minSize,
-          maxSize: i.maxSize,
-        );
-      }
+        if (newRect != null) {
+          return LayoutItem(
+            id: i.id,
+            rect: newRect,
+            minSize: i.minSize,
+            maxSize: i.maxSize,
+          );
+        }
 
-      return i;
-    }).toList();
+        return i;
+      }).toList(),
+    );
   }
 
   static LayoutRect? _resizeCollidedItem(

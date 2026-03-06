@@ -154,8 +154,10 @@ class ItemDrag extends Drag {
   void update(DragUpdateDetails details) {
     final accumulated = _accumulatedDelta + details.delta;
 
-    final dx = (accumulated.dx / dragSlotExtentX).round();
-    final dy = (accumulated.dy / dragSlotExtentY).round();
+    /// use ceil to make sure the dragging item can move even when the dragging delta
+    /// is smaller than the slot extent,
+    final dx = (accumulated.dx / dragSlotExtentX).ceil();
+    final dy = (accumulated.dy / dragSlotExtentY).ceil();
 
     final updated = handler.updateDragging(dx, dy);
 
@@ -194,7 +196,17 @@ class ItemDrag extends Drag {
 
   /// compute the local position relative to the viewport based on the given global position,
   /// and return it with the viewport size
-  (Size, Offset) _computePointerInViewport(Offset globalPosition) {
+  ///
+  /// [exact] determines whether to consider the [distanceFromPointerToItemCenter]
+  /// when computing the pointer position in the viewport.
+  ///
+  /// If [exact] is true, the pointer position is exactly the local position in the viewport;
+  /// If [exact] is false, the pointer position is transformed by adding the [distanceFromPointerToItemCenter],
+  /// which is equivalent to the center position of the dragging item in the viewport.
+  (Size, Offset) _computePointerInViewport(
+    Offset globalPosition, {
+    bool exact = false,
+  }) {
     final localPointerPosition = viewport.globalToLocal(globalPosition);
 
     return (
@@ -203,16 +215,24 @@ class ItemDrag extends Drag {
       /// transform the global position to the local position in the viewport,
       ///  and add the distance from the pointer to the item center.
       ///
-      /// For example, if [distanceFromPointerToItemCenter] si relative to the item center,
-      /// so users can know when the center of dragging item reaches the edge of the viewport to trigger auto-scrolling,
+      /// For example, if [distanceFromPointerToItemCenter] is relative to the item center,
+      /// users can know when the center of the dragging item reaches the edge of the viewport to trigger auto-scrolling,
       /// instead of relying on a very dynamic start pointer position.
-      localPointerPosition + distanceFromPointerToItemCenter,
+      localPointerPosition +
+          (exact ? Offset.zero : distanceFromPointerToItemCenter),
     );
   }
 
   /// TODO: consider velocity to determine whether the pointer is out of viewport
-  bool isPointerInViewport(Offset globalPosition, {double? velocity}) {
-    final pointerPosition = _computePointerInViewport(globalPosition).$2;
+  bool isPointerInViewport(
+    Offset globalPosition, {
+    double? velocity,
+  }) {
+    final pointerPosition = _computePointerInViewport(
+      globalPosition,
+      exact: true,
+    ).$2;
+
     final viewportRect = Offset.zero & viewport.size;
 
     return viewportRect.contains(pointerPosition);
