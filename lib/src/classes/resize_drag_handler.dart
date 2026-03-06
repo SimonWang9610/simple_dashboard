@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
 import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
 import 'package:simple_dashboard/src/utils/checker.dart';
@@ -16,11 +15,6 @@ final class ResizeDragHandler extends DragLayoutHandler {
   List<LayoutItem>? _freezedItems;
 
   @override
-  DraggingItemPosition updatePosition(Offset accumulated, Offset delta) {
-    return initialDraggingPosition.resize(direction, accumulated);
-  }
-
-  @override
   void startDragging() {
     _freezedItems = List.unmodifiable(mutator.items);
 
@@ -36,17 +30,20 @@ final class ResizeDragHandler extends DragLayoutHandler {
   ItemPlaceholder? _currentPlaceholder;
 
   @override
-  bool updateDragging(int dx, int dy) {
+  DraggingItemPosition? updateDragging(
+    DraggingLayoutDelta accumulated,
+    DraggingLayoutDelta delta,
+  ) {
     final candidateRect = ResizeDragHelper.computeCandidateRect(
-      dx,
-      dy,
+      accumulated.x,
+      accumulated.y,
       draggingItem.rect,
       direction,
     );
 
     if (!mutator.validateLayoutRect(candidateRect) ||
         !draggingItem.canAcceptSize(candidateRect.size)) {
-      return false;
+      return null;
     }
 
     /// all onstage items have been resized relative to the previous placeholder,
@@ -60,8 +57,8 @@ final class ResizeDragHandler extends DragLayoutHandler {
       candidateRect,
       direction,
       mutator.items,
-      dx,
-      dy,
+      delta.x,
+      delta.y,
       mutator.validateLayoutRect,
     );
 
@@ -70,7 +67,9 @@ final class ResizeDragHandler extends DragLayoutHandler {
       mutator.updateItems(resolved.$2);
     }
 
-    return resolved != null;
+    return resolved != null
+        ? initialDraggingPosition.resize(direction, accumulated.delta)
+        : null;
   }
 
   @override

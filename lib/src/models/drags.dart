@@ -52,7 +52,18 @@ class DraggingItemPosition extends Equatable {
   }
 
   DraggingItemPosition resize(ResizeDirection direction, Offset delta) {
-    final newSize = size + delta;
+    /// constrained delta based on the resize direction,
+    /// for example, if the resize direction is left or right, the delta in y axis should be ignored.
+    ///
+    /// To avoid the dragging item is overlapped with other items during resizing,
+    final normalizedDelta = switch (direction) {
+      ResizeDirection.left || ResizeDirection.right => Offset(delta.dx, 0),
+      ResizeDirection.up || ResizeDirection.down => Offset(0, delta.dy),
+      ResizeDirection.topLeft ||
+      ResizeDirection.topRight ||
+      ResizeDirection.bottomLeft ||
+      ResizeDirection.bottomRight => delta,
+    };
 
     double newX = dx;
     double newY = dy;
@@ -68,7 +79,7 @@ class DraggingItemPosition extends Equatable {
     return DraggingItemPosition(
       dx: newX,
       dy: newY,
-      size: newSize,
+      size: size + normalizedDelta,
     );
   }
 
@@ -85,4 +96,16 @@ class DraggingItemPosition extends Equatable {
 
   @override
   bool get stringify => true;
+}
+
+class DraggingLayoutDelta {
+  final int x;
+  final int y;
+  final Offset delta;
+
+  const DraggingLayoutDelta({
+    required this.x,
+    required this.y,
+    required this.delta,
+  });
 }

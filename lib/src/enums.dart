@@ -60,6 +60,22 @@ enum ResizeDirection {
       this == ResizeDirection.bottomLeft ||
       this == ResizeDirection.bottomRight;
 
+  bool get isHorizontal =>
+      this == ResizeDirection.left ||
+      this == ResizeDirection.right ||
+      this == ResizeDirection.topLeft ||
+      this == ResizeDirection.topRight ||
+      this == ResizeDirection.bottomLeft ||
+      this == ResizeDirection.bottomRight;
+
+  bool get isVertical =>
+      this == ResizeDirection.up ||
+      this == ResizeDirection.down ||
+      this == ResizeDirection.topLeft ||
+      this == ResizeDirection.topRight ||
+      this == ResizeDirection.bottomLeft ||
+      this == ResizeDirection.bottomRight;
+
   ResizeDirection get opposite {
     return switch (this) {
       ResizeDirection.left => ResizeDirection.right,

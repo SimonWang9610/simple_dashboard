@@ -23,11 +23,6 @@ final class MoveDragHandler extends DragLayoutHandler {
   List<LayoutItem>? _freezedItems;
 
   @override
-  DraggingItemPosition updatePosition(Offset accumulated, Offset delta) {
-    return initialDraggingPosition.move(accumulated);
-  }
-
-  @override
   DragEndDetails synthesize(
     DragEndDetails details,
     Offset accumulated,
@@ -55,15 +50,18 @@ final class MoveDragHandler extends DragLayoutHandler {
   }
 
   @override
-  bool updateDragging(int dx, int dy) {
+  DraggingItemPosition? updateDragging(
+    DraggingLayoutDelta accumulated,
+    DraggingLayoutDelta delta,
+  ) {
     final candidateRect = LayoutRect(
-      x: draggingItem.rect.x + dx,
-      y: draggingItem.rect.y + dy,
+      x: draggingItem.rect.x + accumulated.x,
+      y: draggingItem.rect.y + accumulated.y,
       size: draggingItem.rect.size,
     );
 
     if (!mutator.validateLayoutRect(candidateRect)) {
-      return true;
+      return initialDraggingPosition.move(accumulated.delta);
     }
 
     final itemsAfterMove = switch (strategy) {
@@ -96,7 +94,7 @@ final class MoveDragHandler extends DragLayoutHandler {
       mutator.updateItems(itemsAfterMove);
     }
 
-    return true;
+    return initialDraggingPosition.move(accumulated.delta);
   }
 
   @override

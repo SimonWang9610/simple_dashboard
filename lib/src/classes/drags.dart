@@ -120,7 +120,7 @@ class ItemDrag extends Drag {
     required this.handler,
   }) {
     _position = ValueNotifier<DraggingItemPosition>(
-      handler.updatePosition(Offset.zero, Offset.zero),
+      handler.initialDraggingPosition,
     );
 
     /// relative distance between the start pointer and the item position.
@@ -154,16 +154,26 @@ class ItemDrag extends Drag {
   void update(DragUpdateDetails details) {
     final accumulated = _accumulatedDelta + details.delta;
 
-    /// use ceil to make sure the dragging item can move even when the dragging delta
-    /// is smaller than the slot extent,
-    final dx = (accumulated.dx / dragSlotExtentX).ceil();
-    final dy = (accumulated.dy / dragSlotExtentY).ceil();
+    final accumulatedDelta = DraggingLayoutDelta(
+      x: (accumulated.dx / dragSlotExtentX).round(),
+      y: (accumulated.dy / dragSlotExtentY).round(),
+      delta: accumulated,
+    );
 
-    final updated = handler.updateDragging(dx, dy);
+    /// for small dragging delta,
+    /// we want to update the dragging item's position in real time
+    /// without waiting for it to exceed the slot extent,
+    final delta = DraggingLayoutDelta(
+      x: (details.delta.dx / dragSlotExtentX).ceil(),
+      y: (details.delta.dy / dragSlotExtentY).ceil(),
+      delta: details.delta,
+    );
 
-    if (updated) {
+    final updatedPosition = handler.updateDragging(accumulatedDelta, delta);
+
+    if (updatedPosition != null) {
       _accumulatedDelta = accumulated;
-      _position.value = handler.updatePosition(accumulated, details.delta);
+      _position.value = updatedPosition;
     }
 
     final result = _computePointerInViewport(details.globalPosition);
@@ -261,10 +271,12 @@ abstract base class DragLayoutHandler {
 
   /// Update the layout based on the dragging delta, and return whether the layout is updated.
   /// The return value is used to determine whether to update the dragging position
-  bool updateDragging(int dx, int dy);
-  void finishDragging(bool accepted);
+  DraggingItemPosition? updateDragging(
+    DraggingLayoutDelta accumulated,
+    DraggingLayoutDelta delta,
+  );
 
-  DraggingItemPosition updatePosition(Offset accumulated, Offset delta);
+  void finishDragging(bool accepted);
 
   DragEndDetails synthesize(
     DragEndDetails details,
