@@ -7,6 +7,8 @@ export 'src/utils/helper.dart';
 export 'src/models/dashboard_layout_item.dart'
     hide ItemPlaceholder, PlaceholderId;
 
+export 'src/models/drags.dart';
+
 export 'src/defs.dart';
 
 export 'src/sliver/layout_delegate.dart';

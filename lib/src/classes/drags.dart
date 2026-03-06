@@ -4,36 +4,6 @@ import 'package:simple_dashboard/simple_dashboard.dart';
 import 'package:simple_dashboard/src/classes/move_drag.dart';
 import 'package:simple_dashboard/src/classes/resize_drag.dart';
 
-class DragInfo {
-  final LayoutItem item;
-  final Size size;
-  final Offset origin;
-  final Widget feedback;
-  final Offset localPosition;
-  final Offset globalPosition;
-
-  const DragInfo({
-    required this.item,
-    required this.size,
-    required this.origin,
-    required this.feedback,
-    required this.localPosition,
-    required this.globalPosition,
-  });
-
-  /// Compute the offset from the pointer to the center of the item,
-  /// which will be used to keep the relative position between the pointer and the item during dragging.
-  ///
-  /// IT is used for [AutoScroll] to determine when to trigger auto-scrolling
-  /// based on the dragging item's position relative to the viewport edges.
-  ///
-  /// the dragging item's position is computed by: the pointer local position in the viewport + this offset.
-  Offset computeRelativeOffset([Alignment alignment = Alignment.center]) {
-    final reference = alignment.alongSize(size);
-    return reference - localPosition;
-  }
-}
-
 abstract interface class DashboardItemMutator {
   List<LayoutItem> get items;
   void updateItems(List<LayoutItem> newItems);
@@ -62,7 +32,13 @@ abstract base class ItemDrag extends Drag {
 
   /// The accumulated delta since the start of dragging,
   /// which would be used to compute the relative shift of [LayoutItem]s during dragging.
-  final ValueNotifier<Offset> _delta = ValueNotifier(Offset.zero);
+  late final _position = ValueNotifier<DraggingItemPosition>(
+    initialDraggingPosition,
+  );
+
+  late final initialDraggingPosition = DraggingItemPosition.fromDragInfo(
+    dragInfo,
+  );
 
   /// The overlay entry that displays the dragging feedback widget.
   late final OverlayEntry _entry;
@@ -134,7 +110,7 @@ abstract base class ItemDrag extends Drag {
     startDragging();
 
     _entry = OverlayEntry(
-      builder: (context) => builder(context, dragInfo, _delta),
+      builder: (context) => builder(context, _position, dragInfo.feedback),
     );
 
     overlayState.insert(_entry);
@@ -144,15 +120,25 @@ abstract base class ItemDrag extends Drag {
     autoScroll?.start(result.$1, result.$2);
   }
 
-  Offset get accumulatedDelta => _delta.value;
+  Offset _accumulatedDelta = Offset.zero;
+
+  Offset get accumulatedDelta => _accumulatedDelta;
 
   /// TODO: should remove placeholder when the pointer moves out of the original item boundary,
   /// instead of waiting until the drag ends?
   @override
   void update(DragUpdateDetails details) {
-    _delta.value += details.delta;
+    final accumulated = _accumulatedDelta + details.delta;
 
-    updateDragging(_delta.value);
+    final dx = (accumulated.dx / dragSlotExtentX).round();
+    final dy = (accumulated.dy / dragSlotExtentY).round();
+
+    final updated = updateDragging(dx, dy);
+
+    if (updated) {
+      _accumulatedDelta = accumulated;
+      _position.value = updatePosition(accumulated, details.delta);
+    }
 
     final result = _computePointerInViewport(details.globalPosition);
 
@@ -204,7 +190,7 @@ abstract base class ItemDrag extends Drag {
   }
 
   void _dispose() {
-    _delta.dispose();
+    _position.dispose();
     _entry.remove();
     _entry.dispose();
     autoScroll?.stop();
@@ -212,7 +198,11 @@ abstract base class ItemDrag extends Drag {
 
   void startDragging();
 
-  void updateDragging(Offset delta);
+  bool updateDragging(int dx, int dy);
 
   void finishDragging(bool accepted);
+
+  /// Compute the dragging item's position based on the accumulated delta
+  /// and the current dragging state.
+  DraggingItemPosition updatePosition(Offset accumulated, Offset delta);
 }

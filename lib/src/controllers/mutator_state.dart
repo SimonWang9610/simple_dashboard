@@ -66,27 +66,24 @@ mixin DashboardMutatingStateMixin<T extends StatefulWidget> on State<T> {
       onDragEnd: () {
         _isDragging = false;
       },
-      builder: (context, dragInfo, delta) {
+      builder: (context, position, feedback) {
         return ValueListenableBuilder(
-          valueListenable: delta,
-          builder: (_, delta, feedback) {
+          valueListenable: position,
+          builder: (_, position, _) {
             return Positioned(
-              left: dragInfo.origin.dx + delta.dx,
-              top: dragInfo.origin.dy + delta.dy,
-              child: Material(
-                child: feedback!,
+              left: position.dx,
+              top: position.dy,
+              child: Theme(
+                data: themeData,
+                child: SizedBox.fromSize(
+                  size: position.size,
+                  child: Material(
+                    child: feedback,
+                  ),
+                ),
               ),
             );
           },
-          child: Theme(
-            data: themeData,
-            child: Material(
-              child: SizedBox.fromSize(
-                size: dragInfo.size,
-                child: dragInfo.feedback,
-              ),
-            ),
-          ),
         );
       },
     );
@@ -128,27 +125,27 @@ mixin DashboardMutatingStateMixin<T extends StatefulWidget> on State<T> {
       onDragEnd: () {
         _isDragging = false;
       },
-      builder: (context, dragInfo, delta) {
-        return Positioned(
-          left: dragInfo.origin.dx,
-          top: dragInfo.origin.dy,
-          child: Theme(
-            data: themeData,
-            child: MouseRegion(
-              cursor: _resizeDirection!.cursor,
-              child: Material(
-                child: ValueListenableBuilder(
-                  valueListenable: delta,
-                  builder: (_, delta, _) {
-                    return SizedBox.fromSize(
-                      size: dragInfo.size + delta,
-                      child: dragInfo.feedback,
-                    );
-                  },
+      builder: (context, position, feedback) {
+        return ValueListenableBuilder(
+          valueListenable: position,
+          builder: (_, position, _) {
+            return Positioned(
+              left: position.dx,
+              top: position.dy,
+              child: MouseRegion(
+                cursor: _resizeDirection!.cursor,
+                child: Theme(
+                  data: themeData,
+                  child: Material(
+                    child: SizedBox.fromSize(
+                      size: position.size,
+                      child: feedback,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );

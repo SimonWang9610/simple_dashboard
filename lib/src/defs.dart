@@ -8,6 +8,6 @@ typedef DashboardItemBuilder =
 typedef DraggingItemFeedbackBuilder =
     Widget Function(
       BuildContext context,
-      DragInfo dragInfo,
-      ValueListenable<Offset> delta,
+      ValueListenable<DraggingItemPosition> position,
+      Widget feedback,
     );

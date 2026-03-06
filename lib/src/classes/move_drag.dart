@@ -53,6 +53,11 @@ final class MoveItemDrag extends ItemDrag {
   }
 
   @override
+  DraggingItemPosition updatePosition(Offset accumulated, Offset delta) {
+    return initialDraggingPosition.move(accumulated);
+  }
+
+  @override
   void startDragging() {
     _freezedItems = List.unmodifiable(mutator.items);
 
@@ -64,10 +69,7 @@ final class MoveItemDrag extends ItemDrag {
   }
 
   @override
-  void updateDragging(Offset delta) {
-    final dx = (delta.dx / dragSlotExtentX).round();
-    final dy = (delta.dy / dragSlotExtentY).round();
-
+  bool updateDragging(int dx, int dy) {
     final candidateRect = LayoutRect(
       x: dragInfo.item.rect.x + dx,
       y: dragInfo.item.rect.y + dy,
@@ -75,7 +77,7 @@ final class MoveItemDrag extends ItemDrag {
     );
 
     if (!mutator.validateLayoutRect(candidateRect)) {
-      return;
+      return false;
     }
 
     final itemsAfterMove = switch (strategy) {
@@ -108,6 +110,8 @@ final class MoveItemDrag extends ItemDrag {
       );
       mutator.updateItems(itemsAfterMove);
     }
+
+    return itemsAfterMove != null;
   }
 
   @override

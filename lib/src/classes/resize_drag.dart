@@ -19,6 +19,11 @@ final class ResizeItemDrag extends ItemDrag {
   List<LayoutItem>? _freezedItems;
 
   @override
+  DraggingItemPosition updatePosition(Offset accumulated, Offset delta) {
+    return initialDraggingPosition.resize(direction, accumulated);
+  }
+
+  @override
   void startDragging() {
     _freezedItems = List.unmodifiable(mutator.items);
 
@@ -30,10 +35,7 @@ final class ResizeItemDrag extends ItemDrag {
   }
 
   @override
-  void updateDragging(Offset delta) {
-    final dx = (delta.dx / dragSlotExtentX).round();
-    final dy = (delta.dy / dragSlotExtentY).round();
-
+  bool updateDragging(int dx, int dy) {
     final candidateRect = ResizeDragHelper.computeCandidateRect(
       dx,
       dy,
@@ -43,7 +45,7 @@ final class ResizeItemDrag extends ItemDrag {
 
     if (!mutator.validateLayoutRect(candidateRect) ||
         !dragInfo.item.canAcceptSize(candidateRect.size)) {
-      return;
+      return false;
     }
 
     final resolved = ResizeDragHelper.resolveCollision(
@@ -59,6 +61,8 @@ final class ResizeItemDrag extends ItemDrag {
     if (resolved != null) {
       mutator.updateItems(resolved);
     }
+
+    return resolved != null;
   }
 
   @override
