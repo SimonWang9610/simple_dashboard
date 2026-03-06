@@ -4,57 +4,43 @@ import 'package:simple_dashboard/simple_dashboard.dart';
 import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
 import 'package:simple_dashboard/src/utils/checker.dart';
 
-final class MoveItemDrag extends ItemDrag {
+final class MoveDragHandler extends DragLayoutHandler {
   final DashboardMetricsManager metrics;
   final MoveDropStrategy strategy;
   final Offset initialPosition;
-
-  /// Whether we should compute the final global position of the pointer
-  /// and synthesize a new [DragEndDetails] when the drag is ended.
-  ///
-  /// For [MultiDragGestureRecognizer], when the drag is ended,
-  /// it does not provider the final global position of the pointer,
-  /// so we must compute it manually by accumulating the delta to the initial position.
-  ///
-  /// So when using [MoveItemDrag] with [MultiDragGestureRecognizer],
-  /// you should set [synthesizedEnd] to true to get the correct final position in the [DragEndDetails].
-  ///
-  /// See also:
-  ///   - [MultiDragPointerState]
   final bool synthesizedEnd;
 
-  MoveItemDrag({
-    required super.dragInfo,
-    required super.mutator,
-    required super.overlayState,
-    required super.viewport,
+  MoveDragHandler({
     required this.strategy,
     required this.metrics,
     required this.initialPosition,
-    required super.builder,
-    super.onDragEnd,
-    super.autoScroll,
+    required super.draggingItem,
+    required super.mutator,
+    required super.initialDraggingPosition,
     this.synthesizedEnd = true,
   });
 
   List<LayoutItem>? _freezedItems;
 
   @override
-  void end(DragEndDetails details) {
-    final synthesizedDetails = synthesizedEnd
-        ? DragEndDetails(
-            globalPosition: initialPosition + accumulatedDelta,
-            velocity: details.velocity,
-            primaryVelocity: details.primaryVelocity,
-          )
-        : details;
-
-    super.end(synthesizedDetails);
+  DraggingItemPosition updatePosition(Offset accumulated, Offset delta) {
+    return initialDraggingPosition.move(accumulated);
   }
 
   @override
-  DraggingItemPosition updatePosition(Offset accumulated, Offset delta) {
-    return initialDraggingPosition.move(accumulated);
+  DragEndDetails synthesize(
+    DragEndDetails details,
+    Offset accumulated,
+  ) {
+    if (!synthesizedEnd) {
+      return details;
+    }
+
+    return DragEndDetails(
+      globalPosition: initialPosition + accumulated,
+      velocity: details.velocity,
+      primaryVelocity: details.primaryVelocity,
+    );
   }
 
   @override
@@ -63,7 +49,7 @@ final class MoveItemDrag extends ItemDrag {
 
     mutator.updateItems(
       mutator.items
-          .map((i) => i.id == dragInfo.item.id ? i.placeholder : i)
+          .map((i) => i.id == draggingItem.id ? i.placeholder : i)
           .toList(),
     );
   }
@@ -71,26 +57,25 @@ final class MoveItemDrag extends ItemDrag {
   @override
   bool updateDragging(int dx, int dy) {
     final candidateRect = LayoutRect(
-      x: dragInfo.item.rect.x + dx,
-      y: dragInfo.item.rect.y + dy,
-      size: dragInfo.item.rect.size,
+      x: draggingItem.rect.x + dx,
+      y: draggingItem.rect.y + dy,
+      size: draggingItem.rect.size,
     );
 
     if (!mutator.validateLayoutRect(candidateRect)) {
-      return false;
+      return true;
     }
 
     final itemsAfterMove = switch (strategy) {
-      MoveDropStrategy.noCollision =>
-        MoveDropDragHelper.handleNoCollisionStrategy(
-          candidateRect,
-          dragInfo,
-          mutator.items,
-        ),
-      MoveDropStrategy.reflow => MoveDropDragHelper.handleReflowStrategy(
+      MoveDropStrategy.noCollision => _Helper.handleNoCollisionStrategy(
+        candidateRect,
+        draggingItem,
+        mutator.items,
+      ),
+      MoveDropStrategy.reflow => _Helper.handleReflowStrategy(
         metrics,
         candidateRect,
-        dragInfo,
+        draggingItem,
         mutator.items,
       ),
     };
@@ -111,7 +96,7 @@ final class MoveItemDrag extends ItemDrag {
       mutator.updateItems(itemsAfterMove);
     }
 
-    return itemsAfterMove != null;
+    return true;
   }
 
   @override
@@ -119,7 +104,7 @@ final class MoveItemDrag extends ItemDrag {
     if (accepted) {
       mutator.updateItems(
         mutator.items.map((i) {
-          if (i is ItemPlaceholder && i.isPlaceholderOf(dragInfo.item.id)) {
+          if (i is ItemPlaceholder && i.isPlaceholderOf(draggingItem.id)) {
             return i.item;
           }
           return i;
@@ -133,10 +118,10 @@ final class MoveItemDrag extends ItemDrag {
   }
 }
 
-abstract class MoveDropDragHelper {
+abstract class _Helper {
   static List<LayoutItem>? handleNoCollisionStrategy(
     LayoutRect rect,
-    DragInfo dragInfo,
+    LayoutItem draggingItem,
     List<LayoutItem> items,
   ) {
     final collisions = LayoutChecker.checkCollisions(
@@ -149,7 +134,7 @@ abstract class MoveDropDragHelper {
     }
 
     final placeholder = ItemPlaceholder(
-      dragInfo.item.id,
+      draggingItem.id,
       rect: rect,
     );
 
@@ -164,14 +149,14 @@ abstract class MoveDropDragHelper {
   static List<LayoutItem>? handleReflowStrategy(
     DashboardMetricsManager metrics,
     LayoutRect rect,
-    DragInfo dragInfo,
+    LayoutItem draggingItem,
     List<LayoutItem> items,
   ) {
     final noPlaceHolderItems = items.where((i) => i.id is! PlaceholderId);
     final collisions = LayoutChecker.checkCollisions(noPlaceHolderItems, rect);
 
     final placeholder = ItemPlaceholder(
-      dragInfo.item.id,
+      draggingItem.id,
       rect: rect,
     );
 
@@ -187,7 +172,7 @@ abstract class MoveDropDragHelper {
     final sorted = DashboardHelper.sort(noPlaceHolderItems, metrics.axis);
 
     final after = sorted.reversed
-        .skipWhile((i) => i.id == dragInfo.item.id)
+        .skipWhile((i) => i.id == draggingItem.id)
         .firstWhereOrNull((i) => i.rect.compare(rect, metrics.axis) < 0);
 
     final positioned = DashboardAfterPositioner(
@@ -212,7 +197,7 @@ abstract class MoveDropDragHelper {
     }
 
     positioned[placeholderIndex] = ItemPlaceholder(
-      dragInfo.item.id,
+      draggingItem.id,
       rect: newPlaceholder.rect,
     );
 

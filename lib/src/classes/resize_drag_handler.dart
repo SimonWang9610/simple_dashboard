@@ -3,17 +3,14 @@ import 'package:simple_dashboard/simple_dashboard.dart';
 import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
 import 'package:simple_dashboard/src/utils/checker.dart';
 
-final class ResizeItemDrag extends ItemDrag {
+final class ResizeDragHandler extends DragLayoutHandler {
   final ResizeDirection direction;
-  ResizeItemDrag({
-    required super.dragInfo,
-    required super.mutator,
-    required super.overlayState,
-    required super.viewport,
+
+  ResizeDragHandler({
     required this.direction,
-    required super.builder,
-    super.onDragEnd,
-    super.autoScroll,
+    required super.draggingItem,
+    required super.mutator,
+    required super.initialDraggingPosition,
   });
 
   List<LayoutItem>? _freezedItems;
@@ -29,7 +26,7 @@ final class ResizeItemDrag extends ItemDrag {
 
     mutator.updateItems(
       _freezedItems!
-          .map((i) => i.id == dragInfo.item.id ? i.placeholder : i)
+          .map((i) => i.id == draggingItem.id ? i.placeholder : i)
           .toList(),
     );
   }
@@ -39,17 +36,17 @@ final class ResizeItemDrag extends ItemDrag {
     final candidateRect = ResizeDragHelper.computeCandidateRect(
       dx,
       dy,
-      dragInfo.item.rect,
+      draggingItem.rect,
       direction,
     );
 
     if (!mutator.validateLayoutRect(candidateRect) ||
-        !dragInfo.item.canAcceptSize(candidateRect.size)) {
+        !draggingItem.canAcceptSize(candidateRect.size)) {
       return false;
     }
 
     final resolved = ResizeDragHelper.resolveCollision(
-      dragInfo.item,
+      draggingItem,
       candidateRect,
       direction,
       mutator.items,
@@ -70,7 +67,7 @@ final class ResizeItemDrag extends ItemDrag {
     if (accepted) {
       mutator.updateItems(
         mutator.items.map((i) {
-          if (i is ItemPlaceholder && i.isPlaceholderOf(dragInfo.item.id)) {
+          if (i is ItemPlaceholder && i.isPlaceholderOf(draggingItem.id)) {
             return i.item;
           }
           return i;

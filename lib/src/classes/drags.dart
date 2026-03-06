@@ -1,8 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
-import 'package:simple_dashboard/src/classes/move_drag.dart';
-import 'package:simple_dashboard/src/classes/resize_drag.dart';
+import 'package:simple_dashboard/src/classes/move_drag_handler.dart';
+import 'package:simple_dashboard/src/classes/resize_drag_handler.dart';
 
 abstract interface class DashboardItemMutator {
   List<LayoutItem> get items;
@@ -16,14 +16,12 @@ abstract interface class DashboardItemMutator {
 /// It is responsible for managing the drag state, computing the dragging item's position,
 /// and updating the layout accordingly.
 ///
-/// However, it delegates to the subclasses to handle the specific logic of
-/// how the layout of items should be updated during dragging by implementation
-///  of [startDragging], [updateDragging], and [finishDragging].
+/// However, it delegates to [DragLayoutHandler] for the specific logic of how to update the layout during dragging
 ///
 /// See also:
-///   - [MoveItemDrag]: a drag for moving items.
-///   - [ResizeItemDrag]: a drag for resizing items.
-abstract base class ItemDrag extends Drag {
+///   - [MoveDragHandler]: a handler for moving items.
+///   - [ResizeDragHandler]: a handler for resizing items.
+class ItemDrag extends Drag {
   final OverlayState overlayState;
   final DragInfo dragInfo;
   final AutoScroll? autoScroll;
@@ -32,13 +30,7 @@ abstract base class ItemDrag extends Drag {
 
   /// The accumulated delta since the start of dragging,
   /// which would be used to compute the relative shift of [LayoutItem]s during dragging.
-  late final _position = ValueNotifier<DraggingItemPosition>(
-    initialDraggingPosition,
-  );
-
-  late final initialDraggingPosition = DraggingItemPosition.fromDragInfo(
-    dragInfo,
-  );
+  late final ValueNotifier<DraggingItemPosition> _position;
 
   /// The overlay entry that displays the dragging feedback widget.
   late final OverlayEntry _entry;
@@ -46,11 +38,6 @@ abstract base class ItemDrag extends Drag {
   /// The feedback builder for the dragging item,
   /// which would be displayed in the overlay during dragging.
   final DraggingItemFeedbackBuilder builder;
-
-  /// The mutator that would be used to update the layout of items during dragging.
-  /// subclasses will use it to mutate the layout based on the dragging state
-  /// in their implementation of [startDragging], [updateDragging], and [finishDragging].
-  final DashboardItemMutator mutator;
 
   /// The extent of each slot in the main axis,
   /// which is used to compute how many slots the dragging item has shifted during dragging.
@@ -63,40 +50,79 @@ abstract base class ItemDrag extends Drag {
   /// The callback when the drag ends, which can be used to trigger additional actions after dragging.
   final VoidCallback? onDragEnd;
 
+  final DragLayoutHandler handler;
+
   factory ItemDrag.move({
     required DragInfo dragInfo,
-    required DashboardItemMutator mutator,
     required OverlayState overlayState,
     required RenderBox viewport,
+    required DraggingItemFeedbackBuilder builder,
+    required DashboardItemMutator mutator,
     required MoveDropStrategy strategy,
     required DashboardMetricsManager metrics,
     required Offset initialPosition,
-    required DraggingItemFeedbackBuilder builder,
-    bool synthesizedEnd,
+    bool synthesizedEnd = true,
     VoidCallback? onDragEnd,
     AutoScroll? autoScroll,
-  }) = MoveItemDrag;
+  }) {
+    return ItemDrag(
+      dragInfo: dragInfo,
+      overlayState: overlayState,
+      viewport: viewport,
+      builder: builder,
+      onDragEnd: onDragEnd,
+      autoScroll: autoScroll,
+      handler: MoveDragHandler(
+        strategy: strategy,
+        metrics: metrics,
+        initialPosition: initialPosition,
+        draggingItem: dragInfo.item,
+        mutator: mutator,
+        synthesizedEnd: synthesizedEnd,
+        initialDraggingPosition: DraggingItemPosition.fromDragInfo(dragInfo),
+      ),
+    );
+  }
 
   factory ItemDrag.resize({
     required DragInfo dragInfo,
-    required DashboardItemMutator mutator,
     required OverlayState overlayState,
     required RenderBox viewport,
-    required ResizeDirection direction,
     required DraggingItemFeedbackBuilder builder,
+    required ResizeDirection direction,
+    required DashboardItemMutator mutator,
     VoidCallback? onDragEnd,
     AutoScroll? autoScroll,
-  }) = ResizeItemDrag;
+  }) {
+    return ItemDrag(
+      dragInfo: dragInfo,
+      overlayState: overlayState,
+      viewport: viewport,
+      builder: builder,
+      onDragEnd: onDragEnd,
+      autoScroll: autoScroll,
+      handler: ResizeDragHandler(
+        direction: direction,
+        draggingItem: dragInfo.item,
+        mutator: mutator,
+        initialDraggingPosition: DraggingItemPosition.fromDragInfo(dragInfo),
+      ),
+    );
+  }
 
   ItemDrag({
     required this.dragInfo,
     required this.overlayState,
     required this.viewport,
-    required this.mutator,
     required this.builder,
     this.onDragEnd,
     this.autoScroll,
+    required this.handler,
   }) {
+    _position = ValueNotifier<DraggingItemPosition>(
+      handler.updatePosition(Offset.zero, Offset.zero),
+    );
+
     /// relative distance between the start pointer and the item position.
     distanceFromPointerToItemCenter = dragInfo.computeRelativeOffset();
 
@@ -107,7 +133,7 @@ abstract base class ItemDrag extends Drag {
         ? dragInfo.size.height / dragInfo.item.rect.size.height
         : 1.0;
 
-    startDragging();
+    handler.startDragging();
 
     _entry = OverlayEntry(
       builder: (context) => builder(context, _position, dragInfo.feedback),
@@ -122,8 +148,6 @@ abstract base class ItemDrag extends Drag {
 
   Offset _accumulatedDelta = Offset.zero;
 
-  Offset get accumulatedDelta => _accumulatedDelta;
-
   /// TODO: should remove placeholder when the pointer moves out of the original item boundary,
   /// instead of waiting until the drag ends?
   @override
@@ -133,11 +157,11 @@ abstract base class ItemDrag extends Drag {
     final dx = (accumulated.dx / dragSlotExtentX).round();
     final dy = (accumulated.dy / dragSlotExtentY).round();
 
-    final updated = updateDragging(dx, dy);
+    final updated = handler.updateDragging(dx, dy);
 
     if (updated) {
       _accumulatedDelta = accumulated;
-      _position.value = updatePosition(accumulated, details.delta);
+      _position.value = handler.updatePosition(accumulated, details.delta);
     }
 
     final result = _computePointerInViewport(details.globalPosition);
@@ -147,9 +171,14 @@ abstract base class ItemDrag extends Drag {
 
   @override
   void end(DragEndDetails details) {
-    final accepted = isPointerInViewport(details.globalPosition);
+    final synthesized = handler.synthesize(
+      details,
+      _accumulatedDelta,
+    );
 
-    finishDragging(accepted);
+    final accepted = isPointerInViewport(synthesized.globalPosition);
+
+    handler.finishDragging(accepted);
     _dispose();
     autoScroll?.stop();
     onDragEnd?.call();
@@ -157,7 +186,7 @@ abstract base class ItemDrag extends Drag {
 
   @override
   void cancel() {
-    finishDragging(false);
+    handler.finishDragging(false);
     _dispose();
     autoScroll?.stop();
     onDragEnd?.call();
@@ -181,7 +210,7 @@ abstract base class ItemDrag extends Drag {
     );
   }
 
-  /// TODO: consider velocity to determine whether the posinter is out of viewport
+  /// TODO: consider velocity to determine whether the pointer is out of viewport
   bool isPointerInViewport(Offset globalPosition, {double? velocity}) {
     final pointerPosition = _computePointerInViewport(globalPosition).$2;
     final viewportRect = Offset.zero & viewport.size;
@@ -195,14 +224,30 @@ abstract base class ItemDrag extends Drag {
     _entry.dispose();
     autoScroll?.stop();
   }
+}
+
+abstract base class DragLayoutHandler {
+  final DashboardItemMutator mutator;
+  final LayoutItem draggingItem;
+  final DraggingItemPosition initialDraggingPosition;
+
+  const DragLayoutHandler({
+    required this.mutator,
+    required this.draggingItem,
+    required this.initialDraggingPosition,
+  });
 
   void startDragging();
 
+  /// Update the layout based on the dragging delta, and return whether the layout is updated.
+  /// The return value is used to determine whether to update the dragging position
   bool updateDragging(int dx, int dy);
-
   void finishDragging(bool accepted);
 
-  /// Compute the dragging item's position based on the accumulated delta
-  /// and the current dragging state.
   DraggingItemPosition updatePosition(Offset accumulated, Offset delta);
+
+  DragEndDetails synthesize(
+    DragEndDetails details,
+    Offset accumulated,
+  ) => details;
 }
