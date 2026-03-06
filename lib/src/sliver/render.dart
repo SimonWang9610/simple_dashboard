@@ -1,7 +1,9 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
+import 'dart:ui';
 import 'package:flutter/rendering.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
-import 'package:simple_dashboard/src/sliver/placeholder_painter.dart';
+import 'package:simple_dashboard/src/sliver/grid_painter.dart';
 
 class SliverDashboardParentData extends SliverMultiBoxAdaptorParentData {
   double? crossAxisOffset;
@@ -287,6 +289,19 @@ class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
         addExtent = true;
     }
 
+    _gridPainter.paint(
+      context.canvas,
+      dashboardLayout,
+      constraints,
+      _layoutDelegate.mainAxisSlots,
+
+      /// ensure the grid fill the viewport even when the children do not fill the viewport.
+      math.max(geometry!.paintExtent, constraints.remainingPaintExtent),
+      originOffset,
+      mainAxisUnit,
+      crossAxisUnit,
+    );
+
     RenderBox? child = firstChild;
     while (child != null) {
       final double mainAxisDelta = childMainAxisPosition(child);
@@ -319,4 +334,6 @@ class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
       constraints,
     );
   }
+
+  final _gridPainter = DashboardGridPainter();
 }
