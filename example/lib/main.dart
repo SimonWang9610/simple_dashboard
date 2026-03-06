@@ -51,8 +51,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final _loading = ValueNotifier<bool>(false);
 
-  final placeholder = ValueNotifier<ItemPlaceholder?>(null);
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -71,7 +69,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void dispose() {
-    placeholder.dispose();
     controller.dispose();
     super.dispose();
   }

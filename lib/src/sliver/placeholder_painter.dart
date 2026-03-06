@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
+import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
 
 class DashboardPlaceholderPainter extends Listenable {
   final ValueListenable<ItemPlaceholder?>? _placeholder;

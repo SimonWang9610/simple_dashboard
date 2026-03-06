@@ -1,7 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
+import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
+import 'package:simple_dashboard/src/utils/checker.dart';
 
-// TODO: implement resize drag update logic
 final class ResizeItemDrag extends ItemDrag {
   final ResizeDirection direction;
   ResizeItemDrag({
@@ -33,20 +34,31 @@ final class ResizeItemDrag extends ItemDrag {
     final dx = (delta.dx / dragSlotExtentX).round();
     final dy = (delta.dy / dragSlotExtentY).round();
 
-    final candidateRect = LayoutRect(
-      x: dragInfo.item.rect.x,
-      y: dragInfo.item.rect.y,
-      size: LayoutSize(
-        width: dragInfo.item.rect.size.width + dx,
-        height: dragInfo.item.rect.size.height + dy,
-      ),
+    final candidateRect = ResizeDragHelper.computeCandidateRect(
+      dx,
+      dy,
+      dragInfo.item.rect,
+      direction,
     );
 
-    if (!mutator.validateLayoutRect(candidateRect)) {
+    if (!mutator.validateLayoutRect(candidateRect) ||
+        !dragInfo.item.canAcceptSize(candidateRect.size)) {
       return;
     }
 
-    throw UnimplementedError("Resize dragging is not implemented yet");
+    final resolved = ResizeDragHelper.resolveCollision(
+      dragInfo.item,
+      candidateRect,
+      direction,
+      mutator.items,
+      dx,
+      dy,
+      mutator.validateLayoutRect,
+    );
+
+    if (resolved != null) {
+      mutator.updateItems(resolved);
+    }
   }
 
   @override
@@ -65,5 +77,159 @@ final class ResizeItemDrag extends ItemDrag {
     }
 
     _freezedItems = null;
+  }
+}
+
+abstract class ResizeDragHelper {
+  static LayoutRect computeCandidateRect(
+    int dx,
+    int dy,
+    LayoutRect rect,
+    ResizeDirection direction,
+  ) {
+    int x = rect.x;
+    int y = rect.y;
+    int width = rect.size.width;
+    int height = rect.size.height;
+
+    if (direction.isRightEdge) {
+      width = width + dx;
+    } else if (direction.isLeftEdge) {
+      x = x - dx;
+      width = width + dx;
+    }
+
+    if (direction.isBottomEdge) {
+      height = height + dy;
+    } else if (direction.isTopEdge) {
+      y = y - dy;
+      height = height + dy;
+    }
+
+    final candidate = LayoutRect(
+      x: x,
+      y: y,
+      size: LayoutSize(
+        width: width,
+        height: height,
+      ),
+    );
+
+    return candidate;
+  }
+
+  static List<LayoutItem>? resolveCollision(
+    LayoutItem draggingItem,
+    LayoutRect candidateRect,
+    ResizeDirection direction,
+    List<LayoutItem> items,
+    int dx,
+    int dy,
+    bool Function(LayoutRect) validateLayoutRect,
+  ) {
+    final noPlaceHolderItems = items.where((i) => i.id is! PlaceholderId);
+
+    final collisions = LayoutChecker.checkCollisions(
+      noPlaceHolderItems,
+      candidateRect,
+    );
+
+    if (!collisions.hasCollision) {
+      final placeholder = ItemPlaceholder(
+        draggingItem.id,
+        rect: candidateRect,
+      );
+
+      return items.map((i) {
+        if (i.id == placeholder.id) {
+          return placeholder;
+        }
+        return i;
+      }).toList();
+    }
+
+    /// 1. iterate through the collisions and apply the same delta according to the collision direction and resize direction.
+    /// For each collided item, determine which axis/axes it is affected by based on whether it extends
+    /// beyond the original dragging item's edges. Then reverse only the relevant delta components and
+    /// use the corresponding single-axis (or diagonal) opposite direction with [computeCandidateRect].
+    final allCollisions = collisions.collisions;
+
+    final newRects = <Object, LayoutRect>{};
+
+    for (final item in allCollisions) {
+      final itemCandidate = _resizeCollidedItem(
+        candidateRect,
+        direction,
+        item.rect,
+        dx,
+        dy,
+      );
+
+      if (itemCandidate == null) {
+        continue;
+      }
+
+      /// the item candidate cannot be resized to the new rect, or the new rect is invalid,
+      /// then the resolve fails and returns null, which should eventually discard this resize operation.
+      if (!item.canAcceptSize(itemCandidate.size) ||
+          !validateLayoutRect(itemCandidate)) {
+        return null;
+      }
+
+      newRects[item.id] = itemCandidate;
+    }
+
+    final placeholder = ItemPlaceholder(
+      draggingItem.id,
+      rect: candidateRect,
+    );
+
+    return items.map((i) {
+      if (i.id == placeholder.id) {
+        return placeholder;
+      }
+
+      final newRect = newRects[i.id];
+
+      if (newRect != null) {
+        return LayoutItem(
+          id: i.id,
+          rect: newRect,
+          minSize: i.minSize,
+          maxSize: i.maxSize,
+        );
+      }
+
+      return i;
+    }).toList();
+  }
+
+  static LayoutRect? _resizeCollidedItem(
+    LayoutRect candidate,
+    ResizeDirection resizeDirection,
+    LayoutRect itemRect,
+    int dx,
+    int dy,
+  ) {
+    final isYAffected =
+        (resizeDirection.isBottomEdge && candidate.bottom > itemRect.top) ||
+        (resizeDirection.isTopEdge && candidate.top < itemRect.bottom);
+
+    final isXAffected =
+        (resizeDirection.isRightEdge && candidate.right > itemRect.left) ||
+        (resizeDirection.isLeftEdge && candidate.left < itemRect.right);
+
+    if (!isXAffected && !isYAffected) {
+      return null;
+    }
+
+    final itemCandidate = computeCandidateRect(
+      isXAffected ? -dx : 0,
+      isYAffected ? -dy : 0,
+      itemRect,
+      resizeDirection.opposite,
+    );
+
+    return itemCandidate;
   }
 }

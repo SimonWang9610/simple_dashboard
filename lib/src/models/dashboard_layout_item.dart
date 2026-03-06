@@ -54,6 +54,17 @@ class LayoutRect extends Equatable {
     }
   }
 
+  LayoutRect inflate(int dx, int dy) {
+    return LayoutRect(
+      x: x,
+      y: y,
+      size: LayoutSize(
+        width: size.width + dx,
+        height: size.height + dy,
+      ),
+    );
+  }
+
   @override
   List<Object?> get props => [x, y, size];
 
@@ -94,21 +105,15 @@ class LayoutSize extends Equatable {
 class LayoutItem extends Equatable {
   final Object id;
   final LayoutRect rect;
-  final LayoutSize? minSize;
+  final LayoutSize minSize;
   final LayoutSize? maxSize;
 
   LayoutItem({
     required this.id,
     required this.rect,
-    this.minSize,
+    this.minSize = const LayoutSize(width: 1, height: 1),
     this.maxSize,
   }) : assert(
-         minSize == null ||
-             (minSize.width <= rect.size.width &&
-                 minSize.height <= rect.size.height),
-         "The minimum size of a layout item cannot be greater than its current size.",
-       ),
-       assert(
          maxSize == null ||
              (maxSize.width >= rect.size.width &&
                  maxSize.height >= rect.size.height),
@@ -125,6 +130,20 @@ class LayoutItem extends Equatable {
       id: id,
       rect: LayoutRect(x: x, y: y, size: size),
     );
+  }
+
+  bool canAcceptSize(LayoutSize newSize) {
+    if (newSize.width < minSize.width || newSize.height < minSize.height) {
+      return false;
+    }
+
+    if (maxSize != null) {
+      if (newSize.width > maxSize!.width || newSize.height > maxSize!.height) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   ItemPlaceholder get placeholder {

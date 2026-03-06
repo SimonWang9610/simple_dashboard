@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:simple_dashboard/simple_dashboard.dart';
 import 'package:simple_dashboard/src/controllers/mutator_state.dart';
 
 extension IntegerExtension on int {
@@ -16,5 +17,17 @@ extension IntegerExtension on int {
 extension DashboardMutatorFinderExt on BuildContext {
   DashboardMutatingStateMixin? ofDashboardMutator() {
     return findAncestorStateOfType<DashboardMutatingStateMixin>();
+  }
+}
+
+extension ResizeCursorExt on ResizeDirection {
+  MouseCursor get cursor {
+    return switch (this) {
+      ResizeDirection.left ||
+      ResizeDirection.right => SystemMouseCursors.resizeColumn,
+      ResizeDirection.up ||
+      ResizeDirection.down => SystemMouseCursors.resizeRow,
+      _ => SystemMouseCursors.move,
+    };
   }
 }

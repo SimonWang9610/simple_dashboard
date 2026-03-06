@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
+import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
 import 'package:simple_dashboard/src/utils/checker.dart';
 
 final class MoveItemDrag extends ItemDrag {

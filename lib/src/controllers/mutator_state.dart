@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
+import 'package:simple_dashboard/src/utils/extensions.dart';
 
 mixin DashboardMutatingStateMixin<T extends StatefulWidget> on State<T> {
   DashboardItemMutator? get mutator;
@@ -19,14 +20,22 @@ mixin DashboardMutatingStateMixin<T extends StatefulWidget> on State<T> {
   DragInfo? _dragInfo;
   bool _isDragging = false;
 
-  void absorbPointer(PointerDownEvent event, DragInfo dragInfo) {
+  void absorbPointer(
+    PointerDownEvent event,
+    DragInfo dragInfo, {
+    ResizeDirection? resizeDirection,
+  }) {
     if (_isDragging) {
       return;
     }
 
     _dragInfo = dragInfo;
 
-    // _resizerRecognizer.addPointer(event);
+    if (resizeDirection != null) {
+      _resizeDirection = resizeDirection;
+      _resizerRecognizer.addPointer(event);
+    }
+
     _dragRecognizer.addPointer(event);
   }
 
@@ -105,6 +114,7 @@ mixin DashboardMutatingStateMixin<T extends StatefulWidget> on State<T> {
 
     assert(_resizeDrag == null);
     assert(_dragInfo != null);
+    assert(_resizeDirection != null);
 
     final themeData = Theme.of(context);
 
@@ -124,15 +134,18 @@ mixin DashboardMutatingStateMixin<T extends StatefulWidget> on State<T> {
           top: dragInfo.origin.dy,
           child: Theme(
             data: themeData,
-            child: Material(
-              child: ValueListenableBuilder(
-                valueListenable: delta,
-                builder: (_, delta, _) {
-                  return SizedBox.fromSize(
-                    size: dragInfo.size + delta,
-                    child: dragInfo.feedback,
-                  );
-                },
+            child: MouseRegion(
+              cursor: _resizeDirection!.cursor,
+              child: Material(
+                child: ValueListenableBuilder(
+                  valueListenable: delta,
+                  builder: (_, delta, _) {
+                    return SizedBox.fromSize(
+                      size: dragInfo.size + delta,
+                      child: dragInfo.feedback,
+                    );
+                  },
+                ),
               ),
             ),
           ),

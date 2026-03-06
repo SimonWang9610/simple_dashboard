@@ -29,13 +29,6 @@ extension DashboardAxisExtension on Axis {
   }
 }
 
-enum CollisionDirection {
-  topLeft,
-  topRight,
-  bottomLeft,
-  bottomRight,
-}
-
 enum ResizeDirection {
   left,
   right,
@@ -44,7 +37,41 @@ enum ResizeDirection {
   topLeft,
   topRight,
   bottomLeft,
-  bottomRight,
+  bottomRight
+  ;
+
+  bool get isLeftEdge =>
+      this == ResizeDirection.left ||
+      this == ResizeDirection.topLeft ||
+      this == ResizeDirection.bottomLeft;
+
+  bool get isRightEdge =>
+      this == ResizeDirection.right ||
+      this == ResizeDirection.topRight ||
+      this == ResizeDirection.bottomRight;
+
+  bool get isTopEdge =>
+      this == ResizeDirection.up ||
+      this == ResizeDirection.topLeft ||
+      this == ResizeDirection.topRight;
+
+  bool get isBottomEdge =>
+      this == ResizeDirection.down ||
+      this == ResizeDirection.bottomLeft ||
+      this == ResizeDirection.bottomRight;
+
+  ResizeDirection get opposite {
+    return switch (this) {
+      ResizeDirection.left => ResizeDirection.right,
+      ResizeDirection.right => ResizeDirection.left,
+      ResizeDirection.up => ResizeDirection.down,
+      ResizeDirection.down => ResizeDirection.up,
+      ResizeDirection.topLeft => ResizeDirection.bottomRight,
+      ResizeDirection.topRight => ResizeDirection.bottomLeft,
+      ResizeDirection.bottomLeft => ResizeDirection.topRight,
+      ResizeDirection.bottomRight => ResizeDirection.topLeft,
+    };
+  }
 }
 
 enum MoveDropStrategy {

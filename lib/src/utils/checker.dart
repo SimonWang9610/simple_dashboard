@@ -146,13 +146,7 @@ abstract class LayoutChecker {
       result.putIfAbsent(direction, () => []).add(item);
     }
 
-    return LayoutCollisionResult(
-      rect: rect,
-      topLeft: result[CollisionDirection.topLeft] ?? [],
-      topRight: result[CollisionDirection.topRight] ?? [],
-      bottomLeft: result[CollisionDirection.bottomLeft] ?? [],
-      bottomRight: result[CollisionDirection.bottomRight] ?? [],
-    );
+    return LayoutCollisionResult(rect: rect, collisions: result);
   }
 
   static void debugLayoutAssertions(

@@ -2,44 +2,29 @@ import 'package:simple_dashboard/simple_dashboard.dart';
 
 class LayoutCollisionResult {
   final LayoutRect rect;
-  final List<LayoutItem> topLeft;
-  final List<LayoutItem> topRight;
-  final List<LayoutItem> bottomLeft;
-  final List<LayoutItem> bottomRight;
+  final Map<CollisionDirection, List<LayoutItem>> _collisions;
 
   const LayoutCollisionResult({
     required this.rect,
-    this.topLeft = const [],
-    this.topRight = const [],
-    this.bottomLeft = const [],
-    this.bottomRight = const [],
-  });
+    Map<CollisionDirection, List<LayoutItem>> collisions = const {},
+  }) : _collisions = collisions;
 
   bool get hasCollision {
-    return topLeft.isNotEmpty ||
-        topRight.isNotEmpty ||
-        bottomLeft.isNotEmpty ||
-        bottomRight.isNotEmpty;
+    return _collisions.values.any((list) => list.isNotEmpty);
   }
 
-  bool get hasRightCollision {
-    return topRight.isNotEmpty || bottomRight.isNotEmpty;
+  List<LayoutItem> operator [](CollisionDirection direction) {
+    return _collisions[direction] ?? [];
   }
 
-  bool get hasLeftCollision {
-    return topLeft.isNotEmpty || bottomLeft.isNotEmpty;
+  List<LayoutItem> get collisions {
+    return _collisions.values.expand((list) => list).toList();
   }
+}
 
-  bool get hasTopCollision {
-    return topLeft.isNotEmpty || topRight.isNotEmpty;
-  }
-
-  bool get hasBottomCollision {
-    return bottomLeft.isNotEmpty || bottomRight.isNotEmpty;
-  }
-
-  @override
-  String toString() {
-    return 'LayoutCollisionResult(rect: $rect, topLeft: $topLeft, topRight: $topRight, bottomLeft: $bottomLeft, bottomRight: $bottomRight)';
-  }
+enum CollisionDirection {
+  topLeft,
+  topRight,
+  bottomLeft,
+  bottomRight,
 }
