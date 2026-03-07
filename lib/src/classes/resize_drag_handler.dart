@@ -34,6 +34,7 @@ final class ResizeDragHandler extends DragLayoutHandler {
     DraggingLayoutDelta accumulated,
     DraggingLayoutDelta delta,
   ) {
+    // print("$direction, accumulated: $accumulated, delta: $delta");
     final candidateRect = ResizeDragHelper.computeCandidateRect(
       accumulated.x,
       accumulated.y,
@@ -106,14 +107,14 @@ abstract class ResizeDragHelper {
     if (direction.isRightEdge) {
       width = width + dx;
     } else if (direction.isLeftEdge) {
-      x = x - dx;
+      x = x + dx;
       width = width + dx;
     }
 
     if (direction.isBottomEdge) {
       height = height + dy;
     } else if (direction.isTopEdge) {
-      y = y - dy;
+      y = y + dy;
       height = height + dy;
     }
 

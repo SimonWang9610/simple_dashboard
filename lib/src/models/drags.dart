@@ -69,11 +69,11 @@ class DraggingItemPosition extends Equatable {
     double newY = dy;
 
     if (direction.isLeftEdge) {
-      newX -= delta.dx;
+      newX += delta.dx;
     }
 
     if (direction.isTopEdge) {
-      newY -= delta.dy;
+      newY += delta.dy;
     }
 
     return DraggingItemPosition(
@@ -108,4 +108,9 @@ class DraggingLayoutDelta {
     required this.y,
     required this.delta,
   });
+
+  @override
+  String toString() {
+    return "DraggingLayoutDelta(x: $x, y: $y, delta: $delta)";
+  }
 }
