@@ -14,7 +14,6 @@ export 'src/sliver/layout_delegate.dart';
 export 'src/sliver/child_delegate.dart';
 export 'src/sliver/render.dart';
 export 'src/sliver/widgets.dart';
-export 'src/sliver/controller.dart';
 export 'src/sliver/dashboard.dart';
 
 export 'src/widgets/draggable_item_widget.dart';
