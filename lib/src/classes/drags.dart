@@ -52,6 +52,9 @@ class ItemDrag extends Drag {
 
   final DragLayoutHandler handler;
 
+  /// The tolerance for accepting the drag when the pointer is near the viewport edge.
+  /// It is used to determine whether to accept the drag when the pointer is near the edge of the viewport,
+  /// which can improve the user experience by allowing some leniency in dropping items near the edge.
   final double acceptEdgeTolerance;
 
   factory ItemDrag.move({
@@ -156,7 +159,6 @@ class ItemDrag extends Drag {
 
   Offset _accumulatedDelta = Offset.zero;
 
-  /// TODO: should remove placeholder when the pointer moves out of the original item boundary,
   /// instead of waiting until the drag ends?
   @override
   void update(DragUpdateDetails details) {
@@ -256,8 +258,16 @@ abstract base class DragLayoutHandler {
     DraggingLayoutDelta delta,
   );
 
+  /// ?should remove placeholder when the pointer moves out of the viewport,
+  /// ?instead of waiting until the drag ends?
   void finishDragging(bool accepted);
 
+  /// Synthesize the drag end details, which can be used to modify the drag end behavior.
+  /// By default, it returns the original details without modification.
+  ///
+  /// For some recognizers, like [MultiDragGestureRecognizer],
+  /// the drag end details have no global/local position info,
+  /// so we may need to synthesize the details based on the accumulated dragging delta and the initial pointer position.
   DragEndDetails synthesize(
     DragEndDetails details,
     Offset accumulated,
