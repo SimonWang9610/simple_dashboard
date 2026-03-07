@@ -108,14 +108,14 @@ abstract class ResizeDragHelper {
       width = width + dx;
     } else if (direction.isLeftEdge) {
       x = x + dx;
-      width = width + dx;
+      width = width - dx;
     }
 
     if (direction.isBottomEdge) {
       height = height + dy;
     } else if (direction.isTopEdge) {
       y = y + dy;
-      height = height + dy;
+      height = height - dy;
     }
 
     final candidate = LayoutRect(

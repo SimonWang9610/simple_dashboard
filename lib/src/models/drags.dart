@@ -52,19 +52,6 @@ class DraggingItemPosition extends Equatable {
   }
 
   DraggingItemPosition resize(ResizeDirection direction, Offset delta) {
-    /// constrained delta based on the resize direction,
-    /// for example, if the resize direction is left or right, the delta in y axis should be ignored.
-    ///
-    /// To avoid the dragging item is overlapped with other items during resizing,
-    final normalizedDelta = switch (direction) {
-      ResizeDirection.left || ResizeDirection.right => Offset(delta.dx, 0),
-      ResizeDirection.up || ResizeDirection.down => Offset(0, delta.dy),
-      ResizeDirection.topLeft ||
-      ResizeDirection.topRight ||
-      ResizeDirection.bottomLeft ||
-      ResizeDirection.bottomRight => delta,
-    };
-
     double newX = dx;
     double newY = dy;
 
@@ -76,10 +63,17 @@ class DraggingItemPosition extends Equatable {
       newY += delta.dy;
     }
 
+    final widthDelta =
+      (direction.isRightEdge ? delta.dx : 0.0) -
+      (direction.isLeftEdge ? delta.dx : 0.0);
+    final heightDelta =
+      (direction.isBottomEdge ? delta.dy : 0.0) -
+      (direction.isTopEdge ? delta.dy : 0.0);
+
     return DraggingItemPosition(
       dx: newX,
       dy: newY,
-      size: size + normalizedDelta,
+      size: size + Offset(widthDelta, heightDelta),
     );
   }
 
