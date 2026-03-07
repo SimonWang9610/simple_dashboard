@@ -97,6 +97,10 @@ abstract class ResizeDragHelper {
     LayoutRect rect,
     ResizeDirection direction,
   ) {
+    if (dx == 0 && dy == 0) {
+      return rect;
+    }
+
     int x = rect.x;
     int y = rect.y;
     int width = rect.size.width;
@@ -239,38 +243,39 @@ abstract class ResizeDragHelper {
       return null;
     }
 
-    final overlapWidth =
-        (candidate.right < itemRect.right ? candidate.right : itemRect.right) -
-        (candidate.left > itemRect.left ? candidate.left : itemRect.left);
-    final overlapHeight =
-        (candidate.bottom < itemRect.bottom
-            ? candidate.bottom
-            : itemRect.bottom) -
-        (candidate.top > itemRect.top ? candidate.top : itemRect.top);
+    final resolvedDx = isXAffected
+        ? switch (resizeDirection) {
+            /// |----> itemRect.left .... candidate.right .... itemRect.right|
+            ResizeDirection.right ||
+            ResizeDirection.topRight ||
+            ResizeDirection.bottomRight => candidate.right - itemRect.left,
 
-    final resolvedDx = switch (resizeDirection) {
-      ResizeDirection.right ||
-      ResizeDirection.topRight ||
-      ResizeDirection.bottomRight => overlapWidth,
-      ResizeDirection.left ||
-      ResizeDirection.topLeft ||
-      ResizeDirection.bottomLeft => -overlapWidth,
-      _ => 0,
-    };
+            /// |----> itemRect.left .... candidate.left .... itemRect.right|
+            ResizeDirection.left ||
+            ResizeDirection.topLeft ||
+            ResizeDirection.bottomLeft => candidate.left - itemRect.right,
+            _ => 0,
+          }
+        : 0;
 
-    final resolvedDy = switch (resizeDirection) {
-      ResizeDirection.down ||
-      ResizeDirection.bottomLeft ||
-      ResizeDirection.bottomRight => overlapHeight,
-      ResizeDirection.up ||
-      ResizeDirection.topLeft ||
-      ResizeDirection.topRight => -overlapHeight,
-      _ => 0,
-    };
+    final resolvedDy = isYAffected
+        ? switch (resizeDirection) {
+            /// |----> itemRect.top .... candidate.bottom .... itemRect.bottom|
+            ResizeDirection.down ||
+            ResizeDirection.bottomLeft ||
+            ResizeDirection.bottomRight => candidate.bottom - itemRect.top,
+
+            /// |----> itemRect.top .... candidate.top .... itemRect.bottom|
+            ResizeDirection.up ||
+            ResizeDirection.topLeft ||
+            ResizeDirection.topRight => candidate.top - itemRect.bottom,
+            _ => 0,
+          }
+        : 0;
 
     final itemCandidate = computeCandidateRect(
-      isXAffected ? resolvedDx : 0,
-      isYAffected ? resolvedDy : 0,
+      resolvedDx,
+      resolvedDy,
       itemRect,
       resizeDirection.opposite,
     );
