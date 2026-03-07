@@ -60,22 +60,34 @@ class DashboardState extends State<Dashboard> with DashboardMutatingStateMixin {
   DashboardMetricsManager get metrics => widget.controller;
 
   @override
-  AutoScroll get autoScroll => _autoScroll;
+  AutoScroll get autoScroll => (_autoScroll ??= AutoScrollWithController(
+    speed: 10.0,
+    direction: AxisDirection.down,
+    controller: _scrollController,
+  ));
 
   @override
   MoveDropStrategy get moveDropStrategy => widget.moveDropStrategy;
 
-  late final AutoScroll _autoScroll = AutoScrollWithController(
-    speed: 10.0,
-    direction: AxisDirection.down,
-    controller: _scrollController,
-  );
+  AutoScroll? _autoScroll;
+
+  @override
+  void didUpdateWidget(covariant Dashboard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.scrollController != widget.scrollController) {
+      _fallbackScrollController?.dispose();
+      _fallbackScrollController = null;
+      _autoScroll?.stop();
+      _autoScroll = null;
+    }
+  }
 
   @override
   void dispose() {
     _fallbackScrollController?.dispose();
     _itemCacheKeys.clear();
-    _autoScroll.stop();
+    _autoScroll?.stop();
     super.dispose();
   }
 

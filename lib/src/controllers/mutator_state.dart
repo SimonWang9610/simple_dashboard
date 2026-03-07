@@ -115,6 +115,8 @@ mixin DashboardMutatingStateMixin<T extends StatefulWidget> on State<T> {
 
     final themeData = Theme.of(context);
 
+    _isDragging = true;
+
     _resizeDrag = ItemDrag.resize(
       dragInfo: _dragInfo!,
       mutator: mutator!,

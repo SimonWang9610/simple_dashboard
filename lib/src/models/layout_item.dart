@@ -104,6 +104,10 @@ class LayoutItem extends Equatable {
     this.minSize = const LayoutSize(width: 1, height: 1),
     this.maxSize,
   }) : assert(
+         rect.size.width >= minSize.width && rect.size.height >= minSize.height,
+         "The minimum size of a layout item cannot be larger than its current size.",
+       ),
+       assert(
          maxSize == null ||
              (maxSize.width >= rect.size.width &&
                  maxSize.height >= rect.size.height),
