@@ -66,7 +66,6 @@ class DashboardState extends State<Dashboard> with DashboardMutatingStateMixin {
   MoveDropStrategy get moveDropStrategy => widget.moveDropStrategy;
 
   late final AutoScroll _autoScroll = AutoScrollWithController(
-    edgeThreshold: 50.0,
     speed: 10.0,
     direction: AxisDirection.down,
     controller: _scrollController,

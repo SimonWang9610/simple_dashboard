@@ -52,6 +52,8 @@ class ItemDrag extends Drag {
 
   final DragLayoutHandler handler;
 
+  final double acceptEdgeTolerance;
+
   factory ItemDrag.move({
     required DragInfo dragInfo,
     required OverlayState overlayState,
@@ -61,6 +63,7 @@ class ItemDrag extends Drag {
     required MoveDropStrategy strategy,
     required DashboardMetricsManager metrics,
     required Offset initialPosition,
+    double acceptEdgeTolerance = 20,
     bool synthesizedEnd = true,
     VoidCallback? onDragEnd,
     AutoScroll? autoScroll,
@@ -72,6 +75,7 @@ class ItemDrag extends Drag {
       builder: builder,
       onDragEnd: onDragEnd,
       autoScroll: autoScroll,
+      acceptEdgeTolerance: acceptEdgeTolerance,
       handler: MoveDragHandler(
         strategy: strategy,
         metrics: metrics,
@@ -91,6 +95,7 @@ class ItemDrag extends Drag {
     required DraggingItemFeedbackBuilder builder,
     required ResizeDirection direction,
     required DashboardItemMutator mutator,
+    double acceptEdgeTolerance = 20,
     VoidCallback? onDragEnd,
     AutoScroll? autoScroll,
   }) {
@@ -101,6 +106,7 @@ class ItemDrag extends Drag {
       builder: builder,
       onDragEnd: onDragEnd,
       autoScroll: autoScroll,
+      acceptEdgeTolerance: acceptEdgeTolerance,
       handler: ResizeDragHandler(
         direction: direction,
         draggingItem: dragInfo.item,
@@ -118,6 +124,7 @@ class ItemDrag extends Drag {
     this.onDragEnd,
     this.autoScroll,
     required this.handler,
+    this.acceptEdgeTolerance = 20,
   }) {
     _position = ValueNotifier<DraggingItemPosition>(
       handler.initialDraggingPosition,
@@ -141,9 +148,10 @@ class ItemDrag extends Drag {
 
     overlayState.insert(_entry);
 
-    final result = _computePointerInViewport(dragInfo.origin);
-
-    autoScroll?.start(result.$1, result.$2);
+    autoScroll?.start(
+      viewport.size,
+      _transformPointer(dragInfo.globalPosition),
+    );
   }
 
   Offset _accumulatedDelta = Offset.zero;
@@ -176,9 +184,7 @@ class ItemDrag extends Drag {
       _position.value = updatedPosition;
     }
 
-    final result = _computePointerInViewport(details.globalPosition);
-
-    autoScroll?.start(result.$1, result.$2);
+    autoScroll?.start(viewport.size, _transformPointer(details.globalPosition));
   }
 
   @override
@@ -188,7 +194,10 @@ class ItemDrag extends Drag {
       _accumulatedDelta,
     );
 
-    final accepted = isPointerInViewport(synthesized.globalPosition);
+    final accepted = isPointerInViewport(
+      synthesized.globalPosition,
+      tolerance: acceptEdgeTolerance,
+    );
 
     handler.finishDragging(accepted);
     _dispose();
@@ -204,49 +213,20 @@ class ItemDrag extends Drag {
     onDragEnd?.call();
   }
 
-  /// compute the local position relative to the viewport based on the given global position,
-  /// and return it with the viewport size
-  ///
-  /// [exact] determines whether to consider the [distanceFromPointerToItemCenter]
-  /// when computing the pointer position in the viewport.
-  ///
-  /// If [exact] is true, the pointer position is exactly the local position in the viewport;
-  /// If [exact] is false, the pointer position is transformed by adding the [distanceFromPointerToItemCenter],
-  /// which is equivalent to the center position of the dragging item in the viewport.
-  (Size, Offset) _computePointerInViewport(
-    Offset globalPosition, {
-    bool exact = false,
-  }) {
-    final localPointerPosition = viewport.globalToLocal(globalPosition);
-
-    return (
-      viewport.size,
-
-      /// transform the global position to the local position in the viewport,
-      ///  and add the distance from the pointer to the item center.
-      ///
-      /// For example, if [distanceFromPointerToItemCenter] is relative to the item center,
-      /// users can know when the center of the dragging item reaches the edge of the viewport to trigger auto-scrolling,
-      /// instead of relying on a very dynamic start pointer position.
-      localPointerPosition +
-          (exact ? Offset.zero : distanceFromPointerToItemCenter),
-    );
-  }
-
-  /// TODO: consider velocity to determine whether the pointer is out of viewport
   bool isPointerInViewport(
     Offset globalPosition, {
+    double tolerance = 0,
     double? velocity,
   }) {
-    final pointerPosition = _computePointerInViewport(
-      globalPosition,
-      exact: true,
-    ).$2;
+    final pointerPosition = _transformPointer(globalPosition);
 
-    final viewportRect = Offset.zero & viewport.size;
+    final viewportRect = (Offset.zero & viewport.size).inflate(tolerance * 2);
 
     return viewportRect.contains(pointerPosition);
   }
+
+  Offset _transformPointer(Offset globalPosition) =>
+      viewport.globalToLocal(globalPosition);
 
   void _dispose() {
     _position.dispose();
