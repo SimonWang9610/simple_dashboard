@@ -30,6 +30,17 @@ abstract base class DashboardItemStorage
       "Each item in the dashboard must have a unique id. An item with id [$id] already exists.",
     );
 
+    assert(
+      size.width >= minSize.width && size.height >= minSize.height,
+      "The minimum size of a layout item cannot be larger than its current size.",
+    );
+
+    assert(
+      maxSize == null ||
+          (maxSize.width >= size.width && maxSize.height >= size.height),
+      "The maximum size of a layout item cannot be smaller than its current size.",
+    );
+
     final validSize = size.constrain(axis, mainAxisSlots);
 
     final positioner = switch (strategy) {
