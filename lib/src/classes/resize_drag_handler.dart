@@ -32,7 +32,7 @@ final class ResizeDragHandler extends DragLayoutHandler {
   @override
   DraggingItemPosition? updateDragging(
     DraggingLayoutDelta accumulated,
-    DraggingLayoutDelta delta,
+    DraggingLayoutDelta _,
   ) {
     // print("$direction, accumulated: $accumulated, delta: $delta");
     final candidateRect = ResizeDragHelper.computeCandidateRect(
@@ -58,8 +58,6 @@ final class ResizeDragHandler extends DragLayoutHandler {
       candidateRect,
       direction,
       mutator.items,
-      delta.x,
-      delta.y,
       mutator.validateLayoutRect,
     );
 
@@ -135,8 +133,6 @@ abstract class ResizeDragHelper {
     LayoutRect candidateRect,
     ResizeDirection direction,
     List<LayoutItem> items,
-    int dx,
-    int dy,
     bool Function(LayoutRect) validateLayoutRect,
   ) {
     final noPlaceHolderItems = items.where((i) => i.id is! PlaceholderId);
@@ -176,8 +172,6 @@ abstract class ResizeDragHelper {
         candidateRect,
         direction,
         item.rect,
-        dx,
-        dy,
       );
 
       if (itemCandidate == null) {
@@ -199,26 +193,32 @@ abstract class ResizeDragHelper {
       rect: candidateRect,
     );
 
+    final updatedItems = items.map((i) {
+      if (i.id == placeholder.id) {
+        return placeholder;
+      }
+
+      final newRect = newRects[i.id];
+
+      if (newRect != null) {
+        return LayoutItem(
+          id: i.id,
+          rect: newRect,
+          minSize: i.minSize,
+          maxSize: i.maxSize,
+        );
+      }
+
+      return i;
+    }).toList();
+
+    if (LayoutChecker.findFirstConflictItems(updatedItems) != null) {
+      return null;
+    }
+
     return (
       placeholder,
-      items.map((i) {
-        if (i.id == placeholder.id) {
-          return placeholder;
-        }
-
-        final newRect = newRects[i.id];
-
-        if (newRect != null) {
-          return LayoutItem(
-            id: i.id,
-            rect: newRect,
-            minSize: i.minSize,
-            maxSize: i.maxSize,
-          );
-        }
-
-        return i;
-      }).toList(),
+      updatedItems,
     );
   }
 
@@ -226,8 +226,6 @@ abstract class ResizeDragHelper {
     LayoutRect candidate,
     ResizeDirection resizeDirection,
     LayoutRect itemRect,
-    int dx,
-    int dy,
   ) {
     final isYAffected =
         (resizeDirection.isBottomEdge && candidate.bottom > itemRect.top) ||
@@ -241,9 +239,38 @@ abstract class ResizeDragHelper {
       return null;
     }
 
+    final overlapWidth =
+        (candidate.right < itemRect.right ? candidate.right : itemRect.right) -
+        (candidate.left > itemRect.left ? candidate.left : itemRect.left);
+    final overlapHeight =
+        (candidate.bottom < itemRect.bottom
+            ? candidate.bottom
+            : itemRect.bottom) -
+        (candidate.top > itemRect.top ? candidate.top : itemRect.top);
+
+    final resolvedDx = switch (resizeDirection) {
+      ResizeDirection.right ||
+      ResizeDirection.topRight ||
+      ResizeDirection.bottomRight => overlapWidth,
+      ResizeDirection.left ||
+      ResizeDirection.topLeft ||
+      ResizeDirection.bottomLeft => -overlapWidth,
+      _ => 0,
+    };
+
+    final resolvedDy = switch (resizeDirection) {
+      ResizeDirection.down ||
+      ResizeDirection.bottomLeft ||
+      ResizeDirection.bottomRight => overlapHeight,
+      ResizeDirection.up ||
+      ResizeDirection.topLeft ||
+      ResizeDirection.topRight => -overlapHeight,
+      _ => 0,
+    };
+
     final itemCandidate = computeCandidateRect(
-      isXAffected ? -dx : 0,
-      isYAffected ? -dy : 0,
+      isXAffected ? resolvedDx : 0,
+      isYAffected ? resolvedDy : 0,
       itemRect,
       resizeDirection.opposite,
     );
