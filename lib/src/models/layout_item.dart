@@ -1,5 +1,6 @@
 import 'package:simple_dashboard/src/enums.dart';
 import 'package:equatable/equatable.dart';
+import 'package:simple_dashboard/src/models/placeholder.dart';
 
 class LayoutRect extends Equatable {
   final int x;
@@ -52,17 +53,6 @@ class LayoutRect extends Equatable {
       case DashboardAxis.vertical:
         return bottom > mainAxisSlots;
     }
-  }
-
-  LayoutRect inflate(int dx, int dy) {
-    return LayoutRect(
-      x: x,
-      y: y,
-      size: LayoutSize(
-        width: size.width + dx,
-        height: size.height + dy,
-      ),
-    );
   }
 
   @override
@@ -146,50 +136,34 @@ class LayoutItem extends Equatable {
     return true;
   }
 
-  ItemPlaceholder get placeholder {
-    return ItemPlaceholder(
-      id,
-      rect: rect,
+  factory LayoutItem.placeholderOf(LayoutItem item, {LayoutRect? newRect}) {
+    return LayoutItem(
+      id: PlaceholderId(item.id),
+      rect: newRect ?? item.rect,
+      minSize: item.minSize,
+      maxSize: item.maxSize,
     );
   }
+
+  bool isPlaceholderOf(Object otherId) {
+    return id is PlaceholderId && (id as PlaceholderId).itemId == otherId;
+  }
+
+  bool get isPlaceholder => id is PlaceholderId;
 
   @override
   List<Object?> get props => [id, rect, minSize, maxSize];
-}
 
-final class ItemPlaceholder extends LayoutItem {
-  final Object itemId;
-
-  ItemPlaceholder(this.itemId, {required super.rect})
-    : super(
-        id: PlaceholderId(itemId),
+  LayoutItem get originalItem {
+    if (id is PlaceholderId) {
+      return LayoutItem(
+        id: (id as PlaceholderId).itemId,
+        rect: rect,
+        minSize: minSize,
+        maxSize: maxSize,
       );
-
-  LayoutItem get item {
-    return LayoutItem(
-      id: itemId,
-      rect: rect,
-    );
+    } else {
+      return this;
+    }
   }
-
-  bool isPlaceholderOf(Object id) {
-    return itemId == id;
-  }
-}
-
-final class PlaceholderId {
-  final Object itemId;
-
-  const PlaceholderId(this.itemId);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is PlaceholderId && other.itemId == itemId;
-
-  @override
-  int get hashCode => itemId.hashCode;
-
-  @override
-  String toString() => "PlaceholderId($itemId)";
 }

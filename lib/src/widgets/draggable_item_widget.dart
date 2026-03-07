@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
-import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
+import 'package:simple_dashboard/src/models/placeholder.dart';
 import 'package:simple_dashboard/src/utils/extensions.dart';
 import 'package:simple_dashboard/src/widgets/cache_key_store.dart';
 

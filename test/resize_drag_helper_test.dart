@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
 import 'package:simple_dashboard/src/classes/resize_drag_handler.dart';
-import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
 import 'package:simple_dashboard/src/utils/checker.dart';
 
 LayoutItem _item(String id, int x, int y, int w, int h) => LayoutItem(
@@ -34,15 +33,15 @@ void main() {
         draggingItem,
         candidateRect,
         ResizeDirection.right,
-        [draggingItem.placeholder, rightItem],
+        [LayoutItem.placeholderOf(draggingItem), rightItem],
         (_) => true,
       );
 
       expect(resolved, isNotNull);
 
-      final updatedItems = resolved!.$2;
+      final updatedItems = resolved!;
       final updatedRight = _itemById(updatedItems, 'b');
-      final placeholder = updatedItems.firstWhere((i) => i is ItemPlaceholder);
+      final placeholder = updatedItems.firstWhere((i) => i.isPlaceholder);
 
       expect(
         updatedRight.rect,
@@ -67,22 +66,21 @@ void main() {
         draggingItem,
         candidateRect,
         ResizeDirection.left,
-        [draggingItem.placeholder, leftItem],
+        [LayoutItem.placeholderOf(draggingItem), leftItem],
         (_) => true,
       );
 
       expect(resolved, isNotNull);
 
-      final updatedItems = resolved!.$2;
-      final updatedLeft = _itemById(updatedItems, 'b');
-      final placeholder = updatedItems.firstWhere((i) => i is ItemPlaceholder);
+      final updatedLeft = _itemById(resolved!, 'b');
+      final placeholder = resolved.firstWhere((i) => i.isPlaceholder);
 
       expect(
         updatedLeft.rect,
         const LayoutRect(x: 0, y: 0, size: LayoutSize(width: 1, height: 2)),
       );
       expect(placeholder.rect, candidateRect);
-      expect(LayoutChecker.findFirstConflictItems(updatedItems), isNull);
+      expect(LayoutChecker.findFirstConflictItems(resolved), isNull);
     });
 
     test(
@@ -102,16 +100,16 @@ void main() {
           draggingItem,
           candidateRect,
           ResizeDirection.bottomRight,
-          [draggingItem.placeholder, diagonalItem],
+          [LayoutItem.placeholderOf(draggingItem), diagonalItem],
           (_) => true,
         );
 
         expect(resolved, isNotNull);
 
-        final updatedItems = resolved!.$2;
+        final updatedItems = resolved!;
         final updatedDiagonal = _itemById(updatedItems, 'b');
         final placeholder = updatedItems.firstWhere(
-          (i) => i is ItemPlaceholder,
+          (i) => i.isPlaceholder,
         );
 
         expect(
@@ -140,13 +138,13 @@ void main() {
           draggingItem,
           candidateRect,
           ResizeDirection.left,
-          [draggingItem.placeholder, leftItem],
+          [LayoutItem.placeholderOf(draggingItem), leftItem],
           (_) => true,
         );
 
         expect(resolved, isNotNull);
 
-        final updatedItems = resolved!.$2;
+        final updatedItems = resolved!;
         final updatedLeft = _itemById(updatedItems, 'b');
 
         expect(

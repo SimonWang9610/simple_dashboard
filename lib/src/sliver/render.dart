@@ -11,21 +11,7 @@ class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
   RenderSliverDashboard({
     required super.childManager,
     required SliverDashboardLayoutDelegate layoutDelegate,
-    DashboardPlaceholderPainter? placeholderPainter,
-  }) : _layoutDelegate = layoutDelegate,
-       _placeholder = placeholderPainter;
-
-  @override
-  void attach(PipelineOwner owner) {
-    super.attach(owner);
-    _placeholder?.addListener(markNeedsPaint);
-  }
-
-  @override
-  void detach() {
-    _placeholder?.removeListener(markNeedsPaint);
-    super.detach();
-  }
+  }) : _layoutDelegate = layoutDelegate;
 
   @override
   void setupParentData(RenderObject child) {
@@ -44,19 +30,6 @@ class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
     }
 
     _layoutDelegate = value;
-  }
-
-  DashboardPlaceholderPainter? _placeholder;
-  set placeholderPainter(DashboardPlaceholderPainter? value) {
-    if (_placeholder == value) return;
-
-    if (attached) {
-      _placeholder?.removeListener(markNeedsPaint);
-      value?.addListener(markNeedsPaint);
-    }
-
-    _placeholder = value;
-    markNeedsPaint();
   }
 
   late SliverDashboardLayout dashboardLayout;
@@ -325,12 +298,6 @@ class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
 
       child = childAfter(child);
     }
-
-    _placeholder?.paint(
-      context.canvas,
-      dashboardLayout,
-      constraints,
-    );
   }
 
   final _gridPainter = DashboardGridPainter();

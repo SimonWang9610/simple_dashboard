@@ -30,13 +30,11 @@ mixin LayoutItemWidget on Widget {
 
 class SliverDashboard extends SliverMultiBoxAdaptorWidget {
   final SliverDashboardLayoutDelegate layoutDelegate;
-  final DashboardPlaceholderPainter? placeholderPainter;
 
   const SliverDashboard({
     super.key,
     required SliverDashboardChildDelegate delegate,
     required this.layoutDelegate,
-    this.placeholderPainter,
   }) : super(delegate: delegate);
 
   SliverDashboard.builder({
@@ -45,7 +43,6 @@ class SliverDashboard extends SliverMultiBoxAdaptorWidget {
     required int mainAxisSlots,
     required List<LayoutItem> items,
     required LayoutItemWidgetBuilder itemBuilder,
-    this.placeholderPainter,
     double aspectRatio = 1.0,
     double mainAxisSpacing = 4,
     double crossAxisSpacing = 4,
@@ -69,7 +66,6 @@ class SliverDashboard extends SliverMultiBoxAdaptorWidget {
     required DashboardAxis axis,
     required int mainAxisSlots,
     required List<LayoutItemWidget> children,
-    this.placeholderPainter,
     bool addAutomaticKeepAlives = true,
     bool addRepaintBoundaries = true,
     bool addSemanticIndexes = true,
@@ -113,7 +109,6 @@ class SliverDashboard extends SliverMultiBoxAdaptorWidget {
     return RenderSliverDashboard(
       childManager: element,
       layoutDelegate: layoutDelegate,
-      placeholderPainter: placeholderPainter,
     );
   }
 
@@ -134,16 +129,13 @@ class SliverDashboard extends SliverMultiBoxAdaptorWidget {
       "SliverDashboard's axis does not match the scrollable's axis, given axis: ${layoutDelegate.axis}.",
     );
 
-    renderObject
-      ..layoutDelegate = layoutDelegate
-      ..placeholderPainter = placeholderPainter;
+    renderObject.layoutDelegate = layoutDelegate;
   }
 }
 
 class DashboardView extends BoxScrollView {
   final SliverDashboardLayoutDelegate layoutDelegate;
   final SliverDashboardChildDelegate delegate;
-  final DashboardPlaceholderPainter? placeholderPainter;
 
   DashboardView({
     super.key,
@@ -160,7 +152,6 @@ class DashboardView extends BoxScrollView {
     super.keyboardDismissBehavior,
     super.restorationId,
     super.clipBehavior,
-    this.placeholderPainter,
     super.hitTestBehavior,
   }) : super(
          scrollDirection: layoutDelegate.axis == DashboardAxis.horizontal
@@ -182,7 +173,6 @@ class DashboardView extends BoxScrollView {
     super.restorationId,
     super.clipBehavior,
     super.hitTestBehavior,
-    this.placeholderPainter,
     bool addAutomaticKeepAlives = true,
     bool addRepaintBoundaries = true,
     bool addSemanticIndexes = true,
@@ -228,7 +218,6 @@ class DashboardView extends BoxScrollView {
     super.restorationId,
     super.clipBehavior,
     super.hitTestBehavior,
-    this.placeholderPainter,
     bool addAutomaticKeepAlives = true,
     bool addRepaintBoundaries = true,
     bool addSemanticIndexes = true,
@@ -263,7 +252,6 @@ class DashboardView extends BoxScrollView {
     return SliverDashboard(
       layoutDelegate: layoutDelegate,
       delegate: delegate,
-      placeholderPainter: placeholderPainter,
     );
   }
 }

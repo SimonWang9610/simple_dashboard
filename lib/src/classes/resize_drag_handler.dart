@@ -1,5 +1,5 @@
 import 'package:simple_dashboard/simple_dashboard.dart';
-import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
+import 'package:simple_dashboard/src/models/placeholder.dart';
 import 'package:simple_dashboard/src/utils/checker.dart';
 
 final class ResizeDragHandler extends DragLayoutHandler {
@@ -18,16 +18,20 @@ final class ResizeDragHandler extends DragLayoutHandler {
   void startDragging() {
     _freezedItems = List.unmodifiable(mutator.items);
 
-    _currentPlaceholder = draggingItem.placeholder;
+    // _currentPlaceholder = LayoutItem.placeholderOf(draggingItem);
 
     mutator.updateItems(
       _freezedItems!
-          .map((i) => i.id == draggingItem.id ? _currentPlaceholder! : i)
+          .map(
+            (i) => i.id == draggingItem.id
+                ? LayoutItem.placeholderOf(draggingItem)
+                : i,
+          )
           .toList(),
     );
   }
 
-  ItemPlaceholder? _currentPlaceholder;
+  // ItemPlaceholder? _currentPlaceholder;
 
   @override
   DraggingItemPosition? updateDragging(
@@ -62,8 +66,7 @@ final class ResizeDragHandler extends DragLayoutHandler {
     );
 
     if (resolved != null) {
-      _currentPlaceholder = resolved.$1;
-      mutator.updateItems(resolved.$2);
+      mutator.updateItems(resolved);
     }
 
     return resolved != null
@@ -75,12 +78,7 @@ final class ResizeDragHandler extends DragLayoutHandler {
   void finishDragging(bool accepted) {
     if (accepted) {
       mutator.updateItems(
-        mutator.items.map((i) {
-          if (i is ItemPlaceholder && i.isPlaceholderOf(draggingItem.id)) {
-            return i.item;
-          }
-          return i;
-        }).toList(),
+        mutator.items.map((i) => i.originalItem).toList(),
       );
     } else {
       mutator.updateItems(List.of(_freezedItems!));
@@ -132,7 +130,7 @@ abstract class ResizeDragHelper {
     return candidate;
   }
 
-  static (ItemPlaceholder, List<LayoutItem>)? resolveCollision(
+  static List<LayoutItem>? resolveCollision(
     LayoutItem draggingItem,
     LayoutRect candidateRect,
     ResizeDirection direction,
@@ -146,21 +144,18 @@ abstract class ResizeDragHelper {
       candidateRect,
     );
 
-    if (!collisions.hasCollision) {
-      final placeholder = ItemPlaceholder(
-        draggingItem.id,
-        rect: candidateRect,
-      );
+    final placeholder = LayoutItem.placeholderOf(
+      draggingItem,
+      newRect: candidateRect,
+    );
 
-      return (
-        placeholder,
-        items.map((i) {
-          if (i.id == placeholder.id) {
-            return placeholder;
-          }
-          return i;
-        }).toList(),
-      );
+    if (!collisions.hasCollision) {
+      return items.map((i) {
+        if (i.id == placeholder.id) {
+          return placeholder;
+        }
+        return i;
+      }).toList();
     }
 
     /// 1. iterate through the collisions and apply the same delta according to the collision direction and resize direction.
@@ -192,11 +187,6 @@ abstract class ResizeDragHelper {
       newRects[item.id] = itemCandidate;
     }
 
-    final placeholder = ItemPlaceholder(
-      draggingItem.id,
-      rect: candidateRect,
-    );
-
     final updatedItems = items.map((i) {
       if (i.id == placeholder.id) {
         return placeholder;
@@ -220,10 +210,7 @@ abstract class ResizeDragHelper {
       return null;
     }
 
-    return (
-      placeholder,
-      updatedItems,
-    );
+    return updatedItems;
   }
 
   static LayoutRect? _resizeCollidedItem(

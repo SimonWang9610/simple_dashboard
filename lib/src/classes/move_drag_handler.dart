@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
-import 'package:simple_dashboard/src/models/dashboard_layout_item.dart';
+import 'package:simple_dashboard/src/models/placeholder.dart';
 import 'package:simple_dashboard/src/utils/checker.dart';
 
 final class MoveDragHandler extends DragLayoutHandler {
@@ -44,7 +44,11 @@ final class MoveDragHandler extends DragLayoutHandler {
 
     mutator.updateItems(
       mutator.items
-          .map((i) => i.id == draggingItem.id ? i.placeholder : i)
+          .map(
+            (i) => i.id == draggingItem.id
+                ? LayoutItem.placeholderOf(draggingItem)
+                : i,
+          )
           .toList(),
     );
   }
@@ -79,18 +83,6 @@ final class MoveDragHandler extends DragLayoutHandler {
     };
 
     if (itemsAfterMove != null) {
-      assert(
-        () {
-          for (final item in itemsAfterMove) {
-            if (item.id is PlaceholderId && item is! ItemPlaceholder) {
-              return false;
-            }
-          }
-
-          return true;
-        }(),
-        "All placeholders in the items list should be of type ItemPlaceholder.",
-      );
       mutator.updateItems(itemsAfterMove);
     }
 
@@ -101,12 +93,7 @@ final class MoveDragHandler extends DragLayoutHandler {
   void finishDragging(bool accepted) {
     if (accepted) {
       mutator.updateItems(
-        mutator.items.map((i) {
-          if (i is ItemPlaceholder && i.isPlaceholderOf(draggingItem.id)) {
-            return i.item;
-          }
-          return i;
-        }).toList(),
+        mutator.items.map((i) => i.originalItem).toList(),
       );
     } else {
       mutator.updateItems(List.of(_freezedItems!));
@@ -131,9 +118,9 @@ abstract class _Helper {
       return null;
     }
 
-    final placeholder = ItemPlaceholder(
-      draggingItem.id,
-      rect: rect,
+    final placeholder = LayoutItem.placeholderOf(
+      draggingItem,
+      newRect: rect,
     );
 
     return items.map((i) {
@@ -150,12 +137,12 @@ abstract class _Helper {
     LayoutItem draggingItem,
     List<LayoutItem> items,
   ) {
-    final noPlaceHolderItems = items.where((i) => i.id is! PlaceholderId);
+    final noPlaceHolderItems = items.where((i) => !i.isPlaceholder);
     final collisions = LayoutChecker.checkCollisions(noPlaceHolderItems, rect);
 
-    final placeholder = ItemPlaceholder(
-      draggingItem.id,
-      rect: rect,
+    final placeholder = LayoutItem.placeholderOf(
+      draggingItem,
+      newRect: rect,
     );
 
     if (!collisions.hasCollision) {
@@ -194,9 +181,9 @@ abstract class _Helper {
       return null;
     }
 
-    positioned[placeholderIndex] = ItemPlaceholder(
-      draggingItem.id,
-      rect: newPlaceholder.rect,
+    positioned[placeholderIndex] = LayoutItem.placeholderOf(
+      draggingItem,
+      newRect: newPlaceholder.rect,
     );
 
     return positioned;
