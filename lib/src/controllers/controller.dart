@@ -1,5 +1,4 @@
 import 'package:simple_dashboard/simple_dashboard.dart';
-import 'package:simple_dashboard/src/classes/drags.dart';
 import 'package:simple_dashboard/src/utils/checker.dart';
 
 final class DashboardController extends DashboardItemStorage

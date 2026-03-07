@@ -20,6 +20,8 @@ abstract base class DashboardItemStorage
   void add(
     Object id,
     LayoutSize size, {
+    LayoutSize? maxSize,
+    LayoutSize minSize = const LayoutSize(width: 1, height: 1),
     required PositionStrategy strategy,
     Object? afterId,
   }) {
@@ -58,7 +60,12 @@ abstract base class DashboardItemStorage
       ),
     };
 
-    final newItems = positioner.position(id, validSize);
+    final newItems = positioner.position(
+      id,
+      validSize,
+      minSize: minSize,
+      maxSize: maxSize,
+    );
 
     updateItems(newItems);
   }

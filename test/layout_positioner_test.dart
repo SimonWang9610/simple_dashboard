@@ -1291,4 +1291,45 @@ void main() {
       }
     });
   });
+
+  group("minSize/maxSize should be respected", () {
+    test('should not place item if it does not meet minSize', () {
+      final positioner = DashboardAggressivePositioner(
+        items: [],
+        axis: DashboardAxis.horizontal,
+        mainAxisSlots: 4,
+        maxCrossSlots: 4,
+      );
+
+      final result = positioner.position(
+        'item1',
+        LayoutSize(width: 2, height: 2),
+        minSize: LayoutSize(width: 2, height: 1),
+      );
+
+      expect(result[0].minSize, LayoutSize(width: 2, height: 1));
+      expect(result[0].rect.size, LayoutSize(width: 2, height: 2));
+    });
+
+    test('should place item if it meets minSize', () {
+      final positioner = DashboardAggressivePositioner(
+        items: [],
+        axis: DashboardAxis.horizontal,
+        mainAxisSlots: 4,
+        maxCrossSlots: 4,
+      );
+
+      final result = positioner.position(
+        'item1',
+        LayoutSize(width: 2, height: 2),
+        minSize: LayoutSize(width: 2, height: 1),
+        maxSize: LayoutSize(width: 3, height: 3),
+      );
+
+      expect(result.length, 1);
+      expect(result[0].minSize, LayoutSize(width: 2, height: 1));
+      expect(result[0].maxSize, LayoutSize(width: 3, height: 3));
+      expect(result[0].rect.size, LayoutSize(width: 2, height: 2));
+    });
+  });
 }
