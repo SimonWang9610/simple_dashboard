@@ -35,6 +35,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final controller = DashboardController(
     mainAxisSlots: 4,
+    axis: DashboardAxis.horizontal,
     // initialItems: [
     //   LayoutItem(
     //     id: "initial-0",
@@ -49,10 +50,6 @@ class _MyHomePageState extends State<MyHomePage> {
   );
 
   final _loading = ValueNotifier<bool>(false);
-
-  final placeholder = ValueNotifier<LayoutPlaceholder?>(null);
-
-  final Map<Object, GlobalKey> itemKeys = {};
 
   @override
   void didChangeDependencies() {
@@ -72,7 +69,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void dispose() {
-    placeholder.dispose();
     controller.dispose();
     super.dispose();
   }
@@ -118,6 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Dashboard(
                 controller: controller,
                 isLoading: _loading,
+                moveDropStrategy: MoveDropStrategy.noCollision,
                 loadingBuilder: (context) {
                   return Container(
                     color: Colors.black12,
@@ -136,12 +133,16 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   );
                 },
-                itemBuilder: (_, item) => ItemWidget(
-                  // key: itemKeys.putIfAbsent(item.id, () => GlobalKey()),
+                itemBuilder: (_, item) => DraggableItemWidget(
                   item: item,
-                  onRemove: () {
-                    controller.remove(item.id);
-                  },
+                  child: ItemWidget(
+                    // key: itemKeys.putIfAbsent(item.id, () => GlobalKey()),
+                    item: item,
+                    // padding: const EdgeInsets.all(8.0),
+                    onRemove: () {
+                      controller.remove(item.id);
+                    },
+                  ),
                 ),
               ),
             ),
@@ -165,9 +166,6 @@ class _MyHomePageState extends State<MyHomePage> {
     final size = LayoutSize(
       width: faker.randomGenerator.integer(slots ~/ 2, min: 1),
       height: faker.randomGenerator.integer(slots ~/ 2, min: 1),
-    );
-    print(
-      "Adding item $id with size ${size.width} x ${size.height}, max slots: $slots",
     );
 
     controller.add(

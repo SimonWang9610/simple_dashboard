@@ -388,13 +388,19 @@ void main() {
 
     group('getOrigin', () {
       test('horizontal: Offset(crossAxisOffset, scrollOffset)', () {
-        final origin = geo.getOrigin(DashboardAxis.horizontal);
+        final origin = geo.getOrigin(
+          DashboardAxis.horizontal,
+          dashboardScrollOffset: 0,
+        );
         expect(origin.dx, 200.0);
         expect(origin.dy, 100.0);
       });
 
       test('vertical: Offset(scrollOffset, crossAxisOffset)', () {
-        final origin = geo.getOrigin(DashboardAxis.vertical);
+        final origin = geo.getOrigin(
+          DashboardAxis.vertical,
+          dashboardScrollOffset: 0,
+        );
         expect(origin.dx, 100.0);
         expect(origin.dy, 200.0);
       });
@@ -404,8 +410,14 @@ void main() {
       test(
         'horizontal: origin and size are consistent with getOrigin/getSize',
         () {
-          final boxGeo = geo.getBoxItemGeometry(DashboardAxis.horizontal);
-          final origin = geo.getOrigin(DashboardAxis.horizontal);
+          final boxGeo = geo.getBoxItemGeometry(
+            DashboardAxis.horizontal,
+            dashboardScrollOffset: 0,
+          );
+          final origin = geo.getOrigin(
+            DashboardAxis.horizontal,
+            dashboardScrollOffset: 0,
+          );
           final size = geo.getSize(DashboardAxis.horizontal);
           expect(boxGeo.origin, origin);
           expect(boxGeo.size, size);
@@ -415,8 +427,14 @@ void main() {
       test(
         'vertical: origin and size are consistent with getOrigin/getSize',
         () {
-          final boxGeo = geo.getBoxItemGeometry(DashboardAxis.vertical);
-          final origin = geo.getOrigin(DashboardAxis.vertical);
+          final boxGeo = geo.getBoxItemGeometry(
+            DashboardAxis.vertical,
+            dashboardScrollOffset: 0,
+          );
+          final origin = geo.getOrigin(
+            DashboardAxis.vertical,
+            dashboardScrollOffset: 0,
+          );
           final size = geo.getSize(DashboardAxis.vertical);
           expect(boxGeo.origin, origin);
           expect(boxGeo.size, size);

@@ -1,5 +1,6 @@
-import 'package:simple_dashboard/src/models/enums.dart';
+import 'package:simple_dashboard/src/enums.dart';
 import 'package:equatable/equatable.dart';
+import 'package:simple_dashboard/src/models/placeholder.dart';
 
 class LayoutRect extends Equatable {
   final int x;
@@ -94,19 +95,17 @@ class LayoutSize extends Equatable {
 class LayoutItem extends Equatable {
   final Object id;
   final LayoutRect rect;
-  final LayoutSize? minSize;
+  final LayoutSize minSize;
   final LayoutSize? maxSize;
 
   LayoutItem({
     required this.id,
     required this.rect,
-    this.minSize,
+    this.minSize = const LayoutSize(width: 1, height: 1),
     this.maxSize,
   }) : assert(
-         minSize == null ||
-             (minSize.width <= rect.size.width &&
-                 minSize.height <= rect.size.height),
-         "The minimum size of a layout item cannot be greater than its current size.",
+         rect.size.width >= minSize.width && rect.size.height >= minSize.height,
+         "The minimum size of a layout item cannot be larger than its current size.",
        ),
        assert(
          maxSize == null ||
@@ -127,31 +126,48 @@ class LayoutItem extends Equatable {
     );
   }
 
-  LayoutPlaceholder get placeholder {
-    return LayoutPlaceholder._(
-      itemId: id,
-      rect: rect,
+  bool canAcceptSize(LayoutSize newSize) {
+    if (newSize.width < minSize.width || newSize.height < minSize.height) {
+      return false;
+    }
+
+    if (maxSize != null) {
+      if (newSize.width > maxSize!.width || newSize.height > maxSize!.height) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  factory LayoutItem.placeholderOf(LayoutItem item, {LayoutRect? newRect}) {
+    return LayoutItem(
+      id: PlaceholderId(item.id),
+      rect: newRect ?? item.rect,
+      minSize: item.minSize,
+      maxSize: item.maxSize,
     );
   }
 
+  bool isPlaceholderOf(Object otherId) {
+    return id is PlaceholderId && (id as PlaceholderId).itemId == otherId;
+  }
+
+  bool get isPlaceholder => id is PlaceholderId;
+
   @override
   List<Object?> get props => [id, rect, minSize, maxSize];
-}
 
-final class LayoutPlaceholder extends LayoutItem {
-  LayoutPlaceholder._({
-    required Object itemId,
-    required super.rect,
-  }) : super(id: "$itemId#placeholder");
-
-  LayoutItem get item {
-    final itemId = RegExp(
-      r"^(.*)#placeholder$",
-    ).firstMatch(id.toString())?.group(1);
-
-    return LayoutItem(
-      id: itemId!,
-      rect: rect,
-    );
+  LayoutItem get originalItem {
+    if (id is PlaceholderId) {
+      return LayoutItem(
+        id: (id as PlaceholderId).itemId,
+        rect: rect,
+        minSize: minSize,
+        maxSize: maxSize,
+      );
+    } else {
+      return this;
+    }
   }
 }

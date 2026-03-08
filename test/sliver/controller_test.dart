@@ -5,7 +5,11 @@ import 'package:simple_dashboard/simple_dashboard.dart';
 
 LayoutItem _item(String id, int x, int y, int w, int h) => LayoutItem(
   id: id,
-  rect: LayoutRect(x: x, y: y, size: LayoutSize(width: w, height: h)),
+  rect: LayoutRect(
+    x: x,
+    y: y,
+    size: LayoutSize(width: w, height: h),
+  ),
 );
 
 void _expectNoOverlaps(List<LayoutItem> items) {
@@ -44,13 +48,16 @@ void main() {
     // ── factory constructor ────────────────────────────────────────────────
 
     group('factory constructor', () {
-      test('defaults: horizontal axis, empty items, zero maxCrossAxisSlots', () {
-        final ctrl = DashboardController(mainAxisSlots: 4);
-        expect(ctrl.axis, DashboardAxis.horizontal);
-        expect(ctrl.mainAxisSlots, 4);
-        expect(ctrl.items, isEmpty);
-        expect(ctrl.maxCrossAxisSlots, 0);
-      });
+      test(
+        'defaults: horizontal axis, empty items, zero maxCrossAxisSlots',
+        () {
+          final ctrl = DashboardController(mainAxisSlots: 4);
+          expect(ctrl.axis, DashboardAxis.horizontal);
+          expect(ctrl.mainAxisSlots, 4);
+          expect(ctrl.items, isEmpty);
+          expect(ctrl.maxCrossAxisSlots, 0);
+        },
+      );
 
       test('can specify vertical axis', () {
         final ctrl = DashboardController(
@@ -118,14 +125,14 @@ void main() {
         int count = 0;
         ctrl.addListener(() => count++);
 
-        ctrl.items = [_item('a', 0, 0, 1, 1)];
+        ctrl.updateItems([_item('a', 0, 0, 1, 1)]);
 
         expect(count, 1);
       });
 
       test('items are stored as an unmodifiable list', () {
         final ctrl = DashboardController(mainAxisSlots: 4);
-        ctrl.items = [_item('a', 0, 0, 1, 1)];
+        ctrl.updateItems([_item('a', 0, 0, 1, 1)]);
         expect(
           () => ctrl.items.add(_item('b', 1, 0, 1, 1)),
           throwsUnsupportedError,
@@ -138,7 +145,7 @@ void main() {
           initialItems: [_item('a', 0, 0, 1, 1)],
         );
         final before = ctrl.sortedItems;
-        ctrl.items = [_item('b', 0, 0, 1, 1)];
+        ctrl.updateItems([_item('b', 0, 0, 1, 1)]);
         final after = ctrl.sortedItems;
         expect(identical(before, after), isFalse);
       });
@@ -160,10 +167,16 @@ void main() {
 
       test('second item is appended after first', () {
         final ctrl = DashboardController(mainAxisSlots: 4);
-        ctrl.add('a', const LayoutSize(width: 2, height: 1),
-            strategy: PositionStrategy.append);
-        ctrl.add('b', const LayoutSize(width: 2, height: 1),
-            strategy: PositionStrategy.append);
+        ctrl.add(
+          'a',
+          const LayoutSize(width: 2, height: 1),
+          strategy: PositionStrategy.append,
+        );
+        ctrl.add(
+          'b',
+          const LayoutSize(width: 2, height: 1),
+          strategy: PositionStrategy.append,
+        );
         expect(ctrl.items.length, 2);
         expect(ctrl.items.any((i) => i.id == 'b'), isTrue);
         _expectNoOverlaps(ctrl.items.toList());
@@ -173,8 +186,11 @@ void main() {
         final ctrl = DashboardController(mainAxisSlots: 4);
         int count = 0;
         ctrl.addListener(() => count++);
-        ctrl.add('a', const LayoutSize(width: 1, height: 1),
-            strategy: PositionStrategy.append);
+        ctrl.add(
+          'a',
+          const LayoutSize(width: 1, height: 1),
+          strategy: PositionStrategy.append,
+        );
         expect(count, 1);
       });
 
@@ -220,11 +236,17 @@ void main() {
 
       test('maxCrossAxisSlots grows when items occupy new cross rows', () {
         final ctrl = DashboardController(mainAxisSlots: 4);
-        ctrl.add('a', const LayoutSize(width: 4, height: 1),
-            strategy: PositionStrategy.append);
+        ctrl.add(
+          'a',
+          const LayoutSize(width: 4, height: 1),
+          strategy: PositionStrategy.append,
+        );
         expect(ctrl.maxCrossAxisSlots, 1); // bottom = y + height = 0 + 1 = 1
-        ctrl.add('b', const LayoutSize(width: 4, height: 1),
-            strategy: PositionStrategy.append);
+        ctrl.add(
+          'b',
+          const LayoutSize(width: 4, height: 1),
+          strategy: PositionStrategy.append,
+        );
         expect(ctrl.maxCrossAxisSlots, 2);
       });
     });
@@ -261,8 +283,11 @@ void main() {
           mainAxisSlots: 4,
           initialItems: [_item('a', 0, 0, 4, 1)],
         );
-        ctrl.add('b', const LayoutSize(width: 3, height: 1),
-            strategy: PositionStrategy.aggressive);
+        ctrl.add(
+          'b',
+          const LayoutSize(width: 3, height: 1),
+          strategy: PositionStrategy.aggressive,
+        );
         expect(ctrl.items.length, 2);
         _expectNoOverlaps(ctrl.items.toList());
       });
@@ -452,34 +477,38 @@ void main() {
     // ── sortedItems ────────────────────────────────────────────────────────
 
     group('sortedItems', () {
-      test('returns items sorted by axis (horizontal: primary y, secondary x)',
-          () {
-        final ctrl = DashboardController(
-          mainAxisSlots: 4,
-          initialItems: [
-            _item('b', 2, 0, 2, 1), // y=0, x=2
-            _item('a', 0, 0, 2, 1), // y=0, x=0
-          ],
-        );
-        final sorted = ctrl.sortedItems;
-        expect(sorted[0].id, 'a');
-        expect(sorted[1].id, 'b');
-      });
+      test(
+        'returns items sorted by axis (horizontal: primary y, secondary x)',
+        () {
+          final ctrl = DashboardController(
+            mainAxisSlots: 4,
+            initialItems: [
+              _item('b', 2, 0, 2, 1), // y=0, x=2
+              _item('a', 0, 0, 2, 1), // y=0, x=0
+            ],
+          );
+          final sorted = ctrl.sortedItems;
+          expect(sorted[0].id, 'a');
+          expect(sorted[1].id, 'b');
+        },
+      );
 
-      test('returns items sorted by axis (vertical: primary x, secondary y)',
-          () {
-        final ctrl = DashboardController(
-          axis: DashboardAxis.vertical,
-          mainAxisSlots: 4,
-          initialItems: [
-            _item('b', 0, 2, 1, 2), // x=0, y=2
-            _item('a', 0, 0, 1, 2), // x=0, y=0
-          ],
-        );
-        final sorted = ctrl.sortedItems;
-        expect(sorted[0].id, 'a');
-        expect(sorted[1].id, 'b');
-      });
+      test(
+        'returns items sorted by axis (vertical: primary x, secondary y)',
+        () {
+          final ctrl = DashboardController(
+            axis: DashboardAxis.vertical,
+            mainAxisSlots: 4,
+            initialItems: [
+              _item('b', 0, 2, 1, 2), // x=0, y=2
+              _item('a', 0, 0, 1, 2), // x=0, y=0
+            ],
+          );
+          final sorted = ctrl.sortedItems;
+          expect(sorted[0].id, 'a');
+          expect(sorted[1].id, 'b');
+        },
+      );
 
       test('sortedItems result is cached across multiple accesses', () {
         final ctrl = DashboardController(
@@ -497,8 +526,11 @@ void main() {
           initialItems: [_item('a', 0, 0, 1, 1)],
         );
         final before = ctrl.sortedItems;
-        ctrl.add('b', const LayoutSize(width: 1, height: 1),
-            strategy: PositionStrategy.append);
+        ctrl.add(
+          'b',
+          const LayoutSize(width: 1, height: 1),
+          strategy: PositionStrategy.append,
+        );
         final after = ctrl.sortedItems;
         expect(identical(before, after), isFalse);
       });
@@ -530,8 +562,11 @@ void main() {
           mainAxisSlots: 4,
           initialItems: [_item('a', 0, 0, 2, 1)],
         );
-        ctrl.add('b', const LayoutSize(width: 2, height: 1),
-            strategy: PositionStrategy.append);
+        ctrl.add(
+          'b',
+          const LayoutSize(width: 2, height: 1),
+          strategy: PositionStrategy.append,
+        );
         expect(ctrl.items.length, 2);
         ctrl.remove('b');
         expect(ctrl.items.length, 1);

@@ -28,7 +28,12 @@ sealed class DashboardPositioner {
     required this.axis,
   });
 
-  List<LayoutItem> position(Object id, LayoutSize size);
+  List<LayoutItem> position(
+    Object id,
+    LayoutSize size, {
+    LayoutSize minSize = const LayoutSize(width: 1, height: 1),
+    LayoutSize? maxSize,
+  });
 }
 
 final class DashboardAggressivePositioner extends DashboardPositioner {
@@ -50,7 +55,12 @@ final class DashboardAggressivePositioner extends DashboardPositioner {
   });
 
   @override
-  List<LayoutItem> position(Object id, LayoutSize size) {
+  List<LayoutItem> position(
+    Object id,
+    LayoutSize size, {
+    LayoutSize minSize = const LayoutSize(width: 1, height: 1),
+    LayoutSize? maxSize,
+  }) {
     assert(
       () {
         switch (axis) {
@@ -94,7 +104,12 @@ final class DashboardAggressivePositioner extends DashboardPositioner {
         if (conflictingItem == null) {
           return [
             ...items,
-            LayoutItem(id: id, rect: candidateRect),
+            LayoutItem(
+              id: id,
+              rect: candidateRect,
+              minSize: minSize,
+              maxSize: maxSize,
+            ),
           ];
         }
 
@@ -108,6 +123,8 @@ final class DashboardAggressivePositioner extends DashboardPositioner {
 
     final newItem = LayoutItem(
       id: id,
+      minSize: minSize,
+      maxSize: maxSize,
       rect: axis == DashboardAxis.horizontal
           ? LayoutRect(
               x: 0,
@@ -140,12 +157,19 @@ final class DashboardAppendPositioner extends DashboardPositioner {
   });
 
   @override
-  List<LayoutItem> position(Object id, LayoutSize size) {
+  List<LayoutItem> position(
+    Object id,
+    LayoutSize size, {
+    LayoutSize? maxSize,
+    LayoutSize minSize = const LayoutSize(width: 1, height: 1),
+  }) {
     if (items.isEmpty) {
       return [
         LayoutItem(
           id: id,
           rect: LayoutRect(x: 0, y: 0, size: size),
+          minSize: minSize,
+          maxSize: maxSize,
         ),
       ];
     }
@@ -165,7 +189,7 @@ final class DashboardAppendPositioner extends DashboardPositioner {
           : last.rect.bottom,
     );
 
-    return internal.position(id, size);
+    return internal.position(id, size, minSize: minSize, maxSize: maxSize);
   }
 }
 
@@ -203,8 +227,16 @@ final class DashboardAfterPositioner extends DashboardPositioner {
   });
 
   @override
-  List<LayoutItem> position(Object id, LayoutSize size) {
-    assert(afterId != id, "An item cannot be positioned after itself.");
+  List<LayoutItem> position(
+    Object id,
+    LayoutSize size, {
+    LayoutSize? maxSize,
+    LayoutSize minSize = const LayoutSize(width: 1, height: 1),
+  }) {
+    assert(
+      afterId != id,
+      "An item cannot be positioned after itself, but got id [$id] and afterId [$afterId]",
+    );
 
     final after = items.firstWhereOrNull((item) => item.id == afterId);
 
@@ -216,7 +248,12 @@ final class DashboardAfterPositioner extends DashboardPositioner {
         maxCrossSlots: maxCrossSlots,
       );
 
-      return appendPositioner.position(id, size);
+      return appendPositioner.position(
+        id,
+        size,
+        minSize: minSize,
+        maxSize: maxSize,
+      );
     }
 
     final sortedItems = DashboardHelper.sort(items, axis);
@@ -231,12 +268,18 @@ final class DashboardAfterPositioner extends DashboardPositioner {
       ...sortedItems.skip(afterIndex + 1),
     ];
 
-    kept = DashboardAppendPositioner(
-      items: kept,
-      axis: axis,
-      mainAxisSlots: mainAxisSlots,
-      maxCrossSlots: maxCrossSlots,
-    ).position(id, size);
+    kept =
+        DashboardAppendPositioner(
+          items: kept,
+          axis: axis,
+          mainAxisSlots: mainAxisSlots,
+          maxCrossSlots: maxCrossSlots,
+        ).position(
+          id,
+          size,
+          minSize: minSize,
+          maxSize: maxSize,
+        );
 
     final shifted = expandShiftCheckArea
         ? LayoutShiftedArea.expanded(axis)
@@ -246,12 +289,18 @@ final class DashboardAfterPositioner extends DashboardPositioner {
 
     for (final item in pending) {
       if (shifted.conflictWith(item.rect)) {
-        kept = DashboardAppendPositioner(
-          items: kept,
-          axis: axis,
-          mainAxisSlots: mainAxisSlots,
-          maxCrossSlots: maxCrossSlots,
-        ).position(item.id, item.rect.size);
+        kept =
+            DashboardAppendPositioner(
+              items: kept,
+              axis: axis,
+              mainAxisSlots: mainAxisSlots,
+              maxCrossSlots: maxCrossSlots,
+            ).position(
+              item.id,
+              item.rect.size,
+              maxSize: item.maxSize,
+              minSize: item.minSize,
+            );
 
         shifted.addShiftedRect(kept.last.rect);
       } else {

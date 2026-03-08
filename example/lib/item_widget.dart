@@ -9,9 +9,11 @@ class ItemWidget extends StatefulWidget with LayoutItemWidget {
 
   final VoidCallback? onRemove;
   final VoidCallback? onDoubleTap;
+  final EdgeInsets padding;
   const ItemWidget({
     super.key,
     required this.item,
+    this.padding = EdgeInsets.zero,
     this.onRemove,
     this.onDoubleTap,
   });
@@ -46,7 +48,6 @@ class _ItemWidgetState extends State<ItemWidget>
   @override
   void didUpdateWidget(covariant ItemWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    print('Updating item ${widget.item.id}, old id: ${oldWidget.item.id}');
     if (oldWidget.item.id != widget.item.id) {
       count = 0;
     }
@@ -62,32 +63,8 @@ class _ItemWidgetState extends State<ItemWidget>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return InkWell(
-      onTap: () {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('Item ${widget.item.id}'),
-            content: Text(
-              'Position: (${widget.item.rect.x}, ${widget.item.rect.y})\nSize: ${widget.item.rect.size.width} x ${widget.item.rect.size.height}',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  widget.onRemove?.call();
-                },
-                child: const Text('Remove'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Close'),
-              ),
-            ],
-          ),
-        );
-      },
-      onDoubleTap: widget.onDoubleTap,
+    return Padding(
+      padding: widget.padding,
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
@@ -100,6 +77,45 @@ class _ItemWidgetState extends State<ItemWidget>
           child: Text('[${widget.item.id}]: $count'),
         ),
       ),
+      // child: InkWell(
+      //   onTap: () {
+      //     showDialog(
+      //       context: context,
+      //       builder: (context) => AlertDialog(
+      //         title: Text('Item ${widget.item.id}'),
+      //         content: Text(
+      //           'Position: (${widget.item.rect.x}, ${widget.item.rect.y})\nSize: ${widget.item.rect.size.width} x ${widget.item.rect.size.height}',
+      //         ),
+      //         actions: [
+      //           TextButton(
+      //             onPressed: () {
+      //               Navigator.of(context).pop();
+      //               widget.onRemove?.call();
+      //             },
+      //             child: const Text('Remove'),
+      //           ),
+      //           TextButton(
+      //             onPressed: () => Navigator.of(context).pop(),
+      //             child: const Text('Close'),
+      //           ),
+      //         ],
+      //       ),
+      //     );
+      //   },
+      //   onDoubleTap: widget.onDoubleTap,
+      //   child: Container(
+      //     decoration: BoxDecoration(
+      //       borderRadius: BorderRadius.circular(8),
+      //       border: Border.all(color: Colors.black),
+      //       color: Colors
+      //           .primaries[widget.item.id.hashCode % Colors.primaries.length]
+      //           .withOpacity(0.5),
+      //     ),
+      //     child: Center(
+      //       child: Text('[${widget.item.id}]: $count'),
+      //     ),
+      //   ),
+      // ),
     );
   }
 }

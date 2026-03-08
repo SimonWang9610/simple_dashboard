@@ -117,6 +117,20 @@ class SliverDashboardLayout {
   double get crossDashboardAxisStride =>
       crossDashboardAxisSlotExtent + crossDashboardAxisSpacing;
 
+  /// The size of a single slot in the dashboard.
+  Size get slotSize {
+    return switch (dashboardAxis) {
+      DashboardAxis.horizontal => Size(
+        mainDashboardAxisSlotExtent,
+        crossDashboardAxisSlotExtent,
+      ),
+      DashboardAxis.vertical => Size(
+        crossDashboardAxisSlotExtent,
+        mainDashboardAxisSlotExtent,
+      ),
+    };
+  }
+
   /// Returns the index of the first item that should be visible at the given scroll offset.
   int getMinChildIndexForScrollOffset(double scrollOffset) {
     if (crossDashboardAxisStride <= 0 || items.isEmpty) return 0;
@@ -296,16 +310,28 @@ class SliverDashboardGeometry {
     };
   }
 
-  Offset getOrigin(DashboardAxis axis) {
+  Offset getOrigin(
+    DashboardAxis axis, {
+    required double dashboardScrollOffset,
+  }) {
     return switch (axis) {
-      DashboardAxis.horizontal => Offset(crossAxisOffset, scrollOffset),
-      DashboardAxis.vertical => Offset(scrollOffset, crossAxisOffset),
+      DashboardAxis.horizontal => Offset(
+        crossAxisOffset,
+        scrollOffset - dashboardScrollOffset,
+      ),
+      DashboardAxis.vertical => Offset(
+        scrollOffset - dashboardScrollOffset,
+        crossAxisOffset,
+      ),
     };
   }
 
-  BoxItemGeometry getBoxItemGeometry(DashboardAxis axis) {
+  BoxItemGeometry getBoxItemGeometry(
+    DashboardAxis axis, {
+    required double dashboardScrollOffset,
+  }) {
     return BoxItemGeometry(
-      origin: getOrigin(axis),
+      origin: getOrigin(axis, dashboardScrollOffset: dashboardScrollOffset),
       size: getSize(axis),
     );
   }
@@ -319,4 +345,6 @@ class BoxItemGeometry {
     required this.origin,
     required this.size,
   });
+
+  Rect get rect => origin & size;
 }

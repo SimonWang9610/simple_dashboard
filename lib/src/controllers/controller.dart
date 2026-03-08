@@ -1,91 +1,14 @@
-import 'package:flutter/widgets.dart';
 import 'package:simple_dashboard/simple_dashboard.dart';
 import 'package:simple_dashboard/src/utils/checker.dart';
 
-abstract class DashboardController extends ChangeNotifier {
-  DashboardController._();
-
-  DashboardAxis get axis;
-  int get mainAxisSlots;
-  int get maxCrossAxisSlots;
-  List<LayoutItem> get items;
-  List<LayoutItem> get sortedItems;
-
-  set mainAxisSlots(int value);
-  set axis(DashboardAxis value);
-  set items(List<LayoutItem> value);
-
-  void add(
-    Object id,
-    LayoutSize size, {
-    required PositionStrategy strategy,
-    Object? afterId,
-  }) {
-    assert(
-      !items.any((item) => item.id == id),
-      "Each item in the dashboard must have a unique id. An item with id [$id] already exists.",
-    );
-
-    final validSize = size.constrain(axis, mainAxisSlots);
-
-    final positioner = switch (strategy) {
-      PositionStrategy.aggressive => DashboardAggressivePositioner(
-        items: items,
-        axis: axis,
-        mainAxisSlots: mainAxisSlots,
-        maxCrossSlots: maxCrossAxisSlots,
-      ),
-      PositionStrategy.append => DashboardAppendPositioner(
-        items: items,
-        axis: axis,
-        mainAxisSlots: mainAxisSlots,
-        maxCrossSlots: maxCrossAxisSlots,
-      ),
-      PositionStrategy.after => DashboardAfterPositioner(
-        items: items,
-        axis: axis,
-        mainAxisSlots: mainAxisSlots,
-        afterId: afterId,
-        maxCrossSlots: maxCrossAxisSlots,
-      ),
-      PositionStrategy.head => DashboardHeadPositioner(
-        items: items,
-        axis: axis,
-        mainAxisSlots: mainAxisSlots,
-        maxCrossSlots: maxCrossAxisSlots,
-      ),
-    };
-
-    final newItems = positioner.position(id, validSize);
-
-    items = newItems;
-  }
-
-  void remove(Object id) {
-    if (!items.any((item) => item.id == id)) {
-      return;
-    }
-
-    final newItems = items.where((item) => item.id != id).toList();
-
-    items = newItems;
-  }
-
-  factory DashboardController({
-    DashboardAxis axis,
-    required int mainAxisSlots,
-    Iterable<LayoutItem>? initialItems,
-  }) = _DashboardControllerImpl;
-}
-
-class _DashboardControllerImpl extends DashboardController {
-  _DashboardControllerImpl({
+final class DashboardController extends DashboardItemStorage
+    implements DashboardItemMutator {
+  DashboardController({
     DashboardAxis axis = DashboardAxis.horizontal,
     required int mainAxisSlots,
     Iterable<LayoutItem>? initialItems,
   }) : _axis = axis,
-       _mainAxisSlots = mainAxisSlots,
-       super._() {
+       _mainAxisSlots = mainAxisSlots {
     /// ensure the initial items are valid and properly adopted
     final adopted = DashboardHelper.adoptMetrics(
       initialItems ?? [],
@@ -134,9 +57,14 @@ class _DashboardControllerImpl extends DashboardController {
   }
 
   @override
-  set items(List<LayoutItem> value) {
-    _refillItems(value);
+  void updateItems(List<LayoutItem> newItems) {
+    _refillItems(newItems);
     notifyListeners();
+  }
+
+  @override
+  bool validateLayoutRect(LayoutRect rect) {
+    return LayoutChecker.isValidRect(rect, axis, mainAxisSlots);
   }
 
   void _updateMetrics(DashboardAxis? newAxis, int? newMainAxisSlots) {

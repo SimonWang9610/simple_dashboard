@@ -139,6 +139,8 @@ class DashboardHelper {
             ).position(
               item.id,
               item.rect.size.constrain(axis, mainAxisSlots),
+              minSize: item.minSize.constrain(axis, mainAxisSlots),
+              maxSize: item.maxSize?.constrain(axis, mainAxisSlots),
             );
       }
 

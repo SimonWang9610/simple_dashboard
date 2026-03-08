@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/rendering.dart';
-
-import 'layout_delegate.dart';
+import 'package:simple_dashboard/simple_dashboard.dart';
+import 'package:simple_dashboard/src/sliver/grid_painter.dart';
 
 class SliverDashboardParentData extends SliverMultiBoxAdaptorParentData {
   double? crossAxisOffset;
@@ -32,6 +32,8 @@ class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
     _layoutDelegate = value;
   }
 
+  late SliverDashboardLayout dashboardLayout;
+
   @override
   void performLayout() {
     final SliverConstraints constraints = this.constraints;
@@ -45,7 +47,7 @@ class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
     assert(remainingExtent >= 0.0);
     final double targetEndScrollOffset = scrollOffset + remainingExtent;
 
-    final dashboardLayout = _layoutDelegate.getLayout(constraints);
+    dashboardLayout = _layoutDelegate.getLayout(constraints);
 
     final firstIndex = dashboardLayout.getMinChildIndexForScrollOffset(
       scrollOffset,
@@ -231,6 +233,7 @@ class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
     // originOffset gives us the delta from the real origin to the origin in the axis direction.
     final Offset mainAxisUnit, crossAxisUnit, originOffset;
     final bool addExtent;
+
     switch (applyGrowthDirectionToAxisDirection(
       constraints.axisDirection,
       constraints.growthDirection,
@@ -256,6 +259,20 @@ class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
         originOffset = offset + Offset(geometry!.paintExtent, 0.0);
         addExtent = true;
     }
+
+    _gridPainter.paint(
+      context.canvas,
+      dashboardLayout,
+      constraints,
+      _layoutDelegate.mainAxisSlots,
+
+      /// ensure the grid fill the viewport even when the children do not fill the viewport.
+      math.max(geometry!.paintExtent, constraints.remainingPaintExtent),
+      originOffset,
+      mainAxisUnit,
+      crossAxisUnit,
+    );
+
     RenderBox? child = firstChild;
     while (child != null) {
       final double mainAxisDelta = childMainAxisPosition(child);
@@ -282,4 +299,6 @@ class RenderSliverDashboard extends RenderSliverMultiBoxAdaptor {
       child = childAfter(child);
     }
   }
+
+  final _gridPainter = DashboardGridPainter();
 }

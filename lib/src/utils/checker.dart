@@ -3,6 +3,18 @@ import 'package:simple_dashboard/simple_dashboard.dart';
 import 'package:simple_dashboard/src/models/layout_collision.dart';
 
 abstract class LayoutChecker {
+  static bool isValidRect(
+    LayoutRect rect,
+    DashboardAxis axis,
+    int mainAxisSlots,
+  ) {
+    return rect.x >= 0 &&
+        rect.y >= 0 &&
+        rect.size.width > 0 &&
+        rect.size.height > 0 &&
+        !rect.isOverflow(axis, mainAxisSlots);
+  }
+
   static List<LayoutItem> findOverflowItems(
     Iterable<LayoutItem> items,
     DashboardAxis axis,
@@ -108,7 +120,8 @@ abstract class LayoutChecker {
     LayoutRect rect,
   ) {
     final conflicts = items.where(
-      (item) => item.rect.hasConflicts(rect) && item.rect != rect,
+      // (item) => item.rect.hasConflicts(rect) && item.rect != rect,
+      (item) => item.rect.hasConflicts(rect),
     );
 
     final Map<CollisionDirection, List<LayoutItem>> result = {};
@@ -133,13 +146,7 @@ abstract class LayoutChecker {
       result.putIfAbsent(direction, () => []).add(item);
     }
 
-    return LayoutCollisionResult(
-      rect: rect,
-      topLeft: result[CollisionDirection.topLeft] ?? [],
-      topRight: result[CollisionDirection.topRight] ?? [],
-      bottomLeft: result[CollisionDirection.bottomLeft] ?? [],
-      bottomRight: result[CollisionDirection.bottomRight] ?? [],
-    );
+    return LayoutCollisionResult(rect: rect, collisions: result);
   }
 
   static void debugLayoutAssertions(
